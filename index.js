@@ -9,7 +9,7 @@ app.use("/users", (req, res) => {
 });
 
 // Start the server
-const PORT = 8099;
+const PORT = 8080;
 app.listen(PORT, () => {
   console.log(`App listening on port ${PORT}`);
   console.log("Press Ctrl+C to quit.");

@@ -16,4 +16,6 @@ language = "nodejs"
 
 deploymentTarget = "cloudrun"
 ignorePorts = false
+build = ["sh", "-c", "npm run build --prefix client/"]
+run = ["sh", "-c", "node index.js"]
 

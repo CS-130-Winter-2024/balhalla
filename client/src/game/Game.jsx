@@ -1,7 +1,8 @@
 import * as three from "three";
 import { PointerLockControls } from "three/addons/controls/PointerLockControls.js";
 import world from "./World";
-import { createCamera } from "./Player";
+import Connection from "./Connection";
+import * as Player from "./Player";
 
 function updateAspect(renderer, camera) {
   const canvas = renderer.domElement;
@@ -19,6 +20,7 @@ function updateAspect(renderer, camera) {
 }
 
 export default function main() {
+  Connection();
   var locked = false;
   var scene = new three.Scene();
   scene.background = new three.Color(0x87ceeb);
@@ -26,12 +28,13 @@ export default function main() {
   renderer.domElement.id = "GameCanvas";
   document.body.appendChild(renderer.domElement);
 
-  var camera = createCamera();
+  var camera = Player.createCamera();
   scene.add(world());
   let light = new three.PointLight(0xffffff, 4, 0, 0);
   light.position.set(0, 20, 10);
   scene.add(light);
 
+  //Camera Controls Section
   var controls = new PointerLockControls(camera, renderer.domElement);
   controls.connect();
   controls.addEventListener("lock", () => {
@@ -52,13 +55,17 @@ export default function main() {
     }
   });
 
+  Player.attachKeybinds();
+
   updateAspect(renderer, camera);
   window.addEventListener("resize", () => {
     updateAspect(renderer, camera);
   });
-
-  function animate() {
+  var prev = 0;
+  function animate(time) {
     renderer.render(scene, camera);
+    Player.updatePlayer((time - prev) / 1000);
+    prev = time;
     requestAnimationFrame(animate);
   }
   animate();

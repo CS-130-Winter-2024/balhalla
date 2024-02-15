@@ -9,19 +9,21 @@ export function createBall() {
     return ball;
 }
 
+// move the ball
 export function moveBall(ball, deltaX, deltaY, deltaZ) {
-    // Update the position based on the deltas
     ball.position.x += deltaX;
     ball.position.y += deltaY;
     ball.position.z += deltaZ;
 }
 
+// rotate the ball
 export function rotateBall(ball, rotationX = 0, rotationY = 0, rotationZ = 0) {
     ball.rotation.x += three.MathUtils.degToRad(rotationX);
     ball.rotation.y += three.MathUtils.degToRad(rotationY);
     ball.rotation.z += three.MathUtils.degToRad(rotationZ);
   }
 
+  // texture the ball
 export function textureBall(ball, texturePath, repeatX = 1, repeatY = 1) {
     const texture = new three.TextureLoader().load(texturePath);
     texture.wrapS = three.RepeatWrapping;

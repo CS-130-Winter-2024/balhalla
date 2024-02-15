@@ -24,9 +24,11 @@ export default function createWorld() {
   const textures = [gorilla, xiao, lisa]
   let revolutions = 0;
   let currentTextureIndex = 0;
+
   // adding texture
   textureBall(ball, gorilla, 2, 2)
 
+  // adding human model
   const loader = new GLTFLoader();
   let humanModel;
   let mixer;
@@ -35,11 +37,10 @@ export default function createWorld() {
     "../../assets/models/goku.glb",
     (gltf) => {
       humanModel = gltf.scene;
-      humanModel.scale.set(0.8, 0.8, 0.8); // Adjust the scale as needed
-      humanModel.position.set(2, 0, 4); // Set initial position
+      humanModel.scale.set(0.8, 0.8, 0.8); 
+      humanModel.position.set(2, 0, 4); 
       world.add(humanModel);
 
-      // Set up and play animation (adjust as per your model)
       mixer = new three.AnimationMixer(humanModel);
       const clip = gltf.animations[0]; 
       const action = mixer.clipAction(clip);
@@ -66,17 +67,18 @@ export default function createWorld() {
       angle = 0;
       revolutions++;
 
-      // Change the texture for each revolution
       currentTextureIndex = revolutions % textures.length;
       const currentTexture = textures[currentTextureIndex];
       textureBall(ball, currentTexture, 2, 2);
 
     }
+
+    // Update angle
     angle += 0.01;
 
-    // makes goku do goku things
+    // makes goku do goku things with clock
     if (humanModel) {
-      mixer.update(0.01); // Update the animation mixer
+      mixer.update(0.01); 
     }
   }
 

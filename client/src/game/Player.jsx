@@ -83,7 +83,6 @@ export function getPlayer() {
   return player;
 }
 
-console.log("PERPVECTOR!", perpVector);
 export function updatePlayer(dt) {
   camera.getWorldDirection(movementVector);
   camera.getWorldDirection(perpVector);

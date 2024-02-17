@@ -6,7 +6,6 @@ export default function UI({}) {
   const [showOverlay, setShowOverlay] = useState(false);
   useEffect(() => {
     document.addEventListener("lock", () => {
-      console.log("THIS IS A TEST");
       setShowOverlay(true);
     });
     document.addEventListener("unlock", () => {

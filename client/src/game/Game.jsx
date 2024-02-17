@@ -1,7 +1,7 @@
 import * as three from "three";
 import { PointerLockControls } from "three/addons/controls/PointerLockControls.js";
 import world from "./World";
-import Connection from "./Connection";
+import { setupConnection, setHandler, MESSAGES } from "./Connection";
 import * as Player from "./Player";
 
 function updateAspect(renderer, camera) {
@@ -19,8 +19,24 @@ function updateAspect(renderer, camera) {
   }
 }
 
+function getUsername() {
+  return "Player" + Math.floor(Math.random() * 1000);
+}
+
+function websocketSetup() {
+  setHandler("open", (socket) => {
+    var eventMsg = json.stringify([
+      MESSAGES.playerJoin,
+      { username: getUsername() },
+    ]);
+    socket.send(eventMsg);
+  });
+  setupConnection();
+}
+
 export default function main() {
-  Connection();
+  websocketSetup();
+
   var locked = false;
   var scene = new three.Scene();
   scene.background = new three.Color(0x87ceeb);

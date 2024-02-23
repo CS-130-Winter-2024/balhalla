@@ -20,15 +20,8 @@ export function getSkybox() {
   return texture;
 }
 
-export function createWorld() {
-  var world = new three.Group();
-  let floorGeo = new three.BoxGeometry();
-  let floorMat = new three.MeshLambertMaterial({ color: 0x333333 });
-  floorGeo.scale(31, 99, 31);
-  var floor = new three.Mesh(floorGeo, floorMat);
-  floor.position.y = -50;
-  world.add(floor);
-
+// Sample test world for development
+function sampleTestWorld(world) {
   // adding ball
   let ball = createBall();
   world.add(ball);
@@ -94,4 +87,20 @@ export function createWorld() {
   animate();
 
   return world;
+
+}
+
+export function createWorld() {
+  var world = new three.Group();
+  let floorGeo = new three.BoxGeometry();
+  let floorMat = new three.MeshLambertMaterial({ color: 0x333333 });
+  floorGeo.scale(31, 99, 31);
+  var floor = new three.Mesh(floorGeo, floorMat);
+  floor.position.y = -50;
+  world.add(floor);
+
+  let testWorld = sampleTestWorld(world);
+  
+
+  return testWorld;
 }

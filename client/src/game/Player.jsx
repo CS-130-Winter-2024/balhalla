@@ -5,18 +5,25 @@ var camera, player;
 const speed = 5; //units per second
 var properties = {
   x: 0,
-  y: 2,
+  y: 1.5,
   z: 10,
   directionHeld: [0, 0, 0, 0],
 };
 
 var movementVector = new three.Vector3();
 var perpVector = new three.Vector3();
+var intermediateVector = new three.Vector3();
 var locked = false;
 
-export function attachKeybinds() {
-  document.addEventListener("keydown", onKeyDown);
-  document.addEventListener("keyup", onKeyUp);
+var keybinds = [];
+
+export function attachKeybinds(movementCallback) {
+  document.addEventListener("keydown", (e) => {
+    onKeyDown(e, movementCallback);
+  });
+  document.addEventListener("keyup", (e) => {
+    onKeyUp(e, movementCallback);
+  });
   document.addEventListener("lock", () => {
     locked = true;
     properties.directionHeld = [0, 0, 0, 0];
@@ -27,40 +34,78 @@ export function attachKeybinds() {
   });
 }
 
-function onKeyDown(e) {
+function calculateDirection() {
+  camera.getWorldDirection(movementVector);
+  camera.getWorldDirection(perpVector);
+  movementVector.multiplyScalar(
+    properties.directionHeld[0] - properties.directionHeld[2],
+  );
+  perpVector.set(
+    -perpVector.z * (properties.directionHeld[3] - properties.directionHeld[1]),
+    0,
+    perpVector.x * (properties.directionHeld[3] - properties.directionHeld[1]),
+  );
+  movementVector.add(perpVector);
+  movementVector.y = 0;
+  movementVector.normalize();
+}
+
+function onKeyDown(e, callback) {
+  // callback is sendMovement(vector) from Connection.jsx
   if (locked) {
+    let wasMovement = false;
     switch (e.key) {
       case "w":
+        wasMovement = properties.directionHeld[0] == 0;
         properties.directionHeld[0] = 1;
         break;
       case "a":
+        wasMovement = properties.directionHeld[1] == 0;
         properties.directionHeld[1] = 1;
         break;
       case "s":
+        wasMovement = properties.directionHeld[2] == 0;
         properties.directionHeld[2] = 1;
         break;
       case "d":
+        wasMovement = properties.directionHeld[3] == 0;
         properties.directionHeld[3] = 1;
         break;
+    }
+
+    if (wasMovement) {
+      console.log("Movement!");
+      calculateDirection();
+      callback(movementVector);
     }
   }
 }
 
-function onKeyUp(e) {
+function onKeyUp(e, callback) {
+  // callback is sendMovement(vector) from Connection.jsx
   if (locked) {
+    let wasMovement = false;
     switch (e.key) {
       case "w":
         properties.directionHeld[0] = 0;
+        wasMovement = true;
         break;
       case "a":
         properties.directionHeld[1] = 0;
+        wasMovement = true;
         break;
       case "s":
         properties.directionHeld[2] = 0;
+        wasMovement = true;
         break;
       case "d":
         properties.directionHeld[3] = 0;
+        wasMovement = true;
         break;
+    }
+    if (wasMovement) {
+      calculateDirection();
+      callback(movementVector);
     }
   }
 }
@@ -83,22 +128,19 @@ export function getPlayer() {
   return player;
 }
 
+export function setPlayerPosition(x, z) {
+  camera.position.set(x, properties.y, z);
+  properties.x = x;
+  properties.z = z;
+  camera.updateProjectionMatrix();
+  console.log(camera.position);
+}
+
 export function updatePlayer(dt) {
-  camera.getWorldDirection(movementVector);
-  camera.getWorldDirection(perpVector);
-  movementVector.multiplyScalar(
-    properties.directionHeld[0] - properties.directionHeld[2],
-  );
-  perpVector.set(
-    -perpVector.z * (properties.directionHeld[3] - properties.directionHeld[1]),
-    0,
-    perpVector.x * (properties.directionHeld[3] - properties.directionHeld[1]),
-  );
-  movementVector.add(perpVector);
-  movementVector.y = 0;
-  movementVector.normalize();
   if (locked) {
-    camera.position.add(movementVector.multiplyScalar(dt * speed));
+    intermediateVector.copy(movementVector);
+    intermediateVector.multiplyScalar(dt * speed);
+    camera.position.add(intermediateVector);
   }
   properties.x = camera.position.x;
   properties.z = camera.position.z;

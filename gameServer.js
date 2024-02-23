@@ -1,11 +1,14 @@
 const TICK_RATE = 50;
+const TICK_DT = 0.05;
+const SPEED = 5;
 
-const MESSAGES = {
-  sendKey: "a", //server<-client
-  serverUpdate: "b", //server->client
-  playerJoin: "c", //server<->client
-  playerLeave: "d", // server->client
-  playerList: "e", // server->client
+export const MESSAGES = {
+  sendMovement: "a", //server<-client DONE ON SERVER
+  serverUpdate: "b", //server->client DONE ON SERVER
+  playerJoin: "c", //server<->client DONE ON SERVER
+  playerLeave: "d", // server->client DONE ON SERVER
+  playerList: "e", // server->client DONE ON SERVER
+
   gameStart: "f", // server->client
   playerKnockout: "g", //server->client
   knockedOut: "h", //server->client
@@ -13,7 +16,7 @@ const MESSAGES = {
 };
 
 const PLAYER_SAMPLE = {
-  keys: [0, 0, 0, 0, 0], //WASD + click held
+  direction: [0, 0], //x,z
   x: 0,
   z: 0,
   alive: true,
@@ -25,39 +28,88 @@ const BALL_SAMPLE = {
   y: 0,
   z: 0,
   velocity: [0, 0, 0],
-  throwerID: [],
+  throwerID: "",
 };
 
 var state = [];
+
+//Stores the gameloop interval ID
 var serverRepeater;
 
 var players = {}; //playerid associated
-var playerKeys = {}; //playerid associated. separate so that keys are not communicated over signal
-var balls = []; //no association
+var playersMetadata = {}; //playerid associated
+var balls = [];
 
-function processMessage(socket, message) {
+export function processMessage(id, sockets, message) {
   let data = JSON.parse(message);
   switch (data[0]) {
-    case MESSAGES.sendKey:
+    case MESSAGES.sendMovement:
       //store player keys
-      playerKeys[data[1].id].keys[data[1].key] = data[1].isDown;
+      players[id].direction = data[1].direction;
       break;
     case MESSAGES.playerJoin:
+      //THIS BEHAVIOR NEEDS TO BE CHANGED LATER
+      //add player to players list
+      players[id] = {
+        ...PLAYER_SAMPLE,
+      };
+      playersMetadata[id] = {
+        username: data[1].username,
+      };
+
       //send list of players to newly joined players
-      socket.send(JSON.stringify([MESSAGES.playerList, players]));
+      sockets[id].send(
+        JSON.stringify([MESSAGES.playerList, id, players, playersMetadata]),
+      );
+
+      //send new join to all other players
+      for (let otherID in players) {
+        if (id == otherID) continue;
+
+        sockets[otherID].send(
+          JSON.stringify([
+            MESSAGES.playerJoin,
+            id,
+            players[id],
+            playersMetadata[id],
+          ]),
+        );
+      }
       break;
-    case MESSAGES.playerLeave:
-      //remove player from player list
-      breakl;
   }
 }
 
-function doGameTick() {}
-
-function startServer() {
-  serverRepeater = setInterval(doGameTick, TICK_RATE);
+export function deletePlayer(id) {
+  delete players[id];
+  delete playersMetadata[id];
 }
 
-function stopServer() {
+export function doGameTick(sockets) {
+  //Update Player movements
+  for (const playerID in players) {
+    let player = players[playerID];
+    player.x += player.direction[0] * TICK_DT * SPEED;
+    player.z += player.direction[1] * TICK_DT * SPEED;
+  }
+
+  //Update ball movements
+  for (const ballID in balls) {
+  }
+
+  //Send update to everyone
+  for (const socket in sockets) {
+    sockets[socket].send(
+      JSON.stringify([MESSAGES.serverUpdate, players, balls]),
+    );
+  }
+}
+
+export function startServer(sockets) {
+  serverRepeater = setInterval(() => {
+    doGameTick(sockets);
+  }, TICK_RATE);
+}
+
+export function stopServer() {
   clearInterval(serverRepeater);
 }

@@ -1,51 +1,93 @@
-var players = {};
-// list of player usernames a client has added to scene
+import * as three from "three";
+import { Text } from "troika-three-text";
 
-const SAMPLE_UPDATE = {
-  playerid: {
-    x: 0,
-    z: 0,
-    hasBall: false,
-  },
-  playerid2: {
-    x: 0,
-    z: 0,
-    hasBall: false,
-  },
-};
+const tempMesh = new three.CylinderGeometry(0.5, 0.5, 2);
 
-const SAMPLE_MODEL_UPDATE = {
-  playerid: {
-    newModel: 7,
-  },
-};
+class PlayerModel {
+  constructor(name) {
+    this.material = new three.MeshLambertMaterial({ color: 0x888888 });
+    this.body = new three.Mesh(tempMesh, this.material);
+    this.group = new three.Group();
+    this.tag = new Text();
+    this.tag.text = name;
+    this.tag.fontSize = 0.5;
+    this.tag.anchorX = "center";
+    this.tag.anchory = "center";
+    this.tag.position.y = 2.5;
+    this.tag.outlineWidth = "10%";
 
-//Add player to scene and player list
-export function addPlayer(playerID, data) {
-  // Must check if playerID already exists
-  players[playerID] = data;
+    this.group.add(this.tag);
+    this.group.add(this.body);
+  }
 
-  //add 3d model to model group
-  //PHILIP and GIANG
+  dispose() {
+    this.tag.dispose();
+    this.material.dispose();
+  }
+
+  update(camera) {
+    this.tag.quaternion.copy(camera.quaternion);
+  }
 }
 
-function removePlayer(playerID) {}
+var clientID = -1;
+var players = {};
+var playersMetadata = {};
+var playersModels = {};
 
-// receiving massive update from server to update all player statuses.
-// If player is not in player list, cannot update them.
+var otherPlayerGroup = new three.Group();
+
+var reusableVector = new three.Vector3(0, 0, 0);
+
+//Add player to scene and player list
+export function addPlayer(playerID, data, metadata) {
+  //Add player to gamedata
+  players[playerID] = data;
+  //Add player metadata
+  playersMetadata[playerID] = metadata;
+
+  //add 3d model to model group
+  playersModels[playerID] = new PlayerModel(metadata.username);
+  otherPlayerGroup.add(playersModels[playerID].group);
+}
+
+export function removePlayer(playerID) {
+  otherPlayerGroup.remove(playersModels[playerID].group);
+  playersModels[playerID].dispose();
+  delete playersModels[playerID];
+  delete players[playerID];
+  delete playersMetadata[playerID];
+}
+
 // Called on server update message
-function updatePlayers(update) {
+export function updatePlayers(update, camera) {
   players = {
     ...players,
     ...update,
   };
 
-  //update 3d models with players json
+  //update 3d models with players object
+  for (let playerID in players) {
+    if (playerID == clientID) continue;
+    playersModels[playerID].update(camera);
+    reusableVector.set(players[playerID].x, 0, players[playerID].z); // reusableVector holds actual position in server
+    playersModels[playerID].group.position.lerp(reusableVector, 0.3); // gives smoother transition from current position to target position
+  }
 }
 
 //update the 3d models of the players using the "players" object
 //called every frame
-function updatePlayerModels() {}
+export function updatePlayerModels() {}
 
 //ThreeJS function for displaying all the players
-function getPlayerModelGroup() {}
+export function getPlayerModelGroup() {
+  return otherPlayerGroup;
+}
+
+export function setClientID(id) {
+  clientID = id;
+}
+
+export function getClientID() {
+  return clientID;
+}

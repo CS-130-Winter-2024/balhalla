@@ -4,6 +4,7 @@ import crosshair from "./crosshair.svg";
 
 export default function UI({}) {
   const [showOverlay, setShowOverlay] = useState(false);
+  const [username, setUsername] = useState("Hello World");
   useEffect(() => {
     document.addEventListener("lock", () => {
       setShowOverlay(true);
@@ -11,12 +12,15 @@ export default function UI({}) {
     document.addEventListener("unlock", () => {
       setShowOverlay(false);
     });
+    document.addEventListener("setUsername", (e) => {
+      setUsername(e.detail);
+    });
   }, []);
 
   return (
     <>
       <div id="UI" style={{ display: (showOverlay && "none") || "block" }}>
-        <h1>Hello World</h1>
+        <h1>{username}</h1>
       </div>
       <div
         id="crosshair"

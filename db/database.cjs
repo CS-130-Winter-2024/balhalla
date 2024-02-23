@@ -12,27 +12,29 @@ const knex = require("knex")({
 
 (async () => {
 
-  knex.schema.hasTable('accounts').then(function(exists) {
+  // Only while developing, we will drop  database and re-create it
+  // await knex.schema.dropTableIfExists('accounts')
+  // await knex.schema.dropTableIfExists('items')
+
+  await knex.schema.hasTable('accounts').then(function(exists) {
     if (!exists) {
-      return knex.schema.createTable("accounts", function(table) {
-        table.increments("id");
-        table.string("username");
-        table.string("password");
+      return knex.schema.createTable('accounts', function(table) {
+        table.string('username').unique().primary();
+        table.string('password');
+        table.integer('points');
+        table.check('?? >= ??', ['points', 0]);
+      });
+    }
+  });
+  await knex.schema.hasTable('items').then(function(exists) {
+    if (!exists) {
+      return knex.schema.createTable('items', function(table) {
+        table.string('username');
+        table.integer('item_id');
       });
     }
   });
   
-  await knex("accounts").insert({
-    username: "admin",
-    password: "1234",
-  });
-  
-  const user = await knex('accounts')
-  .where('username', 'admin')
-  // .first();
-  
-  console.log(user);
-
-  await knex("accounts").where("username", "admin").delete();
+  // TODO: Test Cases
 
 })();

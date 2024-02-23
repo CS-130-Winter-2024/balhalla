@@ -1,8 +1,8 @@
 import * as three from "three";
-
+import { DODGE_BALL_SIZE } from "../ui/constants";
 
 export function createBall() {
-    const ballGeometry = new three.SphereGeometry(1, 32, 32);
+    const ballGeometry = new three.SphereGeometry(1, DODGE_BALL_SIZE, DODGE_BALL_SIZE);
     const ballMaterial = new three.MeshLambertMaterial({});
     const ball = new three.Mesh(ballGeometry, ballMaterial);
     ball.position.set(0, 0.3, 0); 

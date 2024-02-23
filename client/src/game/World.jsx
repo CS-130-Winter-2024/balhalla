@@ -13,6 +13,8 @@ import ny from "../../assets/textures/ny.png";
 import pz from "../../assets/textures/pz.png";
 import nz from "../../assets/textures/nz.png";
 
+import colors from "../ui/constants";
+
 export function getSkybox() {
   const loader = new three.CubeTextureLoader();
   const texture = loader.load([px, nx, py, ny, pz, nz]);
@@ -93,7 +95,7 @@ function sampleTestWorld(world) {
 export function createWorld() {
   var world = new three.Group();
   let floorGeo = new three.BoxGeometry();
-  let floorMat = new three.MeshLambertMaterial({ color: 0x333333 });
+  let floorMat = new three.MeshLambertMaterial({ color: colors.floor });
   floorGeo.scale(31, 99, 31);
   var floor = new three.Mesh(floorGeo, floorMat);
   floor.position.y = -50;

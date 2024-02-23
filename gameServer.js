@@ -1,7 +1,7 @@
 const TICK_RATE = 50;
 const TICK_DT = 0.05;
 const SPEED = 5;
-
+const WORLD_HALF_WIDTH = 15;
 export const MESSAGES = {
   sendMovement: "a", //server<-client DONE ON SERVER
   serverUpdate: "b", //server->client DONE ON SERVER
@@ -88,8 +88,13 @@ export function doGameTick(sockets) {
   //Update Player movements
   for (const playerID in players) {
     let player = players[playerID];
-    player.x += player.direction[0] * TICK_DT * SPEED;
-    player.z += player.direction[1] * TICK_DT * SPEED;
+    if (Math.abs(player.x) < WORLD_HALF_WIDTH || player.x * player.direction[0] <= 0){
+      player.x += player.direction[0] * TICK_DT * SPEED;
+    }
+
+    if (Math.abs(player.z) < WORLD_HALF_WIDTH || player.z * player.direction[1] <= 0){
+      player.z += player.direction[1] * TICK_DT * SPEED;
+    }
   }
 
   //Update ball movements

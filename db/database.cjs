@@ -35,6 +35,32 @@ const knex = require("knex")({
     }
   });
   
-  // TODO: Test Cases
+  // TEST CASES - Ishaan
+
+  await knex('accounts').insert({
+    username: 'admin',
+    password: '1234',
+    points: 0,
+  });
+
+  await knex('items').insert({
+    username: 'admin',
+    item_id: 11,
+  });
+  await knex('items').insert({
+    username: 'admin',
+    item_id: 12,
+  });
+
+  const user = await knex('accounts').where('username', 'admin')
+  console.log(user);
+
+  const test2 = await knex.select('*')
+    .from('accounts')
+    .leftOuterJoin('items', 'accounts.username', 'items.username')
+
+  console.log(test2);
+
+  await knex("accounts").where("username", "admin").delete();
 
 })();

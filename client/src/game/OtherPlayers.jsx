@@ -1,5 +1,6 @@
 import * as three from "three";
 import { Text } from "troika-three-text";
+import { getCamera } from "./Player";
 
 const tempMesh = new three.CylinderGeometry(0.5, 0.5, 2);
 
@@ -60,24 +61,23 @@ export function removePlayer(playerID) {
 }
 
 // Called on server update message
-export function updatePlayers(update, camera) {
+export function updatePlayers(update) {
   players = {
     ...players,
     ...update,
   };
-
-  //update 3d models with players object
-  for (let playerID in players) {
-    if (playerID == clientID) continue;
-    playersModels[playerID].update(camera);
-    reusableVector.set(players[playerID].x, 0, players[playerID].z); // reusableVector holds actual position in server
-    playersModels[playerID].group.position.lerp(reusableVector, 0.3); // gives smoother transition from current position to target position
-  }
 }
 
 //update the 3d models of the players using the "players" object
 //called every frame
-export function updatePlayerModels() {}
+export function update() {
+  for (let playerID in players) {
+    if (playerID == clientID) continue;
+    playersModels[playerID].update(getCamera());
+    reusableVector.set(players[playerID].x, 0.5, players[playerID].z); // reusableVector holds actual position in server
+    playersModels[playerID].group.position.lerp(reusableVector, 0.1); // gives smoother transition from current position to target position
+  }
+}
 
 //ThreeJS function for displaying all the players
 export function getPlayerModelGroup() {

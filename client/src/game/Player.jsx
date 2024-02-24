@@ -1,45 +1,34 @@
 import * as three from "three";
+import { getSocket, MESSAGES } from "./Connection";
 
-var camera, player;
 
-const speed = 5; //units per second
+const SPEED = 5; //units per second
+const ALIVE_Y = 1.25;
+const DEAD_Y = 5; // FIND CORRECT VALUE LATER
+
+const RATE = 25; //max rate of sending movement updates to server
+
+var camera;
 var properties = {
   x: 0,
-  y: 1.5,
-  z: 10,
+  y: ALIVE_Y,
+  z: 0,
   directionHeld: [0, 0, 0, 0],
 };
+var locked = false; //Locked = First Person Cam; Unlocked = Mouse Movement
 
 var movementVector = new three.Vector3();
 var perpVector = new three.Vector3();
 var intermediateVector = new three.Vector3();
-var locked = false;
-
-var keybinds = [];
-
-export function attachKeybinds(movementCallback) {
-  document.addEventListener("keydown", (e) => {
-    onKeyDown(e, movementCallback);
-  });
-  document.addEventListener("keyup", (e) => {
-    onKeyUp(e, movementCallback);
-  });
-  document.addEventListener("lock", () => {
-    locked = true;
-    properties.directionHeld = [0, 0, 0, 0];
-  });
-  document.addEventListener("unlock", () => {
-    locked = false;
-    properties.directionHeld = [0, 0, 0, 0];
-  });
-}
 
 function calculateDirection() {
   camera.getWorldDirection(movementVector);
   camera.getWorldDirection(perpVector);
+  // Forward and Back movement calculation
   movementVector.multiplyScalar(
     properties.directionHeld[0] - properties.directionHeld[2],
   );
+  // Side to Side movement calculation
   perpVector.set(
     -perpVector.z * (properties.directionHeld[3] - properties.directionHeld[1]),
     0,
@@ -50,7 +39,23 @@ function calculateDirection() {
   movementVector.normalize();
 }
 
-function onKeyDown(e, callback) {
+var canSend = true;
+function sendMovement(override = false) {
+  if (canSend || override) {
+    getSocket().send(
+      JSON.stringify([
+        MESSAGES.sendMovement,
+        { direction: [movementVector.x, movementVector.z] },
+      ]),
+    );
+    canSend = false;
+    setTimeout(() => {
+      canSend = true;
+    }, RATE);
+  }
+}
+
+function onKeyDown(e) {
   // callback is sendMovement(vector) from Connection.jsx
   if (locked) {
     let wasMovement = false;
@@ -74,14 +79,13 @@ function onKeyDown(e, callback) {
     }
 
     if (wasMovement) {
-      console.log("Movement!");
       calculateDirection();
-      callback(movementVector);
+      sendMovement();
     }
   }
 }
 
-function onKeyUp(e, callback) {
+function onKeyUp(e) {
   // callback is sendMovement(vector) from Connection.jsx
   if (locked) {
     let wasMovement = false;
@@ -105,15 +109,31 @@ function onKeyUp(e, callback) {
     }
     if (wasMovement) {
       calculateDirection();
-      callback(movementVector);
+      sendMovement();
     }
   }
+}
+
+export function attachKeybinds() {
+  document.addEventListener("keydown", onKeyDown);
+  document.addEventListener("keyup", onKeyUp);
+  document.addEventListener("lock", () => {
+    locked = true;
+    properties.directionHeld = [0, 0, 0, 0];
+  });
+  document.addEventListener("unlock", () => {
+    locked = false;
+    properties.directionHeld = [0, 0, 0, 0];
+    calculateDirection();
+    sendMovement(true);
+  });
 }
 
 export function createCamera() {
   camera = new three.PerspectiveCamera(75, 2, 0.1, 1000);
   camera.position.z = properties.z;
   camera.position.y = properties.y;
+  camera.position.x = properties.x;
   camera.zoom = 1.3;
   camera.lookAt(0, 0, 5);
   camera.updateProjectionMatrix();
@@ -124,24 +144,25 @@ export function getCamera() {
   return camera;
 }
 
-export function getPlayer() {
-  return player;
-}
-
 export function setPlayerPosition(x, z) {
-  camera.position.set(x, properties.y, z);
   properties.x = x;
   properties.z = z;
-  camera.updateProjectionMatrix();
-  console.log(camera.position);
 }
 
-export function updatePlayer(dt) {
+export function updatePlayer() {
   if (locked) {
-    intermediateVector.copy(movementVector);
-    intermediateVector.multiplyScalar(dt * speed);
-    camera.position.add(intermediateVector);
+    //if dotproduct between camera and movement vector < 0.9
+    if (movementVector.length() > 0.5) {
+      camera.getWorldDirection(intermediateVector);
+      let dot = movementVector.dot(intermediateVector);
+      if (dot < 0.95) {
+        //send update to server
+        calculateDirection();
+        sendMovement();
+      }
+    }
+    
+    intermediateVector.set(properties.x, properties.y, properties.z);
+    camera.position.lerp(intermediateVector, 0.2);
   }
-  properties.x = camera.position.x;
-  properties.z = camera.position.z;
 }

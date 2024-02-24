@@ -1,21 +1,55 @@
 import * as three from "three";
 import { PointerLockControls } from "three/addons/controls/PointerLockControls.js";
 import { createWorld, getSkybox } from "./World";
-import {
-  setupConnection,
-  setHandler,
-  MESSAGES,
-  sendMovement,
-} from "./Connection";
-import {
-  getPlayerModelGroup,
-  addPlayer,
-  removePlayer,
-  setClientID,
-  getClientID,
-  updatePlayers,
-} from "./OtherPlayers";
+import { setupConnection, setHandler, MESSAGES } from "./Connection";
+import * as Others from "./OtherPlayers";
 import * as Player from "./Player";
+
+function getUsername() {
+  return "Player" + Math.floor(Math.random() * 1000);
+}
+
+// Defines how the game handles messages from server
+function websocketSetup() {
+  //On connect, send username
+  setHandler("open", (socket) => {
+    let usernm = getUsername();
+    var eventMsg = JSON.stringify([MESSAGES.playerJoin, { username: usernm }]);
+    document.dispatchEvent(new CustomEvent("setUsername", { detail: usernm }));
+    socket.send(eventMsg);
+  });
+
+  //On player list sent, add all players to scene
+  setHandler(MESSAGES.playerList, (socket, data) => {
+    Others.setClientID(data[1]);
+    Player.setPlayerPosition(data[2][data[1]].x, data[2][data[1]].z);
+    for (let player in data[2]) {
+      if (player == data[1]) continue;
+      Others.addPlayer(player, data[2][player], data[3][player]);
+    }
+  });
+
+  //On other player connect, add their data to scene
+  setHandler(MESSAGES.playerJoin, (socket, data) => {
+    Others.addPlayer(data[1], data[2], data[3]);
+  });
+
+  //On other player disconnect, remove their data from scene
+  setHandler(MESSAGES.playerLeave, (socket, data) => {
+    Others.removePlayer(data[1]);
+  });
+
+  //On server update, update scene
+  setHandler(MESSAGES.serverUpdate, (socket, data) => {
+    Player.setPlayerPosition(
+      data[1][Others.getClientID()].x,
+      data[1][Others.getClientID()].z,
+    );
+    Others.updatePlayers(data[1]);
+  });
+
+  setupConnection();
+}
 
 function updateAspect(renderer, camera) {
   const canvas = renderer.domElement;
@@ -30,51 +64,6 @@ function updateAspect(renderer, camera) {
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
   }
-}
-
-function getUsername() {
-  return "Player" + Math.floor(Math.random() * 1000);
-}
-
-function websocketSetup(camera) {
-  //On connect, send username
-  setHandler("open", (socket) => {
-    let usernm = getUsername();
-    var eventMsg = JSON.stringify([MESSAGES.playerJoin, { username: usernm }]);
-    document.dispatchEvent(new CustomEvent("setUsername", { detail: usernm }));
-    socket.send(eventMsg);
-  });
-
-  //On player list sent, add all players to scene
-  setHandler(MESSAGES.playerList, (socket, data) => {
-    setClientID(data[1]);
-    Player.setPlayerPosition(data[2][data[1]].x, data[2][data[1]].z);
-    for (let player in data[2]) {
-      if (player == data[1]) continue;
-      addPlayer(player, data[2][player], data[3][player]);
-    }
-  });
-
-  //On other player connect, add their data to scene
-  setHandler(MESSAGES.playerJoin, (socket, data) => {
-    addPlayer(data[1], data[2], data[3]);
-  });
-
-  //On other player disconnect, remove their data from scene
-  setHandler(MESSAGES.playerLeave, (socket, data) => {
-    removePlayer(data[1]);
-  });
-
-  //On server update, update scene
-  setHandler(MESSAGES.serverUpdate, (socket, data) => {
-    Player.setPlayerPosition(
-      data[1][getClientID()].x,
-      data[1][getClientID()].z,
-    );
-    updatePlayers(data[1], camera);
-  });
-
-  setupConnection();
 }
 
 export default function main() {
@@ -93,11 +82,11 @@ export default function main() {
 
   //add lights
   let light = new three.PointLight(0xffffff, 4, 0, 0);
-  light.position.set(0, 20, 10);
+  light.position.set(0, 20, 0);
   scene.add(light);
 
   //add other players
-  scene.add(getPlayerModelGroup());
+  scene.add(Others.getPlayerModelGroup());
 
   //Add controls to camera
   var controls = new PointerLockControls(camera, renderer.domElement);
@@ -123,10 +112,10 @@ export default function main() {
   });
 
   //setup websockets
-  websocketSetup(camera);
+  websocketSetup();
 
   //Attach player keybinds
-  Player.attachKeybinds(sendMovement);
+  Player.attachKeybinds();
 
   //Update viewport whenever changed
   updateAspect(renderer, camera);
@@ -135,11 +124,10 @@ export default function main() {
   });
 
   //Render loop
-  var prev = 0;
   function animate(time) {
+    Player.updatePlayer();
+    Others.update();
     renderer.render(scene, camera);
-    Player.updatePlayer((time - prev) / 1000);
-    prev = time;
     requestAnimationFrame(animate);
   }
   animate();

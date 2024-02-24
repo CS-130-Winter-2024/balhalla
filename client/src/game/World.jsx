@@ -13,7 +13,7 @@ import ny from "../../assets/textures/ny.png";
 import pz from "../../assets/textures/pz.png";
 import nz from "../../assets/textures/nz.png";
 
-import colors from "../ui/constants";
+import { colors } from "../ui/constants";
 
 export function getSkybox() {
   const loader = new three.CubeTextureLoader();
@@ -89,7 +89,6 @@ function sampleTestWorld(world) {
   animate();
 
   return world;
-
 }
 
 export function createWorld() {
@@ -102,7 +101,6 @@ export function createWorld() {
   world.add(floor);
 
   let testWorld = sampleTestWorld(world);
-  
 
   return testWorld;
 }

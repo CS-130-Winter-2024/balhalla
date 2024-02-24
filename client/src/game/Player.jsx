@@ -8,6 +8,8 @@ const DEAD_Y = 5; // FIND CORRECT VALUE LATER
 
 const RATE = 25; //max rate of sending movement updates to server
 
+const MOVEMENT_MAP = {"w":0,"a":1,"s":2,"d":3}; //string enum for movement
+
 var camera;
 var properties = {
   x: 0,
@@ -20,8 +22,10 @@ var locked = false; //Locked = First Person Cam; Unlocked = Mouse Movement
 var movementVector = new three.Vector3();
 var perpVector = new three.Vector3();
 var intermediateVector = new three.Vector3();
+var prevCamVector = new three.Vector3();
 
 function calculateDirection() {
+  camera.getWorldDirection(prevCamVector);
   camera.getWorldDirection(movementVector);
   camera.getWorldDirection(perpVector);
   // Forward and Back movement calculation
@@ -59,23 +63,10 @@ function onKeyDown(e) {
   // callback is sendMovement(vector) from Connection.jsx
   if (locked) {
     let wasMovement = false;
-    switch (e.key) {
-      case "w":
-        wasMovement = properties.directionHeld[0] == 0;
-        properties.directionHeld[0] = 1;
-        break;
-      case "a":
-        wasMovement = properties.directionHeld[1] == 0;
-        properties.directionHeld[1] = 1;
-        break;
-      case "s":
-        wasMovement = properties.directionHeld[2] == 0;
-        properties.directionHeld[2] = 1;
-        break;
-      case "d":
-        wasMovement = properties.directionHeld[3] == 0;
-        properties.directionHeld[3] = 1;
-        break;
+    if (e.key in MOVEMENT_MAP) {
+      let index = MOVEMENT_MAP[e.key];
+      wasMovement = properties.directionHeld[index] == 0;
+      properties.directionHeld[index] = 1;
     }
 
     if (wasMovement) {
@@ -89,24 +80,12 @@ function onKeyUp(e) {
   // callback is sendMovement(vector) from Connection.jsx
   if (locked) {
     let wasMovement = false;
-    switch (e.key) {
-      case "w":
-        properties.directionHeld[0] = 0;
-        wasMovement = true;
-        break;
-      case "a":
-        properties.directionHeld[1] = 0;
-        wasMovement = true;
-        break;
-      case "s":
-        properties.directionHeld[2] = 0;
-        wasMovement = true;
-        break;
-      case "d":
-        properties.directionHeld[3] = 0;
-        wasMovement = true;
-        break;
+    if (e.key in MOVEMENT_MAP) {
+      let index = MOVEMENT_MAP[e.key];
+      wasMovement = true
+      properties.directionHeld[index] = 1;
     }
+
     if (wasMovement) {
       calculateDirection();
       sendMovement();
@@ -151,11 +130,11 @@ export function setPlayerPosition(x, z) {
 
 export function updatePlayer() {
   if (locked) {
-    //if dotproduct between camera and movement vector < 0.9
+    //if dotproduct between camera and previous camera vector < 0.9
     if (movementVector.length() > 0.5) {
       camera.getWorldDirection(intermediateVector);
-      let dot = movementVector.dot(intermediateVector);
-      if (dot < 0.95) {
+      let dot = prevCamVector.dot(intermediateVector);
+      if (dot < 0.95 && dot > 0.05) {
         //send update to server
         calculateDirection();
         sendMovement();

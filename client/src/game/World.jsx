@@ -6,20 +6,20 @@ import gorilla from "../../assets/textures/gorilla.png";
 import xiao from "../../assets/textures/xiao.gif";
 import lisa from "../../assets/textures/lisa.jpg";
 
-import px from "../../assets/textures/px.png";
-import nx from "../../assets/textures/nx.png";
-import py from "../../assets/textures/py.png";
-import ny from "../../assets/textures/ny.png";
-import pz from "../../assets/textures/pz.png";
-import nz from "../../assets/textures/nz.png";
+import skybox from "../../assets/textures/skybox.png";
+
+import arena from "../../assets/models/Arena.glb";
 
 import { colors } from "../ui/constants";
 
-export function getSkybox() {
-  const loader = new three.CubeTextureLoader();
-  const texture = loader.load([px, nx, py, ny, pz, nz]);
+const ModelLoader = new GLTFLoader();
+const TextureLoader = new three.TextureLoader();
 
-  return texture;
+export function getSkybox() {
+  const bg = TextureLoader.load(skybox);
+  bg.mapping = three.EquirectangularReflectionMapping;
+  bg.colorSpace = three.SRGBColorSpace;
+  return bg;
 }
 
 // Sample test world for development
@@ -35,22 +35,23 @@ function sampleTestWorld(world) {
   textureBall(ball, gorilla, 2, 2);
 
   // adding human model
-  const loader = new GLTFLoader();
   let humanModel;
   let mixer;
 
-  loader.load(
-    "../../assets/models/goku.glb",
+  ModelLoader.load(
+    "../../assets/models/Viking.glb",
     (gltf) => {
       humanModel = gltf.scene;
-      humanModel.scale.set(0.8, 0.8, 0.8);
+      humanModel.scale.set(2, 2, 2);
       humanModel.position.set(2, 0, 4);
+      humanModel.children[0].rotation.set(1.5, 0, 0);
+      console.log("[MODEL] ", humanModel);
       world.add(humanModel);
 
-      mixer = new three.AnimationMixer(humanModel);
-      const clip = gltf.animations[0];
-      const action = mixer.clipAction(clip);
-      action.play();
+      //mixer = new three.AnimationMixer(humanModel);
+      //const clip = gltf.animations[0];
+      //const action = mixer.clipAction(clip);
+      //action.play();
     },
     undefined,
     (error) => console.error("Error loading human model", error),
@@ -93,12 +94,20 @@ function sampleTestWorld(world) {
 
 export function createWorld() {
   var world = new three.Group();
-  let floorGeo = new three.BoxGeometry();
-  let floorMat = new three.MeshLambertMaterial({ color: colors.floor });
-  floorGeo.scale(31, 99, 31);
-  var floor = new three.Mesh(floorGeo, floorMat);
-  floor.position.y = -50;
-  world.add(floor);
+  //let floorGeo = new three.BoxGeometry();
+  //let floorMat = new three.MeshLambertMaterial({ color: colors.floor });
+  //floorGeo.scale(31, 99, 31);
+  //var floor = new three.Mesh(floorGeo, floorMat);
+  //floor.position.y = -50;
+  //world.add(floor);
+
+  ModelLoader.load(arena, (gltf) => {
+    let arena = gltf.scene;
+    arena.position.set(0, 0, 0);
+    arena.scale.set(15, 15, 15);
+    console.log("[GLTF]", gltf);
+    world.add(arena);
+  });
 
   let testWorld = sampleTestWorld(world);
 

@@ -29,11 +29,11 @@ export function setupConnection() {
   });
 
   socket.addEventListener("error", (event) => {
-    alert("Socket error!");
+    console.log("Socket error!");
   });
 
   socket.addEventListener("close", (event) => {
-    alert("Socket closed!");
+    console.log("Socket closed!");
   });
 
   socket.addEventListener("message", (event) => {

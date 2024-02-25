@@ -1,14 +1,13 @@
 import * as three from "three";
 import { getSocket, MESSAGES } from "./Connection";
 
-
 const SPEED = 5; //units per second
 const ALIVE_Y = 1.25;
 const DEAD_Y = 5; // FIND CORRECT VALUE LATER
 
 const RATE = 25; //max rate of sending movement updates to server
 
-const MOVEMENT_MAP = {"w":0,"a":1,"s":2,"d":3}; //string enum for movement
+const MOVEMENT_MAP = { w: 0, a: 1, s: 2, d: 3 }; //string enum for movement
 
 var camera;
 var properties = {
@@ -82,8 +81,8 @@ function onKeyUp(e) {
     let wasMovement = false;
     if (e.key in MOVEMENT_MAP) {
       let index = MOVEMENT_MAP[e.key];
-      wasMovement = true
-      properties.directionHeld[index] = 1;
+      wasMovement = true;
+      properties.directionHeld[index] = 0;
     }
 
     if (wasMovement) {
@@ -140,7 +139,7 @@ export function updatePlayer() {
         sendMovement();
       }
     }
-    
+
     intermediateVector.set(properties.x, properties.y, properties.z);
     camera.position.lerp(intermediateVector, 0.2);
   }

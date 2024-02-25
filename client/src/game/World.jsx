@@ -6,19 +6,19 @@ import gorilla from "../../assets/textures/gorilla.png";
 import xiao from "../../assets/textures/xiao.gif";
 import lisa from "../../assets/textures/lisa.jpg";
 
-import skybox from "../../assets/textures/skybox.png"
+import skybox from "../../assets/textures/skybox.png";
 
-import arena from "../../assets/models/Arena.glb"
+import arena from "../../assets/models/Arena.glb";
 
 import { colors } from "../ui/constants";
 
 const ModelLoader = new GLTFLoader();
-const TextureLoader = new three.TextureLoader()
+const TextureLoader = new three.TextureLoader();
 
 export function getSkybox() {
-  const bg = TextureLoader.load(skybox)
+  const bg = TextureLoader.load(skybox);
   bg.mapping = three.EquirectangularReflectionMapping;
-  bg.colorSpace = three.SRGBColorSpace
+  bg.colorSpace = three.SRGBColorSpace;
   return bg;
 }
 
@@ -44,8 +44,8 @@ function sampleTestWorld(world) {
       humanModel = gltf.scene;
       humanModel.scale.set(2, 2, 2);
       humanModel.position.set(2, 0, 4);
-      humanModel.children[0].rotation.set(1.5,0,0);
-      console.log("[MODEL] ",humanModel)
+      humanModel.children[0].rotation.set(1.5, 0, 0);
+      console.log("[MODEL] ", humanModel);
       world.add(humanModel);
 
       //mixer = new three.AnimationMixer(humanModel);
@@ -101,13 +101,13 @@ export function createWorld() {
   //floor.position.y = -50;
   //world.add(floor);
 
-  ModelLoader.load(arena,
-    (gltf) =>{
-      let arena = gltf.scene
-      arena.position.set(0,0,0);
-      arena.scale.set(15,15,15);
-      world.add(arena)
-    })
+  ModelLoader.load(arena, (gltf) => {
+    let arena = gltf.scene;
+    arena.position.set(0, 0, 0);
+    arena.scale.set(15, 15, 15);
+    console.log("[GLTF]", gltf);
+    world.add(arena);
+  });
 
   let testWorld = sampleTestWorld(world);
 

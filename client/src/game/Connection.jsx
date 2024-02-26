@@ -10,6 +10,7 @@ export const MESSAGES = {
   playerKnockout: "g", //server->client
   knockedOut: "h", //server->client
   gameEnd: "i", //server->client
+  throwBall: "j", //client->server
 };
 
 var socket;

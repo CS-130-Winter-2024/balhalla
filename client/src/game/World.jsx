@@ -1,5 +1,5 @@
 import * as three from "three";
-import { createBall, moveBall, rotateBall, textureBall } from "./Ball";
+import { createBall, moveBall, rotateBall, textureBall } from "./Balls";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 
 import gorilla from "../../assets/textures/gorilla.png";

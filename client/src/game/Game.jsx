@@ -4,6 +4,7 @@ import { createWorld, getSkybox } from "./World";
 import { setupConnection, setHandler, MESSAGES } from "./Connection";
 import * as Others from "./OtherPlayers";
 import * as Player from "./Player";
+import * as Balls from "./Balls";
 
 function getUsername() {
   return "Player" + Math.floor(Math.random() * 1000);
@@ -22,7 +23,7 @@ function websocketSetup() {
   //On player list sent, add all players to scene
   setHandler(MESSAGES.playerList, (socket, data) => {
     Others.setClientID(data[1]);
-    Player.setPlayerPosition(data[2][data[1]].x, data[2][data[1]].z);
+    Player.updatePlayer(data[2][data[1]]);
     for (let player in data[2]) {
       if (player == data[1]) continue;
       Others.addPlayer(player, data[2][player], data[3][player]);
@@ -41,11 +42,9 @@ function websocketSetup() {
 
   //On server update, update scene
   setHandler(MESSAGES.serverUpdate, (socket, data) => {
-    Player.setPlayerPosition(
-      data[1][Others.getClientID()].x,
-      data[1][Others.getClientID()].z,
-    );
+    Player.updatePlayer(data[1][Others.getClientID()]);
     Others.updatePlayers(data[1]);
+    Balls.updateBalls(data[2]);
   });
 
   setupConnection();
@@ -87,6 +86,7 @@ export default function main() {
 
   //add other players
   scene.add(Others.getPlayerModelGroup());
+  scene.add(Balls.getBallGroup());
 
   //Add controls to camera
   var controls = new PointerLockControls(camera, renderer.domElement);
@@ -125,8 +125,9 @@ export default function main() {
 
   //Render loop
   function animate(time) {
-    Player.updatePlayer();
+    Player.update();
     Others.update();
+    Balls.update();
     renderer.render(scene, camera);
     requestAnimationFrame(animate);
   }

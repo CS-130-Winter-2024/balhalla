@@ -1,8 +1,7 @@
 // here we store universal constants
 
 
-export const DODGE_BALL_SIZE = 28;
-
+export const DODGE_BALL_SIDES = 28;
 
 // color constants themes
 export const colors = {

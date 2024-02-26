@@ -73,6 +73,7 @@ export function updatePlayers(update) {
 export function update() {
   for (let playerID in players) {
     if (playerID == clientID) continue;
+    if (!(playerID in playersModels)) continue;
     playersModels[playerID].update(getCamera());
     reusableVector.set(players[playerID].x, 0.5, players[playerID].z); // reusableVector holds actual position in server
     playersModels[playerID].group.position.lerp(reusableVector, 0.1); // gives smoother transition from current position to target position

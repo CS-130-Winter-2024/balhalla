@@ -1,5 +1,6 @@
 import * as three from "three";
 import { getSocket, MESSAGES } from "./Connection";
+import internal from "stream";
 
 const SPEED = 5; //units per second
 const ALIVE_Y = 1.25;
@@ -15,6 +16,7 @@ var properties = {
   y: ALIVE_Y,
   z: 0,
   directionHeld: [0, 0, 0, 0],
+  hasBall: false,
 };
 var locked = false; //Locked = First Person Cam; Unlocked = Mouse Movement
 
@@ -58,6 +60,18 @@ function sendMovement(override = false) {
   }
 }
 
+function onClick() {
+  if (locked && properties.hasBall) {
+    camera.getWorldDirection(intermediateVector);
+    getSocket().send(
+      JSON.stringify([
+        MESSAGES.throwBall,
+        [intermediateVector.x, intermediateVector.y, intermediateVector.z],
+      ]),
+    );
+  }
+}
+
 function onKeyDown(e) {
   // callback is sendMovement(vector) from Connection.jsx
   if (locked) {
@@ -83,6 +97,8 @@ function onKeyUp(e) {
       let index = MOVEMENT_MAP[e.key];
       wasMovement = true;
       properties.directionHeld[index] = 0;
+    } else if (e.key == "f") {
+      onClick();
     }
 
     if (wasMovement) {
@@ -95,6 +111,7 @@ function onKeyUp(e) {
 export function attachKeybinds() {
   document.addEventListener("keydown", onKeyDown);
   document.addEventListener("keyup", onKeyUp);
+  // document.addEventListener("mousedown", onClick);
   document.addEventListener("lock", () => {
     locked = true;
     properties.directionHeld = [0, 0, 0, 0];
@@ -122,12 +139,14 @@ export function getCamera() {
   return camera;
 }
 
-export function setPlayerPosition(x, z) {
-  properties.x = x;
-  properties.z = z;
+export function updatePlayer(data) {
+  properties = {
+    ...properties,
+    ...data,
+  };
 }
 
-export function updatePlayer() {
+export function update() {
   if (locked) {
     //if dotproduct between camera and previous camera vector < 0.9
     if (movementVector.length() > 0.5) {

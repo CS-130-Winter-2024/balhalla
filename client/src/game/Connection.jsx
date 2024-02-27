@@ -20,9 +20,10 @@ var handlers = {
     socket.send("Joins Servers!");
   },
 };
+const URL = (import.meta.env.MODE == "development" && "ws://" + location.host + "/") || "wss://" + location.host + "/";
 
 export function setupConnection() {
-  socket = new WebSocket("wss://" + location.host + "/");
+  socket = new WebSocket(URL);
 
   socket.addEventListener("open", (event) => {
     handlers["open"](socket, event);

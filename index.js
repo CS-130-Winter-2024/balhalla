@@ -42,7 +42,7 @@ wss.on("connection", function connection(ws) {
   ws.on("error", console.error); //errors don't happen :)
 
   ws.on("message", function message(data) {
-    console.log("[MESSAGE] %s from %d", data, id);
+    //console.log("[MESSAGE] %s from %d", data, id);
     processMessage(id, connections, data);
   });
 

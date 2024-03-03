@@ -3,11 +3,11 @@ import * as url from "url";
 import path from "path";
 import { WebSocketServer } from "ws";
 import {
-  MESSAGES,
   processMessage,
   startServer,
   deletePlayer,
 } from "./gameServer.js";
+import { MESSAGES } from "./constants.js";
 
 const __dirname = url.fileURLToPath(new URL(".", import.meta.url));
 const app = express();
@@ -42,7 +42,6 @@ wss.on("connection", function connection(ws) {
   ws.on("error", console.error); //errors don't happen :)
 
   ws.on("message", function message(data) {
-    //console.log("[MESSAGE] %s from %d", data, id);
     processMessage(id, connections, data);
   });
 

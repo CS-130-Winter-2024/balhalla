@@ -1,21 +1,22 @@
 import * as three from "three";
 import { Text } from "troika-three-text";
 import { getCamera } from "./Player";
+import { getModelInstance } from "./Models";
 
-const tempMesh = new three.CylinderGeometry(0.5, 0.5, 2);
 
 class PlayerModel {
-  constructor(name) {
-    this.material = new three.MeshLambertMaterial({ color: 0x888888 });
-    this.body = new three.Mesh(tempMesh, this.material);
+  constructor(metadata) {
+    this.body = new three.Group();
+    this.body.add(getModelInstance(metadata["body"]));
     this.group = new three.Group();
     this.tag = new Text();
-    this.tag.text = name;
+    this.tag.text = metadata.username;
     this.tag.fontSize = 0.5;
     this.tag.anchorX = "center";
     this.tag.anchory = "center";
     this.tag.position.y = 2.5;
     this.tag.outlineWidth = "10%";
+    this.body.rotateY(1.5);
 
     this.group.add(this.tag);
     this.group.add(this.body);
@@ -23,7 +24,6 @@ class PlayerModel {
 
   dispose() {
     this.tag.dispose();
-    this.material.dispose();
   }
 
   update(camera) {
@@ -48,7 +48,7 @@ export function addPlayer(playerID, data, metadata) {
   playersMetadata[playerID] = metadata;
 
   //add 3d model to model group
-  playersModels[playerID] = new PlayerModel(metadata.username);
+  playersModels[playerID] = new PlayerModel(metadata);
   otherPlayerGroup.add(playersModels[playerID].group);
 }
 

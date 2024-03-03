@@ -1,23 +1,16 @@
 import * as three from "three";
-import { getSocket, MESSAGES } from "./Connection";
-import internal from "stream";
-
-const SPEED = 5; //units per second
-const ALIVE_Y = 1.25;
-const DEAD_Y = 5; // FIND CORRECT VALUE LATER
-
-const RATE = 25; //max rate of sending movement updates to server
-
-const MOVEMENT_MAP = { w: 0, a: 1, s: 2, d: 3 }; //string enum for movement
+import { getSocket } from "./Connection";
+import * as constants from "../constants"
 
 var camera;
 var properties = {
   x: 0,
-  y: ALIVE_Y,
+  y: constants.ALIVE_Y,
   z: 0,
   directionHeld: [0, 0, 0, 0],
   hasBall: false,
 };
+
 var locked = false; //Locked = First Person Cam; Unlocked = Mouse Movement
 
 var movementVector = new three.Vector3();
@@ -49,14 +42,14 @@ function sendMovement(override = false) {
   if (canSend || override) {
     getSocket().send(
       JSON.stringify([
-        MESSAGES.sendMovement,
+        constants.MESSAGES.sendMovement,
         { direction: [movementVector.x, movementVector.z] },
       ]),
     );
     canSend = false;
     setTimeout(() => {
       canSend = true;
-    }, RATE);
+    }, constants.UPDATE_RATE);
   }
 }
 
@@ -65,7 +58,7 @@ function onClick() {
     camera.getWorldDirection(intermediateVector);
     getSocket().send(
       JSON.stringify([
-        MESSAGES.throwBall,
+        constants.MESSAGES.throwBall,
         [intermediateVector.x, intermediateVector.y, intermediateVector.z],
       ]),
     );
@@ -76,8 +69,8 @@ function onKeyDown(e) {
   // callback is sendMovement(vector) from Connection.jsx
   if (locked) {
     let wasMovement = false;
-    if (e.key in MOVEMENT_MAP) {
-      let index = MOVEMENT_MAP[e.key];
+    if (e.key in constants.MOVEMENT_MAP) {
+      let index = constants.MOVEMENT_MAP[e.key];
       wasMovement = properties.directionHeld[index] == 0;
       properties.directionHeld[index] = 1;
     }
@@ -93,8 +86,8 @@ function onKeyUp(e) {
   // callback is sendMovement(vector) from Connection.jsx
   if (locked) {
     let wasMovement = false;
-    if (e.key in MOVEMENT_MAP) {
-      let index = MOVEMENT_MAP[e.key];
+    if (e.key in constants.MOVEMENT_MAP) {
+      let index = constants.MOVEMENT_MAP[e.key];
       wasMovement = true;
       properties.directionHeld[index] = 0;
     } else if (e.key == "f") {
@@ -129,7 +122,7 @@ export function createCamera() {
   camera.position.z = properties.z;
   camera.position.y = properties.y;
   camera.position.x = properties.x;
-  camera.zoom = 1.3;
+  camera.zoom = 1;
   camera.lookAt(0, 0, 5);
   camera.updateProjectionMatrix();
   return camera;

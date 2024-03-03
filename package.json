@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "setup": "npm install && cd client/ && npm install",
     "watch-client": "npm run watch --prefix client/",
     "serve": "nodemon index.js",
     "start": "concurrently -k \"npm run watch-client\" \"npm run serve\""

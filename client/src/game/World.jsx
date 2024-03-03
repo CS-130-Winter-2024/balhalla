@@ -1,16 +1,11 @@
 import * as three from "three";
-import { createBall, moveBall, rotateBall, textureBall } from "./Balls";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
-
-import gorilla from "../../assets/textures/gorilla.png";
-import xiao from "../../assets/textures/xiao.gif";
-import lisa from "../../assets/textures/lisa.jpg";
 
 import skybox from "../../assets/textures/skybox.png";
 
 import arena from "../../assets/models/Arena.glb";
 
-import { colors } from "../ui/constants";
+import { colors } from "../constants";
 
 const ModelLoader = new GLTFLoader();
 const TextureLoader = new three.TextureLoader();
@@ -24,20 +19,9 @@ export function getSkybox() {
 
 // Sample test world for development
 function sampleTestWorld(world) {
-  // adding ball
-  let ball = createBall();
-  world.add(ball);
-  const textures = [gorilla, xiao, lisa];
-  let revolutions = 0;
-  let currentTextureIndex = 0;
-
-  // adding texture
-  textureBall(ball, gorilla, 2, 2);
 
   // adding human model
   let humanModel;
-  let mixer;
-
   ModelLoader.load(
     "../../assets/models/Viking.glb",
     (gltf) => {
@@ -45,7 +29,7 @@ function sampleTestWorld(world) {
       humanModel.scale.set(2, 2, 2);
       humanModel.position.set(2, 0, 4);
       humanModel.children[0].rotation.set(1.5, 0, 0);
-      console.log("[MODEL] ", humanModel);
+      console.log("[MODEL] ", gltf);
       world.add(humanModel);
 
       //mixer = new three.AnimationMixer(humanModel);
@@ -56,38 +40,6 @@ function sampleTestWorld(world) {
     undefined,
     (error) => console.error("Error loading human model", error),
   );
-
-  // Animation loop
-  let angle = 0;
-  const radius = 0.025;
-  function animate() {
-    requestAnimationFrame(animate);
-    const x = Math.cos(angle) * radius;
-    const y = Math.sin(angle) * radius;
-    moveBall(ball, x, y, 0);
-    rotateBall(ball, 0.5, 0, 0);
-
-    // Update texture every full revolution
-    if (angle >= Math.PI * 2) {
-      angle = 0;
-      revolutions++;
-
-      currentTextureIndex = revolutions % textures.length;
-      const currentTexture = textures[currentTextureIndex];
-      textureBall(ball, currentTexture, 2, 2);
-    }
-
-    // Update angle
-    angle += 0.01;
-
-    // makes goku do goku things with clock
-    if (humanModel) {
-      mixer.update(0.01);
-    }
-  }
-
-  // Start the animation loop
-  animate();
 
   return world;
 }

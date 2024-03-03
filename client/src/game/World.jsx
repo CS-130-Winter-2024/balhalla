@@ -8,7 +8,12 @@ import lisa from "../../assets/textures/lisa.jpg";
 
 import skybox from "../../assets/textures/skybox.png";
 
-import arena from "../../assets/models/Arena.glb";
+import arena from "../../assets/models/SeaArena.glb";
+import vikingboat from "../../assets/models/VikingBoat.glb";
+
+import axe from "../../assets/models/weapons/Axe.glb";
+import mjolnir from "../../assets/models/weapons/Mjolnir.glb";
+import trident from "../../assets/models/weapons/Trident.glb";
 
 import { colors } from "../ui/constants";
 
@@ -39,12 +44,12 @@ function sampleTestWorld(world) {
   let mixer;
 
   ModelLoader.load(
-    "../../assets/models/Viking.glb",
+    vikingboat,
     (gltf) => {
       humanModel = gltf.scene;
-      humanModel.scale.set(2, 2, 2);
+      //humanModel.scale.set(2, 2, 2);
       humanModel.position.set(2, 0, 4);
-      humanModel.children[0].rotation.set(1.5, 0, 0);
+      //humanModel.children[0].rotation.set(1.5, 0, 0);
       console.log("[MODEL] ", humanModel);
       world.add(humanModel);
 

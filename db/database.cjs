@@ -16,13 +16,21 @@ const knex = require("knex")({
   // await knex.schema.dropTableIfExists('accounts')
   // await knex.schema.dropTableIfExists('items')
 
-  await knex.schema.hasTable('accounts').then(function(exists) {
+  await knex.schema.hasTable('account').then(function(exists) {
     if (!exists) {
-      return knex.schema.createTable('accounts', function(table) {
+      return knex.schema.createTable('account', function(table) {
         table.string('username').unique().primary();
         table.string('password');
         table.integer('points');
         table.check('?? >= ??', ['points', 0]);
+        table.integer('wins');
+        table.integer('losses');
+        table.integer('hits');
+        //ball
+        table.integer('ball');
+        //pet - charm that gets added to player as a customization
+        table.integer('pet');
+
       });
     }
   });

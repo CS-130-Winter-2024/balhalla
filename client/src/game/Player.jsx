@@ -79,7 +79,7 @@ function onKeyDown(e) {
       properties.directionHeld[index] = 1;
     }
 
-    if (e.key == " "){
+    if (e.key == "Shift"){
       if (dashAvailable){
         wasMovement = true;
         dashScalar = constants.DASH_SPEED;

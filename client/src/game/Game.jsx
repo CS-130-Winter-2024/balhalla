@@ -106,7 +106,7 @@ export default function main() {
     document.dispatchEvent(new CustomEvent("unlock"));
   });
   document.addEventListener("keydown", (ev) => {
-    if (ev.key == "Enter") { // removing space for game entry for now
+    if (ev.key == " " || ev.key == "Enter") {
       if (locked) {
         controls.lock();
         locked = false;

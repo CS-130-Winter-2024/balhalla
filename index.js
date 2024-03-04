@@ -6,8 +6,8 @@ import {
   processMessage,
   startServer,
   deletePlayer,
+  addPlayer,
 } from "./gameServer.js";
-import { MESSAGES } from "./constants.js";
 
 const __dirname = url.fileURLToPath(new URL(".", import.meta.url));
 const app = express();
@@ -37,6 +37,7 @@ wss.on("connection", function connection(ws) {
     id = Math.floor(Math.random() * 100000);
   }
   connections[id] = ws;
+  addPlayer(id,connections);
   console.log("[CONNECT] ID:%d", id);
 
   ws.on("error", console.error); //errors don't happen :)
@@ -47,12 +48,8 @@ wss.on("connection", function connection(ws) {
 
   ws.on("close", function close() {
     console.log("[DISCONNECT] ID:%d", id);
-    deletePlayer(id);
+    deletePlayer(id,connections);
     delete connections[id];
-    //Notify every connected player
-    for (let otherID in connections) {
-      connections[otherID].send(JSON.stringify([MESSAGES.playerLeave, id]));
-    }
   });
 });
 startServer(connections);

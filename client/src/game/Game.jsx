@@ -88,7 +88,7 @@ export default function main() {
   //add lights
   let light = new three.PointLight(0xffffff, 3, 0, 0);
   scene.add(light);
-  scene.add(new three.AmbientLight(0xffffff,1));
+  scene.add(new three.AmbientLight(0xffffff,4));
 
   //add other players
   scene.add(Others.getPlayerModelGroup());

@@ -11,7 +11,7 @@ var totalModels = 0;
 const ModelLoader = new GLTFLoader();
 
 export function loadDefault() {
-    updateModelList({"0":true})
+    updateModelList({"0":true, "1":true, "2":true, "3":true, "4":true, "5":true, "6":true, "7":true, "8":true})
 }
 
 export function getProgress() {

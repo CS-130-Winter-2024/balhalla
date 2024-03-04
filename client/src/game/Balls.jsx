@@ -1,6 +1,8 @@
 import * as three from "three";
 import { DODGE_BALL_SIDES } from "../constants";
 
+import { getModelInstance } from "./Models";
+
 var balls = {}; // associates each ball with game data
 var ballsModels = {}; // associates each ball with 3d model
 var ballGroup = new three.Group();
@@ -69,7 +71,7 @@ export function getBallGroup() {
 }
 
 export function createBall() {
-  let ball = new three.Mesh(ballGeometry, ballMaterial);
+  let ball = new three.Group()
+  ball.add(getModelInstance(2));
   return ball;
 }
-

@@ -18,13 +18,16 @@ var perpVector = new three.Vector3();
 var intermediateVector = new three.Vector3();
 var prevCamVector = new three.Vector3();
 
+var dashScalar = 1;
+var dashAvailable = true;
+
 function calculateDirection() {
   camera.getWorldDirection(prevCamVector);
   camera.getWorldDirection(movementVector);
   camera.getWorldDirection(perpVector);
   // Forward and Back movement calculation
   movementVector.multiplyScalar(
-    properties.directionHeld[0] - properties.directionHeld[2],
+    (properties.directionHeld[0] - properties.directionHeld[2]),
   );
   // Side to Side movement calculation
   perpVector.set(
@@ -43,7 +46,7 @@ function sendMovement(override = false) {
     getSocket().send(
       JSON.stringify([
         constants.MESSAGES.sendMovement,
-        { direction: [movementVector.x, movementVector.z] },
+        { direction: [movementVector.x * dashScalar, movementVector.z * dashScalar] },
       ]),
     );
     canSend = false;
@@ -69,15 +72,34 @@ function onKeyDown(e) {
   // callback is sendMovement(vector) from Connection.jsx
   if (locked) {
     let wasMovement = false;
+
     if (e.key in constants.MOVEMENT_MAP) {
       let index = constants.MOVEMENT_MAP[e.key];
       wasMovement = properties.directionHeld[index] == 0;
       properties.directionHeld[index] = 1;
     }
 
+    if (e.key == " "){
+      if (dashAvailable){
+        wasMovement = true;
+        dashScalar = constants.DASH_SPEED;
+        // will jump the player in their moving direction
+  
+        dashAvailable = false;
+        setTimeout(() => {
+          dashAvailable = true;
+        }, constants.DASH_COOLDOWN);
+      }
+      else{
+        wasMovement = true;
+        dashScalar = 1;
+      }
+      
+    }
+
     if (wasMovement) {
       calculateDirection();
-      sendMovement();
+      sendMovement(dashScalar==constants.DASH_SPEED);
     }
   }
 }
@@ -86,6 +108,7 @@ function onKeyUp(e) {
   // callback is sendMovement(vector) from Connection.jsx
   if (locked) {
     let wasMovement = false;
+
     if (e.key in constants.MOVEMENT_MAP) {
       let index = constants.MOVEMENT_MAP[e.key];
       wasMovement = true;
@@ -94,6 +117,11 @@ function onKeyUp(e) {
       onClick();
     }
 
+    if (dashScalar > 1){
+      wasMovement = true;
+      dashScalar = 1;
+    }
+    
     if (wasMovement) {
       calculateDirection();
       sendMovement();

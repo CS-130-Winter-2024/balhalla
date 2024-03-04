@@ -3,6 +3,11 @@ import { getSocket } from "./Connection";
 import * as constants from "../constants"
 
 var camera;
+var spectateCamera;
+
+
+var spectating = false
+
 var properties = {
   x: 0,
   y: constants.ALIVE_Y,
@@ -42,6 +47,7 @@ function calculateDirection() {
 
 var canSend = true;
 function sendMovement(override = false) {
+  if (spectating) return;
   if (canSend || override) {
     getSocket().send(
       JSON.stringify([
@@ -56,7 +62,7 @@ function sendMovement(override = false) {
   }
 }
 
-function onClick() {
+function throwBall() {
   if (locked && properties.hasBall) {
     camera.getWorldDirection(intermediateVector);
     getSocket().send(
@@ -69,6 +75,7 @@ function onClick() {
 }
 
 function onKeyDown(e) {
+  if (spectating) return;
   // callback is sendMovement(vector) from Connection.jsx
   if (locked) {
     let wasMovement = false;
@@ -105,6 +112,7 @@ function onKeyDown(e) {
 }
 
 function onKeyUp(e) {
+  if (spectating) return;
   // callback is sendMovement(vector) from Connection.jsx
   if (locked) {
     let wasMovement = false;
@@ -113,8 +121,8 @@ function onKeyUp(e) {
       let index = constants.MOVEMENT_MAP[e.key];
       wasMovement = true;
       properties.directionHeld[index] = 0;
-    } else if (e.key == "f") {
-      onClick();
+    } else if (e.key == constants.THROW_KEY) {
+      throwBall();
     }
 
     if (dashScalar > 1){
@@ -145,7 +153,17 @@ export function attachKeybinds() {
   });
 }
 
-export function createCamera() {
+function createSpectateCamera() {
+  spectateCamera = new three.PerspectiveCamera(75, 2, 0.1, 1000);
+  spectateCamera.position.z = 0;
+  spectateCamera.position.y = 10;
+  spectateCamera.position.x = 15;
+  spectateCamera.zoom = 1;
+  spectateCamera.lookAt(0, 0, 0);
+  spectateCamera.updateProjectionMatrix();
+}
+
+export function createCamera(spectate = false) {
   camera = new three.PerspectiveCamera(75, 2, 0.1, 1000);
   camera.position.z = properties.z;
   camera.position.y = properties.y;
@@ -153,10 +171,19 @@ export function createCamera() {
   camera.zoom = 1;
   camera.lookAt(0, 0, 5);
   camera.updateProjectionMatrix();
+  createSpectateCamera();
+  if (spectate) {
+    return spectateCamera;
+  }
   return camera;
 }
 
+export function setSpectate(value) {
+  spectating = (value && true) || false;
+}
+
 export function getCamera() {
+  if (spectating) return spectateCamera;
   return camera;
 }
 
@@ -167,7 +194,15 @@ export function updatePlayer(data) {
   };
 }
 
+function updateSpectateCamera() {
+  //do nothing for now
+}
+
 export function update() {
+  if (spectating) {
+    updateSpectateCamera();
+    return;
+  }
   if (locked) {
     //if dotproduct between camera and previous camera vector < 0.9
     if (movementVector.length() > 0.5) {

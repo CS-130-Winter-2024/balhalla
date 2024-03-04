@@ -13,6 +13,7 @@ export const SPEED = 5;
 export const ALIVE_Y = 1.25;
 export const DEAD_Y = 5;
 
+export const THROW_KEY = "f"
 export const MOVEMENT_MAP = { w: 0, a: 1, s: 2, d: 3 };
 
 export const DASH_COOLDOWN = 5000;

@@ -1,5 +1,6 @@
 import * as three from "three";
 import { PointerLockControls } from "three/addons/controls/PointerLockControls.js";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { createWorld, getSkybox } from "./World";
 import { setupConnection, setHandler } from "./Connection";
 import * as constants from "../constants"
@@ -50,6 +51,14 @@ function websocketSetup() {
     Balls.updateBalls(data.ballData);
   });
 
+  setHandler(constants.MESSAGES.playerKnockout, (socket,data) => {
+    console.log("[HIT]",data);
+    if (data.target == Others.getClientID()) {
+      Player.setSpectate(true)
+      alert("I was hit!");
+    }
+  })
+
   setupConnection();
 }
 
@@ -95,6 +104,8 @@ export default function main() {
   scene.add(Balls.getBallGroup());
 
   //Add controls to camera
+  var spectateControls = new OrbitControls(Player.getCamera(true), renderer.domElement);
+  spectateControls.update();
   var controls = new PointerLockControls(camera, renderer.domElement);
   controls.connect();
   //Add camera locking
@@ -124,9 +135,9 @@ export default function main() {
   Player.attachKeybinds();
 
   //Update viewport whenever changed
-  updateAspect(renderer, camera);
+  updateAspect(renderer, Player.getCamera());
   window.addEventListener("resize", () => {
-    updateAspect(renderer, camera);
+    updateAspect(renderer, Player.getCamera());
   });
 
   //Render loop
@@ -134,7 +145,7 @@ export default function main() {
     Player.update();
     Others.update();
     Balls.update();
-    renderer.render(scene, camera);
+    renderer.render(scene, Player.getCamera());
     requestAnimationFrame(animate);
   }
   animate();

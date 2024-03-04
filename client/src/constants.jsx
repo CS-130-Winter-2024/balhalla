@@ -1,5 +1,13 @@
 // here we store universal constants
 import viking from "../assets/models/Viking.glb"
+import vikingboat from "../assets/models/VikingBoat.glb"
+import axe from "../assets/models/weapons/Axe.glb"
+import hammer from "../assets/models/weapons/Mjolnir.glb"
+import trident from "../assets/models/weapons/Trident.glb"
+import tree from "../assets/models/pets/Tree.glb"
+import turtle from "../assets/models/pets/Turtle.glb"
+import pig from "../assets/models/pets/Pig.glb"
+import duck from "../assets/models/pets/Duck.glb"
 //GAME
 export const SPEED = 5;
 export const ALIVE_Y = 1.25;
@@ -60,7 +68,15 @@ export function message_parse(msg) {
 export const DODGE_BALL_SIDES = 28;
 
 export const MODEL_IDS = {
-    "0": viking
+    "0": viking,
+    "1": vikingboat,
+    "2": axe,
+    "3": hammer,
+    "4": trident,
+    "5": tree,
+    "6": turtle,
+    "7": pig,
+    "8": duck
 }
 
 // color constants themes

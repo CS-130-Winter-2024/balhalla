@@ -1,15 +1,11 @@
 import * as three from "three";
 import { PointerLockControls } from "three/addons/controls/PointerLockControls.js";
 import { createWorld, getSkybox } from "./World";
-import { setupConnection, setHandler } from "./Connection";
-import * as constants from "../constants"
+import { setupConnection, setHandler, MESSAGES } from "./Connection";
 import * as Others from "./OtherPlayers";
 import * as Player from "./Player";
-import * as Balls from "./Balls";
-import { loadDefault } from "./Models";
 
 function getUsername() {
-  return prompt("What is your username?");
   return "Player" + Math.floor(Math.random() * 1000);
 }
 
@@ -18,36 +14,38 @@ function websocketSetup() {
   //On connect, send username
   setHandler("open", (socket) => {
     let usernm = getUsername();
-    var eventMsg = JSON.stringify([constants.MESSAGES.playerJoin, { username: usernm }]);
+    var eventMsg = JSON.stringify([MESSAGES.playerJoin, { username: usernm }]);
     document.dispatchEvent(new CustomEvent("setUsername", { detail: usernm }));
     socket.send(eventMsg);
   });
 
   //On player list sent, add all players to scene
-  setHandler(constants.MESSAGES.playerList, (socket, data) => {
-    Others.setClientID(data.id);
-    Player.updatePlayer(data.playerData[data.id]);
-    for (let player in data.playerData) {
-      if (player == data.id) continue;
-      Others.addPlayer(player, data.playerData[player], data.metaData[player]);
+  setHandler(MESSAGES.playerList, (socket, data) => {
+    Others.setClientID(data[1]);
+    Player.setPlayerPosition(data[2][data[1]].x, data[2][data[1]].z);
+    for (let player in data[2]) {
+      if (player == data[1]) continue;
+      Others.addPlayer(player, data[2][player], data[3][player]);
     }
   });
 
   //On other player connect, add their data to scene
-  setHandler(constants.MESSAGES.playerJoin, (socket, data) => {
-    Others.addPlayer(data.id, data.playerData, data.metaData);
+  setHandler(MESSAGES.playerJoin, (socket, data) => {
+    Others.addPlayer(data[1], data[2], data[3]);
   });
 
   //On other player disconnect, remove their data from scene
-  setHandler(constants.MESSAGES.playerLeave, (socket, data) => {
-    Others.removePlayer(data.id);
+  setHandler(MESSAGES.playerLeave, (socket, data) => {
+    Others.removePlayer(data[1]);
   });
 
   //On server update, update scene
-  setHandler(constants.MESSAGES.serverUpdate, (socket, data) => {
-    Player.updatePlayer(data.playerData[Others.getClientID()]);
-    Others.updatePlayers(data.playerData);
-    Balls.updateBalls(data.ballData);
+  setHandler(MESSAGES.serverUpdate, (socket, data) => {
+    Player.setPlayerPosition(
+      data[1][Others.getClientID()].x,
+      data[1][Others.getClientID()].z,
+    );
+    Others.updatePlayers(data[1]);
   });
 
   setupConnection();
@@ -76,23 +74,19 @@ export default function main() {
   renderer.domElement.id = "GameCanvas";
   document.body.appendChild(renderer.domElement);
 
-  //load models
-  loadDefault()
   //add camera
   var camera = Player.createCamera();
 
   //add world
   scene.add(createWorld());
-  
 
   //add lights
-  let light = new three.PointLight(0xffffff, 3, 0, 0);
+  let light = new three.PointLight(0xffffff, 4, 0, 0);
+  light.position.set(0, 20, 0);
   scene.add(light);
-  scene.add(new three.AmbientLight(0xffffff,1));
 
   //add other players
   scene.add(Others.getPlayerModelGroup());
-  scene.add(Balls.getBallGroup());
 
   //Add controls to camera
   var controls = new PointerLockControls(camera, renderer.domElement);
@@ -133,9 +127,8 @@ export default function main() {
 
   //Render loop
   function animate(time) {
-    Player.update();
+    Player.updatePlayer();
     Others.update();
-    Balls.update();
     renderer.render(scene, camera);
     requestAnimationFrame(animate);
   }

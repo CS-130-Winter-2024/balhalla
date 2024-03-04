@@ -1,42 +1,66 @@
-import * as constants from "./constants.js";
+const TICK_RATE = 50;
+const TICK_DT = 0.05;
+const SPEED = 5;
+const WORLD_HALF_WIDTH = 14.5;
+const WORLD_HALF_LENGTH = 10.5;
+export const MESSAGES = {
+  sendMovement: "a", //server<-client DONE ON SERVER
+  serverUpdate: "b", //server->client DONE ON SERVER
+  playerJoin: "c", //server<->client DONE ON SERVER
+  playerLeave: "d", // server->client DONE ON SERVER
+  playerList: "e", // server->client DONE ON SERVER
 
+  gameStart: "f", // server->client
+  playerKnockout: "g", //server->client
+  knockedOut: "h", //server->client
+  gameEnd: "i", //server->client
+};
 
-var state = "lobby";
+const PLAYER_SAMPLE = {
+  direction: [0, 0], //x,z
+  x: 0,
+  z: 0,
+  alive: true,
+  hasBall: false,
+};
+
+const BALL_SAMPLE = {
+  x: 0,
+  y: 0,
+  z: 0,
+  velocity: [0, 0, 0],
+  throwerID: "",
+};
+
+var state = [];
 
 //Stores the gameloop interval ID
 var serverRepeater;
 
 var players = {}; //playerid associated
 var playersMetadata = {}; //playerid associated
-var balls = {};
-
-
-export function processMsg(id, sockets, message) {
-  if (state == "lobby") {
-    processLobbyMessage(id, sockets, message);
-  }
-}
+var balls = [];
 
 export function processMessage(id, sockets, message) {
-  let data = constants.message_parse(message)
-  switch (data.type) {
-    case constants.MESSAGES.sendMovement:
+  let data = JSON.parse(message);
+  switch (data[0]) {
+    case MESSAGES.sendMovement:
       //store player keys
-      players[id].direction = data.direction;
+      players[id].direction = data[1].direction;
       break;
-    case constants.MESSAGES.playerJoin:
+    case MESSAGES.playerJoin:
+      //THIS BEHAVIOR NEEDS TO BE CHANGED LATER
       //add player to players list
       players[id] = {
-        ...constants.BASE_PLAYER,
+        ...PLAYER_SAMPLE,
       };
       playersMetadata[id] = {
-        username: data.username,
-        body: 0
+        username: data[1].username,
       };
 
       //send list of players to newly joined players
       sockets[id].send(
-        JSON.stringify([constants.MESSAGES.playerList, id, players, playersMetadata]),
+        JSON.stringify([MESSAGES.playerList, id, players, playersMetadata]),
       );
 
       //send new join to all other players
@@ -45,7 +69,7 @@ export function processMessage(id, sockets, message) {
 
         sockets[otherID].send(
           JSON.stringify([
-            constants.MESSAGES.playerJoin,
+            MESSAGES.playerJoin,
             id,
             players[id],
             playersMetadata[id],
@@ -53,32 +77,7 @@ export function processMessage(id, sockets, message) {
         );
       }
       break;
-    case constants.MESSAGES.throwBall:
-      if (players[id].hasBall) {
-        //generate ball id
-        let ballID = Math.floor(Math.random() * 100000);
-        while (ballID in balls) {
-          ballID = Math.floor(Math.random() * 100000);
-        }
-        players[id].hasBall = false;
-        let normal = Math.sqrt(data.x*data.x+data.z*data.z);
-        //the normal is for throwing to the right of the player
-        balls[ballID] = {
-          x: players[id].x - (data.z/normal)*0.3,
-          y: 1.25,
-          z: players[id].z + (data.x/normal)*0.3,
-          velocity: data.direction.map((x) => x * constants.BALL_SPEED),
-          throwerID: id,
-          isGrounded: false,
-        };
-      }
-      break;
   }
-}
-
-
-export function processLobbyMessage(id, sockets, message) {
-
 }
 
 export function deletePlayer(id) {
@@ -86,125 +85,25 @@ export function deletePlayer(id) {
   delete playersMetadata[id];
 }
 
-export function doLobbyTick(sockets) {
-
-}
-
-
 export function doGameTick(sockets) {
-  // Split board into x-axis slices (increment by x, extends along z)
-  let sections = {};
-
-  //Update Ball physics
-  for (const ballID in balls) {
-    let ball = balls[ballID];
-
-    if (!ball.isGrounded) {
-      ball.velocity[1] -= constants.TICK_DT * constants.BALL_GRAVITY;
-
-      ball.x += ball.velocity[0] * constants.TICK_DT;
-      ball.y += ball.velocity[1] * constants.TICK_DT;
-      ball.z += ball.velocity[2] * constants.TICK_DT;
-
-      if (ball.y <= constants.BALL_RADIUS) {
-        ball.velocity = [0, 0, 0];
-        ball.y = constants.BALL_RADIUS;
-        ball.isGrounded = true;
-      }
-
-      //check if ball in bounds
-      if (
-        ball.x < -constants.WORLD_HALF_LENGTH ||
-        ball.x > constants.WORLD_HALF_LENGTH ||
-        ball.z < -constants.WORLD_HALF_WIDTH ||
-        ball.z > constants.WORLD_HALF_WIDTH
-      ) {
-        //BALL BEHAVIOR OUT OF BOUNDS
-        ball.velocity = [0, 0, 0];
-        ball.x = 0;
-        ball.z = 0;
-        ball.y = constants.BALL_RADIUS;
-        ball.isGrounded = true;
-      }
-    }
-
-    let lower = Math.floor(ball.x - constants.BALL_RADIUS);
-    let upper = Math.floor(ball.x + constants.BALL_RADIUS);
-    if (!(lower in sections)) {
-      sections[lower] = {};
-    }
-    sections[lower][ballID] = true;
-    if (!(upper in sections)) {
-      sections[upper] = {};
-    }
-    sections[upper][ballID] = true;
-  }
   //Update Player movements
   for (const playerID in players) {
     let player = players[playerID];
-    player.x += player.direction[0] * constants.SPEED_DT;
-    player.x = Math.min(
-      Math.max(player.x, -constants.WORLD_HALF_LENGTH),
-      constants.WORLD_HALF_LENGTH,
-    ); //clamp to world border
+    player.x += player.direction[0] * TICK_DT * SPEED;
+    player.x = Math.min(Math.max(player.x,-WORLD_HALF_LENGTH),WORLD_HALF_LENGTH) //clamp world border
 
-    player.z += player.direction[1] * constants.SPEED_DT;
-    player.z = Math.min(
-      Math.max(player.z, -constants.WORLD_HALF_WIDTH),
-      constants.WORLD_HALF_WIDTH,
-    ); //clamp to world border
+    player.z += player.direction[1] * TICK_DT * SPEED;
+    player.z = Math.min(Math.max(player.z,-WORLD_HALF_WIDTH),WORLD_HALF_WIDTH) //clamp world border
+  }
 
-    let possibleCollisons = {
-      ...sections[Math.floor(player.x - constants.PLAYER_RADIUS)],
-      ...sections[Math.floor(player.x + constants.PLAYER_RADIUS)],
-    };
-    for (const ballID in possibleCollisons) {
-      //check z and y axis of player and ball
-      let ball = balls[ballID];
-      if (Math.abs(player.z - ball.z) <= constants.BALL_RADIUS + constants.PLAYER_RADIUS) {
-        let dist =
-          (player.x - ball.x) * (player.x - ball.x) +
-          (player.z - ball.z) * (player.z - ball.z);
-        if (dist <= constants.COLLISION_R2) {
-          //player and ball collide
-          if (ball.isGrounded && !player.hasBall && player.alive) {
-            // pick up ball
-            player.hasBall = true;
-            delete balls[ballID];
-            let lower = Math.floor(player.x - constants.PLAYER_RADIUS);
-            let upper = Math.floor(player.x + constants.PLAYER_RADIUS);
-            if (lower in sections && ballID in sections[lower]) {
-              delete sections[lower][ballID];
-            }
-            if (upper in sections && ballID in sections[upper]) {
-              delete sections[upper][ballID];
-            }
-          } else if (!ball.isGrounded && ball.y <= constants.PLAYER_HEIGHT + constants.BALL_RADIUS && ball.throwerID != playerID) {
-            console.log("[HIT] Ball from ",ball.throwerID, " killed ", playerID);
-            players[playerID].alive = false;
-            players[playerID].hasBall = false;
-            // LATER: if have ball, return ball to game
-
-            ball.isGrounded = false;
-            ball.velocity = [0, 0, 0];
-            ball.y = constants.BALL_RADIUS;
-
-            for (let otherID in players) {
-              if (playerID == otherID) continue;
-              sockets[otherID].send(
-                JSON.stringify([constants.MESSAGES.knockedOut, playerID, ball.throwerID]),
-              );
-            }
-          }
-        }
-      }
-    }
+  //Update ball movements
+  for (const ballID in balls) {
   }
 
   //Send update to everyone
   for (const socket in sockets) {
     sockets[socket].send(
-      JSON.stringify([constants.MESSAGES.serverUpdate, players, balls]),
+      JSON.stringify([MESSAGES.serverUpdate, players, balls]),
     );
   }
 }
@@ -212,7 +111,7 @@ export function doGameTick(sockets) {
 export function startServer(sockets) {
   serverRepeater = setInterval(() => {
     doGameTick(sockets);
-  }, constants.TICK_RATE);
+  }, TICK_RATE);
 }
 
 export function stopServer() {

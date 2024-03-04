@@ -1,22 +1,21 @@
 import * as three from "three";
 import { Text } from "troika-three-text";
 import { getCamera } from "./Player";
-import { getModelInstance } from "./Models";
 
+const tempMesh = new three.CylinderGeometry(0.5, 0.5, 2);
 
 class PlayerModel {
-  constructor(metadata) {
-    this.body = new three.Group();
-    this.body.add(getModelInstance(metadata["body"]));
+  constructor(name) {
+    this.material = new three.MeshLambertMaterial({ color: 0x888888 });
+    this.body = new three.Mesh(tempMesh, this.material);
     this.group = new three.Group();
     this.tag = new Text();
-    this.tag.text = metadata.username;
+    this.tag.text = name;
     this.tag.fontSize = 0.5;
     this.tag.anchorX = "center";
     this.tag.anchory = "center";
     this.tag.position.y = 2.5;
     this.tag.outlineWidth = "10%";
-    this.body.rotateY(1.5);
 
     this.group.add(this.tag);
     this.group.add(this.body);
@@ -24,6 +23,7 @@ class PlayerModel {
 
   dispose() {
     this.tag.dispose();
+    this.material.dispose();
   }
 
   update(camera) {
@@ -48,7 +48,7 @@ export function addPlayer(playerID, data, metadata) {
   playersMetadata[playerID] = metadata;
 
   //add 3d model to model group
-  playersModels[playerID] = new PlayerModel(metadata);
+  playersModels[playerID] = new PlayerModel(metadata.username);
   otherPlayerGroup.add(playersModels[playerID].group);
 }
 
@@ -73,7 +73,6 @@ export function updatePlayers(update) {
 export function update() {
   for (let playerID in players) {
     if (playerID == clientID) continue;
-    if (!(playerID in playersModels)) continue;
     playersModels[playerID].update(getCamera());
     reusableVector.set(players[playerID].x, 0.5, players[playerID].z); // reusableVector holds actual position in server
     playersModels[playerID].group.position.lerp(reusableVector, 0.1); // gives smoother transition from current position to target position

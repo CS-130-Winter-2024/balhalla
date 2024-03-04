@@ -1,4 +1,16 @@
-import * as constants from "../constants"
+//on the left
+export const MESSAGES = {
+  sendMovement: "a", //server<-client DONE ON CLIENT
+  serverUpdate: "b", //server->client DONE ON CLIENT
+  playerJoin: "c", //server<->client
+  playerLeave: "d", // server->client
+  playerList: "e", // server->client
+
+  gameStart: "f", // server->client
+  playerKnockout: "g", //server->client
+  knockedOut: "h", //server->client
+  gameEnd: "i", //server->client
+};
 
 var socket;
 
@@ -23,13 +35,12 @@ export function setupConnection() {
 
   socket.addEventListener("close", (event) => {
     console.log("Socket closed!");
-    location.reload();
   });
 
   socket.addEventListener("message", (event) => {
-    let data = constants.message_parse(event.data);
-    if (data.type in handlers) {
-      handlers[data.type](socket, data);
+    let data = JSON.parse(event.data);
+    if (data[0] in handlers) {
+      handlers[data[0]](socket, data);
     }
   });
 }

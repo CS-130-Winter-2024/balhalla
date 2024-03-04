@@ -4,7 +4,7 @@ import crosshair from "./crosshair.svg";
 import Button from '@mui/material/Button';
 
 
-export default function UI({}) {
+export default function UI({ }) {
   const [showOverlay, setShowOverlay] = useState(false);
   const [username, setUsername] = useState("Hello World");
   useEffect(() => {
@@ -24,9 +24,11 @@ export default function UI({}) {
       <div id="UI" style={{ display: (showOverlay && "none") || "block" }}>
         <h1 id="logo">Balhalla</h1>
         <h2>{username}</h2>
-        
-        <Button variant="contained" id="logIn">Return to Game</Button>
-        <Button variant="outlined" id="logIn">Log In</Button>
+
+        <Button variant="contained" id="logIn" onClick={() => {
+          document.dispatchEvent(new CustomEvent("lock"));
+        }}>Return to Game</Button>
+        <Button variant="outlined" id="logIn" >Log In</Button>
         <Button variant="outlined" id="logIn">Sign Up</Button>
       </div>
       <div

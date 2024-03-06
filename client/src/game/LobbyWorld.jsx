@@ -12,57 +12,91 @@ const TextureLoader = new three.TextureLoader();
 
 // Array of model paths
 const modelPaths = [
-  "../../assets/models/goku.glb",
+  "../../assets/models/Goku.glb",
   "../../assets/models/Viking.glb",
+  "../../assets/models/Katarina.glb",
+  "../../assets/models/Yasuo.glb",
 ];
 
 
-
-
-// Sample test world for development
-// function sampleTestWorld(world) {
-
-//   let humanModel;
-//   ModelLoader.load(
-//     vikingboat,
-//     (gltf) => {
-//       humanModel = gltf.scene;
-//       // humanModel.scale.set(2, 2, 2);
-//       humanModel.position.set(2, 0, 4);
-//       // humanModel.children[0].rotation.set(1.5, 0, 0);
-//       console.log("[MODEL] ", gltf);
-//       world.add(humanModel);
-
-//       //mixer = new three.AnimationMixer(humanModel);
-//       //const clip = gltf.animations[0];
-//       //const action = mixer.clipAction(clip);
-//       //action.play();
-//     },
-//     undefined,
-//     (error) => console.error("Error loading human model", error),
-//   );
-
-//   return world;
-// }
 
 
 export function createLobbyWorld() {
   var world = new three.Group();
   let currentModelIndex = 0
   let prevObjectName = null;
-  const arrowSize = 1;
 
-  // Arrow geometries
-  const arrowGeometry = new three.BoxGeometry(arrowSize, arrowSize, arrowSize);
-  const leftArrow = new three.Mesh(arrowGeometry, new three.MeshBasicMaterial({ color: 0x00ff00 }));
-  const rightArrow = new three.Mesh(arrowGeometry, new three.MeshBasicMaterial({ color: 0x00ff00 }));
-  leftArrow.position.set(-2, 0, 3);
-  rightArrow.position.set(2.5, 0, 3);
-  // Set names for raycasting identification
-  leftArrow.name = "leftArrow";
-  rightArrow.name = "rightArrow";
-  world.add(leftArrow);
-  world.add(rightArrow);
+  // load right and left arrow models
+  let leftArrowModel;
+  ModelLoader.load("../../assets/models/Arrow.glb", (gltf) => {
+    leftArrowModel = gltf.scene;
+    leftArrowModel.rotation.set(1.5, 1.5, 0);  
+    leftArrowModel.position.set(-2, 2, 3);
+    leftArrowModel.scale.set(1.5, 1.5, 1.5);
+    // add mesh to arrow hitbox
+    leftArrowModel.children[0].children[0].children[0].children[0].children[0].name = "rightArrowModel";
+    // leftArrowModel.name = "leftArrowModel";
+    world.add(leftArrowModel);
+  });
+  let rightArrowModel;
+  ModelLoader.load("../../assets/models/Arrow.glb", (gltf) => {
+    rightArrowModel = gltf.scene;
+    rightArrowModel.rotation.set(1.5, -1.5, 0);  
+    rightArrowModel.position.set(2.5, 2, 3);
+    rightArrowModel.children[0].children[0].children[0].children[0].children[0].name = "leftArrowModel";
+    world.add(rightArrowModel);
+  });
+
+  function scaleByModel(modelPath) {
+    if (modelPath === "../../assets/models/Goku.glb") {
+      return 4/5;
+    }
+    if (modelPath === "../../assets/models/Viking.glb") {
+      return 1;
+    }
+    if (modelPath === "../../assets/models/Katarina.glb") {
+      return 1/30;
+    }
+
+    if (modelPath === "../../assets/models/Yasuo.glb") {
+      return 1/15;
+    }
+
+    return 1;
+  }
+
+  function rotate180(modelPath) {
+    if (modelPath === "../../assets/models/Goku.glb") {
+      return true;
+    }
+    if (modelPath === "../../assets/models/Viking.glb") {
+      return false;
+    }
+    if (modelPath === "../../assets/models/Katarina.glb") {
+      return true;
+    }
+    if (modelPath === "../../assets/models/Yasuo.glb") {
+      return true;
+    }
+    
+    return false;
+  }
+
+  function locked(modelPath) {
+    if (modelPath === "../../assets/models/Goku.glb") {
+      return true;
+    }
+    if (modelPath === "../../assets/models/Viking.glb") {
+      return false;
+    }
+    if (modelPath === "../../assets/models/Katarina.glb") {
+      return true;
+    }
+    if (modelPath === "../../assets/models/Yasuo.glb") {
+      return false;
+    }
+    return false;
+  }
 
 
   function loadAndAddModel(modelPath) {
@@ -70,6 +104,19 @@ export function createLobbyWorld() {
     const prevObject = world.getObjectByName(prevObjectName);
     if (prevObject) {
       world.remove(prevObject);
+      world.remove(world.getObjectByName("lock"));
+    }
+
+    if (locked(modelPath)) {
+      let lock;
+      ModelLoader.load("../../assets/models/Lock.glb", (gltf) => {
+        lock = gltf.scene;
+        lock.position.set(.25, 3, 3);
+        lock.scale.set(.02, .02, .02);
+        lock.rotation.set(0, 3.14, 0);
+        lock.name = "lock";
+        world.add(lock);
+      });
     }
 
     let model;
@@ -77,10 +124,13 @@ export function createLobbyWorld() {
       model = gltf.scene;
       model.position.set(.25, 0, 3);
       model.name = modelPath;
+      const scale = scaleByModel(modelPath);
       
-
+      if (rotate180(modelPath)) {
+        model.rotation.set(0, 3.14, 0);
+      }
       // scale model to fit in certain height idk how
-      model.scale.set(4/5, 4/5, 4/5);
+      model.scale.set(scale, scale, scale);
       prevObjectName = model.name
       world.add(model);
     }, undefined, (error) => console.error("Error loading model", error));
@@ -107,11 +157,11 @@ export function createLobbyWorld() {
   console.log(intersect.object.name)
   if (intersect) {
     const clickedObject = intersect.object;
-    if (clickedObject.name === "leftArrow") {
+    if (clickedObject.name === "leftArrowModel") {
       // Handle left arrow click
       currentModelIndex = (currentModelIndex - 1 + modelPaths.length) % modelPaths.length;
       loadAndAddModel(modelPaths[currentModelIndex]);
-    } else if (clickedObject.name === "rightArrow") {
+    } else if (clickedObject.name === "rightArrowModel") {
       // Handle right arrow click
       currentModelIndex = (currentModelIndex + 1) % modelPaths.length;
       loadAndAddModel(modelPaths[currentModelIndex]);
@@ -125,6 +175,9 @@ export function createLobbyWorld() {
     console.log("[GLTF]", gltf);
     world.add(room);
   });
+
+  const ambientLight = new three.AmbientLight(0x101010); // Dark gray color
+  world.add(ambientLight);
 
   return world;
 }

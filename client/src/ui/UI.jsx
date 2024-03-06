@@ -8,6 +8,7 @@ export default function UI({}) {
   const [showOverlay, setShowOverlay] = useState(false);
   const [username, setUsername] = useState("Guest");
   const [hoveringImage, setHoveringImage] = useState(false);
+  const [pfp, setPfp] = useState(pfp_path);
   const [gameStats, setGameStats] = useState({
     wins: 10,
     gamesPlayed: 20,
@@ -29,14 +30,32 @@ export default function UI({}) {
 
   const handleImageClick = () => {
     if (hoveringImage) {
-      // Show prompt or trigger file input
-      // You can use a library like react-dropzone for a better file upload experience
-      console.log("Upload new image");
+      document.getElementById("fileInput").click();
     }
   };
 
+
+const handleFileUpload = (event) => {
+  const file = event.target.files[0];
+  console.log("Uploaded file:", file);
+
+  // replace the profile picture with the uploaded image
+  const reader = new FileReader();
+  reader.onloadend = () => {
+    setPfp(reader.result);
+  };
+  reader.readAsDataURL(file);
+};
+
   return (
     <>
+      <input
+        type="file"
+        id="fileInput"
+        style={{ display: "none" }} 
+        accept="image/*"
+        onChange={(e) => handleFileUpload(e)}
+      />
       <div style={styles.container}>
         <div style={{ ...styles.menu, display: (showOverlay && "none") || "block" }}>
           <div style={styles.layout}>
@@ -50,7 +69,7 @@ export default function UI({}) {
                 <div style={styles.pfpContainer}>
                   <div style={styles.pfp}> 
                   <img
-                    src={pfp_path}
+                    src={pfp}
                     alt="Profile"
                     style={{...styles.profilePicture, opacity: hoveringImage ? 0.8 : 1, transition: "opacity 0.3s"}}
                     onMouseEnter={() => setHoveringImage(true)}

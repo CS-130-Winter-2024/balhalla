@@ -3,6 +3,7 @@ import crosshair from "./crosshair.svg";
 import { themeColors } from "../constants";
 
 const pfp_path = "../../assets/images/hehehaw.jpg";
+const coinImage = "../../assets/images/coinspin2.gif";
 
 export default function UI({}) {
   const [showOverlay, setShowOverlay] = useState(false);
@@ -14,6 +15,7 @@ export default function UI({}) {
     gamesPlayed: 20,
     winRate: "50%",
     eliminations: 100,
+    coins: 42,
   });
 
   useEffect(() => {
@@ -47,6 +49,10 @@ const handleFileUpload = (event) => {
   reader.readAsDataURL(file);
 };
 
+const handleBuyCoins = () => {
+  console.log("Buying coins");
+}
+
   return (
     <>
       <input
@@ -64,7 +70,7 @@ const handleFileUpload = (event) => {
             </div>
             <div style={styles.twoDivide}>
 
-               {/* Right Section */}
+               {/* Left Section */}
               <div style={styles.leftSection}>
                 <div style={styles.pfpContainer}>
                   <div style={styles.pfp}> 
@@ -94,9 +100,20 @@ const handleFileUpload = (event) => {
               </div>
 
 
-              {/* Left Section */}
+              {/* Right Section */}
               <div style={styles.rightSection}>
-                {/* Content for the left section */}
+                <div style={styles.leanRight}> 
+                  <button style={styles.pointsContainer} onClick={handleBuyCoins}>
+                    <div style={styles.pointsBox}>
+                      <div style={styles.pointsText}>{gameStats.coins}</div>
+                      <img src={coinImage} alt="Coins" style={styles.coinImage} />
+                    </div>
+                    <div style={styles.buyButton}>
+                      <div style={styles.buyButtonInner}>+</div>
+                    </div>
+                  </button>
+                </div>
+               
               </div>
              
             </div>
@@ -111,6 +128,57 @@ const handleFileUpload = (event) => {
 }
 
 const styles = {
+  leanRight: {
+    display: "flex",
+    justifyContent: "flex-end",
+  },
+  pointsContainer: {
+    marginTop: 20,
+    marginRight: 40,
+    backgroundColor: "#f2f2f2", // Light gray color for the rectangle
+    padding: "5px 10px",
+    borderRadius: "6px 0 0 6px",
+    border: `2px solid ${themeColors.stormcloud}`,
+    display: "flex",
+    alignItems: "center",
+    width: "80px",
+    height: "40px",
+  },
+
+  pointsBox: {
+    display: "flex",
+    alignItems: "center",
+  },
+
+  pointsText: {
+    fontSize: "18px",
+    fontWeight: "bold",
+    marginRight: 10,
+    color: themeColors.sea,
+  },
+
+  coinImage: {
+    width: 25,
+    height: 25,
+  },
+
+  buyButton: {
+    marginLeft: 10,
+  },
+
+  buyButtonInner: {
+    backgroundColor: themeColors.stormcloud,
+    color: "white",
+    padding: "10.5px 12px",
+    borderRadius: "0 6px 6px 0",
+    cursor: "pointer",
+    border: "none",
+    fontSize: "14px",
+    fontWeight: "bold",
+    height: "100%",
+  },
+
+
   container: {
     width: "40%",
     height: "90%",

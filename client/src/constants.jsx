@@ -90,3 +90,13 @@ export const colors = {
     yellow: 0xffff00,
     orange: 0xffa500,
 }
+
+export const themeColors = {
+    riverside: "#8AA6B8",
+    stormcloud: "#0B283C",
+    bluebird: "#3C5D7C",
+    mist: "#C7D5D8",
+    driedblood: "#ac696a",
+    darksea: "#0f2024",
+    sea: "#295665",
+}

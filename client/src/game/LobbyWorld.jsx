@@ -1,13 +1,10 @@
 import * as three from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 
-import skybox from "../../assets/textures/skybox.png";
 import room from "../../assets/models/Room.glb";
-import vikingboat from "../../assets/models/VikingBoat.glb";
 import { getCamera } from "./Player";
 
 const ModelLoader = new GLTFLoader();
-const TextureLoader = new three.TextureLoader();
 
 
 // Array of model paths
@@ -17,9 +14,6 @@ const modelPaths = [
   "../../assets/models/Katarina.glb",
   "../../assets/models/Yasuo.glb",
 ];
-
-
-
 
 export function createLobbyWorld() {
   var world = new three.Group();

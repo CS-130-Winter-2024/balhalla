@@ -16,6 +16,7 @@ export default function UI() {
   const [isButton1Hovered, setButton1Hovered] = useState(false);
   const [isButton2Hovered, setButton2Hovered] = useState(false);
   const [hoveredIcon, setHoveredIcon] = useState(null);
+  const [worldState, setWorldState] = useState("game");
   const [gameStats, setGameStats] = useState({
     wins: 10,
     gamesPlayed: 20,
@@ -26,7 +27,15 @@ export default function UI() {
 
   const handleStoreClick = () => {
     console.log("Store button clicked");
-    main.switchToLobby();
+
+    if (worldState === "game") {
+      main.switchToLobby();
+      setWorldState("store");
+    }
+    else if (worldState === "store") {
+      main.switchToGame();
+      setWorldState("game");
+    }
   };
 
   // update game stats every 10 seconds for testing purposes, but would use api endpoint in production
@@ -182,7 +191,7 @@ const handleQuestionMarkClick = () => {
                       onMouseLeave={()=>setButton1Hovered(false)}
                       onClick={handleStoreClick}
                       >
-                        Store
+                        {worldState === "game" ? "Store" : "Back"}
                     </button>
                     <button 
                       style={{...styles.centeredButton, ...styleHoverButton(2)}}

@@ -12,7 +12,7 @@ var properties = {
 };
 
 var locked = false; //Locked = First Person Cam; Unlocked = Mouse Movement
-
+let movementSpeed = 1;
 var movementVector = new three.Vector3();
 var perpVector = new three.Vector3();
 var intermediateVector = new three.Vector3();
@@ -21,19 +21,22 @@ var prevCamVector = new three.Vector3();
 var dashScalar = 1;
 var dashAvailable = true;
 
+export function changeMovementSpeed(speed) {
+  movementSpeed = speed;
+}
 function calculateDirection() {
   camera.getWorldDirection(prevCamVector);
   camera.getWorldDirection(movementVector);
   camera.getWorldDirection(perpVector);
   // Forward and Back movement calculation
   movementVector.multiplyScalar(
-    (properties.directionHeld[0] - properties.directionHeld[2]),
+    (properties.directionHeld[0] - properties.directionHeld[2]) * movementSpeed,
   );
   // Side to Side movement calculation
   perpVector.set(
-    -perpVector.z * (properties.directionHeld[3] - properties.directionHeld[1]),
+    -perpVector.z * (properties.directionHeld[3] - properties.directionHeld[1]) * movementSpeed,
     0,
-    perpVector.x * (properties.directionHeld[3] - properties.directionHeld[1]),
+    perpVector.x * (properties.directionHeld[3] - properties.directionHeld[1]) * movementSpeed,
   );
   movementVector.add(perpVector);
   movementVector.y = 0;

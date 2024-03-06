@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import crosshair from "./crosshair.svg";
 import { themeColors } from "../constants";
+import * as main from '../game/Game.jsx';
+import {createLobbyWorld} from "../game/LobbyWorld.jsx";
+
 
 const pfp_path = "../../assets/images/hehehaw.jpg";
 const coinImage = "../../assets/images/coinspin2.gif";
@@ -21,6 +24,10 @@ export default function UI() {
     coins: 42,
   });
 
+  const handleStoreClick = () => {
+    console.log("Store button clicked");
+    main.switchToLobby();
+  };
 
   // update game stats every 10 seconds for testing purposes, but would use api endpoint in production
   useEffect(() => {
@@ -173,6 +180,7 @@ const handleQuestionMarkClick = () => {
                       style={{...styles.centeredButton, ...styleHoverButton(1)}}
                       onMouseEnter={()=>setButton1Hovered(true)}
                       onMouseLeave={()=>setButton1Hovered(false)}
+                      onClick={handleStoreClick}
                       >
                         Store
                     </button>

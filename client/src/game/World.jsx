@@ -5,8 +5,6 @@ import skybox from "../../assets/textures/skybox.png";
 import arena from "../../assets/models/SeaArena.glb";
 import vikingboat from "../../assets/models/VikingBoat.glb";
 
-import { colors } from "../constants";
-
 const ModelLoader = new GLTFLoader();
 const TextureLoader = new three.TextureLoader();
 

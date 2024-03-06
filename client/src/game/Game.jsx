@@ -7,10 +7,14 @@ import * as Others from "./OtherPlayers";
 import * as Player from "./Player";
 import * as Balls from "./Balls";
 import { loadDefault } from "./Models";
+import { createLobbyWorld } from "./LobbyWorld";
+
+let currentScene;
+let scene, renderer, camera, controls, locked;
 
 function getUsername() {
   return prompt("What is your username?");
-  return "Player" + Math.floor(Math.random() * 1000);
+  // return "Player" + Math.floor(Math.random() * 1000);
 }
 
 // Defines how the game handles messages from server
@@ -68,37 +72,81 @@ function updateAspect(renderer, camera) {
   }
 }
 
-export default function main() {
+
+
+export function switchToLobby() {
+  if (currentScene) {
+    // Clean up resources or perform any necessary actions before switching
+    disposeOfResources(currentScene);
+    scene.remove(currentScene);
+  }
+  currentScene = createLobbyWorld();
+  scene.add(currentScene);
+  let light = new three.PointLight(0xffffff, 3, 0, 0);
+  scene.add(light);
+  scene.add(new three.AmbientLight(0xffffff, 4));
+  scene.add(Others.getPlayerModelGroup());
+  Player.changeMovementSpeed(10000);
+}
+
+function disposeOfResources(scene) {
+  // Add cleanup logic specific to your application
+  // For example, you might dispose of geometries, materials, textures, etc.
+  scene.children[0].traverse((object) => {
+    if (object instanceof three.Mesh) {
+      if (object.geometry) object.geometry.dispose();
+      if (object.material) {
+        if (Array.isArray(object.material)) {
+          object.material.forEach((material) => {
+            material.dispose();
+          });
+        } else {
+          object.material.dispose();
+        }
+      }
+    }
+  });
+}
+
+export function switchToGame() {
+  if (currentScene) {
+    // Clean up resources or perform any necessary actions before switching
+    disposeOfResources(currentScene);
+    scene.remove(currentScene);
+  }
+  currentScene = createWorld();
+  scene.add(currentScene);
+  Player.changeMovementSpeed(1);
+
+  let light = new three.PointLight(0xffffff, 3, 0, 0);
+  scene.add(light);
+  scene.add(new three.AmbientLight(0xffffff, 4));
+  scene.add(Others.getPlayerModelGroup());
+  scene.add(Balls.getBallGroup());
+}
+
+export function initialize() {
+
   //establish scene and renderer
-  var scene = new three.Scene();
+  scene = new three.Scene();
   scene.background = getSkybox();
-  var renderer = new three.WebGLRenderer({ antialias: true });
+  renderer = new three.WebGLRenderer({ antialias: true });
   renderer.domElement.id = "GameCanvas";
   document.body.appendChild(renderer.domElement);
 
   //load models
   loadDefault()
   //add camera
-  var camera = Player.createCamera();
-
-  //add world
-  scene.add(createWorld());
+  camera = Player.createCamera();
   
-
-  //add lights
-  let light = new three.PointLight(0xffffff, 3, 0, 0);
-  scene.add(light);
-  scene.add(new three.AmbientLight(0xffffff,4));
-
-  //add other players
-  scene.add(Others.getPlayerModelGroup());
-  scene.add(Balls.getBallGroup());
+  // Initial setup with the game scene
+  switchToGame();
 
   //Add controls to camera
-  var controls = new PointerLockControls(camera, renderer.domElement);
+  controls = new PointerLockControls(camera, renderer.domElement);
   controls.connect();
   //Add camera locking
-  var locked = false;
+  locked = false;
   controls.addEventListener("lock", () => {
     document.dispatchEvent(new CustomEvent("lock"));
   });

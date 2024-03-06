@@ -12,8 +12,7 @@ export default function UI({}) {
   const [pfp, setPfp] = useState(pfp_path);
   const [isButton1Hovered, setButton1Hovered] = useState(false);
   const [isButton2Hovered, setButton2Hovered] = useState(false);
-  const [isButton3Hovered, setButton3Hovered] = useState(false);
-
+  const [hoveredIcon, setHoveredIcon] = useState(null);
   const [gameStats, setGameStats] = useState({
     wins: 10,
     gamesPlayed: 20,
@@ -21,6 +20,8 @@ export default function UI({}) {
     eliminations: 100,
     coins: 42,
   });
+
+  
 
   useEffect(() => {
     document.addEventListener("lock", () => {
@@ -40,6 +41,14 @@ export default function UI({}) {
     }
   };
 
+
+const handleIconHover = (isHovered, icon) => {
+  if (isHovered) {
+    setHoveredIcon(icon);
+  } else {
+    setHoveredIcon(null);
+  }
+};
 
 const handleFileUpload = (event) => {
   const file = event.target.files[0];
@@ -61,7 +70,6 @@ const styleHoverButton = (num) => {
   let btn;
   if (num === 1) btn = isButton1Hovered;
   if (num === 2) btn = isButton2Hovered;
-  if (num === 3) btn = isButton3Hovered;
   return {
     background: btn ? themeColors.riverside : themeColors.stormcloud,
     boxShadow: btn ? '0 0 10px ' + themeColors.riverside + ', 0 0 25px ' + themeColors.riverside : 'none',
@@ -133,48 +141,89 @@ const handleQuestionMarkClick = () => {
 
               {/* Right Section */}
               <div style={styles.rightSection}>
-                <div style={styles.leanRight}> 
-                  <button style={{...styles.pointsContainer}} onClick={handleBuyCoins}>
-                    <div style={styles.pointsBox}>
-                      <div style={styles.pointsText}>{gameStats.coins}</div>
-                      <img src={coinImage} alt="Coins" style={styles.coinImage} />
-                    </div>
-                    <div style={styles.buyButton}>
-                      <div style={styles.buyButtonInner}>+</div>
-                    </div>
-                  </button>
+                <div style={styles.right70}>
+                  <div style={styles.leanRight}> 
+                    <button style={styles.pointsContainer} onClick={handleBuyCoins}>
+                      <div style={styles.pointsBox}>
+                        <div style={styles.pointsText}>{gameStats.coins}</div>
+                        <img src={coinImage} alt="Coins" style={styles.coinImage} />
+                      </div>
+                      <div style={styles.buyButton}>
+                        <div style={styles.buyButtonInner}>+</div>
+                      </div>
+                    </button>
+                  </div>
+                  <div style={styles.centeredButtons}>
+                    <button 
+                      style={{...styles.centeredButton, ...styleHoverButton(1)}}
+                      onMouseEnter={()=>setButton1Hovered(true)}
+                      onMouseLeave={()=>setButton1Hovered(false)}
+                      >
+                        Store
+                    </button>
+                    <button 
+                      style={{...styles.centeredButton, ...styleHoverButton(2)}}
+                      onMouseEnter={()=>setButton2Hovered(true)}
+                      onMouseLeave={()=>setButton2Hovered(false)}
+                      >
+                        Collections
+                    </button>
+                  </div>
                 </div>
-                <div style={styles.centeredButtons}>
-                  <button 
-                    style={{...styles.centeredButton, ...styleHoverButton(1)}}
-                    onMouseEnter={()=>setButton1Hovered(true)}
-                    onMouseLeave={()=>setButton1Hovered(false)}
-                    >
-                      Store
-                  </button>
-                  <button 
-                    style={{...styles.centeredButton, ...styleHoverButton(2)}}
-                    onMouseEnter={()=>setButton2Hovered(true)}
-                    onMouseLeave={()=>setButton2Hovered(false)}
-                    >
-                      Collections
-                  </button>
-                </div>
+                <div style={styles.divider}></div>
                 <div style={styles.bottomIcons}>
-                  <div style={styles.icon} onClick={handleSettingsClick}>
-                  <img width="50" height="50" src="https://img.icons8.com/ios-filled/100/settings.png" alt="settings"/>
-                  </div>
-                  <div style={styles.icon} onClick={handleTrophyClick}>
-                  <img width="50" height="50" src="https://img.icons8.com/ios-glyphs/100/trophy.png" alt="trophy"/>
-                  </div>
-                  <div style={styles.icon} onClick={handleQuestionMarkClick}>
-                  <img width="50" height="50" src="https://img.icons8.com/ios-glyphs/90/question-mark.png" alt="question-mark"/>
-                  </div>
+                <div
+                  style={{
+                    ...styles.icon,
+                    opacity: hoveredIcon === 'settings' ? 0.5 : 1,
+                  }}
+                  onClick={handleSettingsClick}
+                  onMouseEnter={() => handleIconHover(true, 'settings')}
+                  onMouseLeave={() => handleIconHover(false, 'settings')}
+                >
+                  <img
+                    width="50"
+                    height="50"
+                    src="https://img.icons8.com/ios-filled/100/settings.png"
+                    alt="settings"
+                  />
+                </div>
+
+                <div
+                  style={{
+                    ...styles.icon,
+                    opacity: hoveredIcon === 'trophy' ? 0.5 : 1,
+                  }}
+                  onClick={handleTrophyClick}
+                  onMouseEnter={() => handleIconHover(true, 'trophy')}
+                  onMouseLeave={() => handleIconHover(false, 'trophy')}
+                >
+                  <img
+                    width="50"
+                    height="50"
+                    src="https://img.icons8.com/ios-glyphs/100/trophy.png"
+                    alt="trophy"
+                  />
+                </div>
+
+                <div
+                  style={{
+                    ...styles.icon,
+                    opacity: hoveredIcon === 'questionMark' ? 0.5 : 1,
+                  }}
+                  onClick={handleQuestionMarkClick}
+                  onMouseEnter={() => handleIconHover(true, 'questionMark')}
+                  onMouseLeave={() => handleIconHover(false, 'questionMark')}
+                >
+                  <img
+                    width="50"
+                    height="50"
+                    src="https://img.icons8.com/ios-glyphs/90/question-mark.png"
+                    alt="question-mark"
+                  />
+                </div>
                 </div>
               </div>
-
-             
-             
             </div>
           </div>
         </div>
@@ -187,14 +236,19 @@ const handleQuestionMarkClick = () => {
 }
 
 const styles = {
+  right70: {
+    height: "70%",
+    width: "100%",
+    flex: 1,
+  },
   bottomIcons: {
     display: "flex",
     flexDirection: "row",
     justifyContent: "space-evenly",
     alignItems: "center",
-    marginTop: 20,
-    backgroundColor: "pink",
+    // backgroundColor: "pink",
     padding: "15px 0",
+    height: "29%",
   },
   icon: {
     color: themeColors.stormcloud,
@@ -217,15 +271,15 @@ const styles = {
     cursor: "pointer",
     border: "none",
     fontSize: "20px",
-    margin: "15px",
+    margin: "10px",
   },
   leanRight: {
     display: "flex",
     justifyContent: "flex-end",
-    backgroundColor: "pink", 
+    // backgroundColor: "pink", 
   },
   pointsContainer: {
-    marginTop: 20,
+    marginTop: 10,
     marginRight: 40,
     backgroundColor: "#f2f2f2",
     padding: "5px 10px",
@@ -305,8 +359,8 @@ const styles = {
     display: "flex",
     flexDirection: "row",
     width: "100%",
-    height: "39%",
-    backgroundColor: "yellow",
+    height: "29%",
+    // backgroundColor: "yellow",
     flex: 2,
     alignItems: "center",
     justifyContent: "center",
@@ -319,22 +373,23 @@ const styles = {
     justifyContent: "center",
   },
   pfpContainer: {
-    height: "60%",
+    height: "70%",
     width: "100%",
     flex: 3,
     flexDirection: "column",
-    backgroundColor: "purple",
+    // backgroundColor: "purple",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
   },
   header: {
-    backgroundColor: "red",
+    backgroundColor: themeColors.riverside,
     flexGrow: 1,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     width: "100%",
+    borderBottom: `4px solid ${themeColors.stormcloud}`,
   },
   twoDivide: {
     display: "flex",
@@ -359,11 +414,21 @@ const styles = {
   },
   rightSection: {
     flex: 1, // Takes up 1/2 of the available space
-    backgroundColor: "green", // Adjust color as needed
+    backgroundColor: themeColors.mist, 
+    borderLeft: `2px solid ${themeColors.riverside}`,
+    borderRight: `4px solid ${themeColors.stormcloud}`,
+    borderBottom: `4px solid ${themeColors.stormcloud}`,
+    borderTop: `4px solid ${themeColors.stormcloud}`,
+    
+
   },
   leftSection: {
     flex: 1, // Takes up 1/2 of the available space
-    backgroundColor: "blue", // Adjust color as needed
+    backgroundColor: themeColors.mist, 
+    borderLeft: `4px solid ${themeColors.stormcloud}`,
+    borderRight: `2px solid ${themeColors.riverside}`,
+    borderBottom: `4px solid ${themeColors.stormcloud}`,
+    borderTop: `4px solid ${themeColors.stormcloud}`,
   },
  
   profilePicture: {
@@ -384,7 +449,7 @@ const styles = {
   layout: {
     height: "100%",
     width: "100%",
-    backgroundColor: "orange",
+    backgroundColor: themeColors.bluebird,
     flex: 1,
     marginHorizontal: 20,
     marginVertical: 5,
@@ -392,7 +457,9 @@ const styles = {
     justifyContent: "center",
     textAlign: "center",
     display: "flex",
-    flexDirection: "column", // Added to ensure a vertical layout
+    flexDirection: "column", 
+    // padding: "20px",
+    border: `4px solid ${themeColors.stormcloud}`,
   },
   crosshair: {
     width: "10px",

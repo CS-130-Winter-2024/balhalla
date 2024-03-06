@@ -10,6 +10,10 @@ export default function UI({}) {
   const [username, setUsername] = useState("Guest");
   const [hoveringImage, setHoveringImage] = useState(false);
   const [pfp, setPfp] = useState(pfp_path);
+  const [isButton1Hovered, setButton1Hovered] = useState(false);
+  const [isButton2Hovered, setButton2Hovered] = useState(false);
+  const [isButton3Hovered, setButton3Hovered] = useState(false);
+
   const [gameStats, setGameStats] = useState({
     wins: 10,
     gamesPlayed: 20,
@@ -52,6 +56,33 @@ const handleFileUpload = (event) => {
 const handleBuyCoins = () => {
   console.log("Buying coins");
 }
+
+const styleHoverButton = (num) => {
+  let btn;
+  if (num === 1) btn = isButton1Hovered;
+  if (num === 2) btn = isButton2Hovered;
+  if (num === 3) btn = isButton3Hovered;
+  return {
+    background: btn ? themeColors.riverside : themeColors.stormcloud,
+    boxShadow: btn ? '0 0 10px ' + themeColors.riverside + ', 0 0 25px ' + themeColors.riverside : 'none',
+    transition: 'background 0.5s, box-shadow 0.5s'
+  }
+}
+
+const handleSettingsClick = () => {
+  console.log("Settings button clicked");
+  // Add logic for handling settings button click
+};
+
+const handleTrophyClick = () => {
+  console.log("Trophy button clicked");
+  // Add logic for handling trophy button click
+};
+
+const handleQuestionMarkClick = () => {
+  console.log("Question Mark button clicked");
+  // Add logic for handling question mark button click
+};
 
   return (
     <>
@@ -103,7 +134,7 @@ const handleBuyCoins = () => {
               {/* Right Section */}
               <div style={styles.rightSection}>
                 <div style={styles.leanRight}> 
-                  <button style={styles.pointsContainer} onClick={handleBuyCoins}>
+                  <button style={{...styles.pointsContainer}} onClick={handleBuyCoins}>
                     <div style={styles.pointsBox}>
                       <div style={styles.pointsText}>{gameStats.coins}</div>
                       <img src={coinImage} alt="Coins" style={styles.coinImage} />
@@ -113,8 +144,36 @@ const handleBuyCoins = () => {
                     </div>
                   </button>
                 </div>
-               
+                <div style={styles.centeredButtons}>
+                  <button 
+                    style={{...styles.centeredButton, ...styleHoverButton(1)}}
+                    onMouseEnter={()=>setButton1Hovered(true)}
+                    onMouseLeave={()=>setButton1Hovered(false)}
+                    >
+                      Store
+                  </button>
+                  <button 
+                    style={{...styles.centeredButton, ...styleHoverButton(2)}}
+                    onMouseEnter={()=>setButton2Hovered(true)}
+                    onMouseLeave={()=>setButton2Hovered(false)}
+                    >
+                      Collections
+                  </button>
+                </div>
+                <div style={styles.bottomIcons}>
+                  <div style={styles.icon} onClick={handleSettingsClick}>
+                  <img width="50" height="50" src="https://img.icons8.com/ios-filled/100/settings.png" alt="settings"/>
+                  </div>
+                  <div style={styles.icon} onClick={handleTrophyClick}>
+                  <img width="50" height="50" src="https://img.icons8.com/ios-glyphs/100/trophy.png" alt="trophy"/>
+                  </div>
+                  <div style={styles.icon} onClick={handleQuestionMarkClick}>
+                  <img width="50" height="50" src="https://img.icons8.com/ios-glyphs/90/question-mark.png" alt="question-mark"/>
+                  </div>
+                </div>
               </div>
+
+             
              
             </div>
           </div>
@@ -128,14 +187,47 @@ const handleBuyCoins = () => {
 }
 
 const styles = {
+  bottomIcons: {
+    display: "flex",
+    flexDirection: "row",
+    justifyContent: "space-evenly",
+    alignItems: "center",
+    marginTop: 20,
+    backgroundColor: "pink",
+    padding: "15px 0",
+  },
+  icon: {
+    color: themeColors.stormcloud,
+    cursor: "pointer",
+    fontSize: "20px",
+    margin: "10px",
+    transition: 'color 0.5s',
+  },
+  centeredButtons: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    marginTop: 20,
+  },
+  centeredButton: {
+    backgroundColor: themeColors.stormcloud,
+    color: "white",
+    padding: "20px 40px",
+    borderRadius: "12px",
+    cursor: "pointer",
+    border: "none",
+    fontSize: "20px",
+    margin: "15px",
+  },
   leanRight: {
     display: "flex",
     justifyContent: "flex-end",
+    backgroundColor: "pink", 
   },
   pointsContainer: {
     marginTop: 20,
     marginRight: 40,
-    backgroundColor: "#f2f2f2", // Light gray color for the rectangle
+    backgroundColor: "#f2f2f2",
     padding: "5px 10px",
     borderRadius: "6px 0 0 6px",
     border: `2px solid ${themeColors.stormcloud}`,

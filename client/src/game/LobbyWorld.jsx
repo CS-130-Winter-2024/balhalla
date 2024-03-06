@@ -14,8 +14,6 @@ const TextureLoader = new three.TextureLoader();
 const modelPaths = [
   "../../assets/models/goku.glb",
   "../../assets/models/Viking.glb",
-  "../../assets/models/pets/Turtle.glb",
-  "../../assets/models/pets/Tree.glb",
 ];
 
 
@@ -51,7 +49,7 @@ const modelPaths = [
 export function createLobbyWorld() {
   var world = new three.Group();
   let currentModelIndex = 0
-
+  let prevObjectName = null;
   const arrowSize = 1;
 
   // Arrow geometries
@@ -68,17 +66,22 @@ export function createLobbyWorld() {
 
 
   function loadAndAddModel(modelPath) {
-
+    // remove current model from world and replace with new model
+    const prevObject = world.getObjectByName(prevObjectName);
+    if (prevObject) {
+      world.remove(prevObject);
+    }
 
     let model;
     ModelLoader.load(modelPath, (gltf) => {
       model = gltf.scene;
       model.position.set(.25, 0, 3);
+      model.name = modelPath;
       
 
       // scale model to fit in certain height idk how
       model.scale.set(4/5, 4/5, 4/5);
-
+      prevObjectName = model.name
       world.add(model);
     }, undefined, (error) => console.error("Error loading model", error));
   }
@@ -107,12 +110,10 @@ export function createLobbyWorld() {
     if (clickedObject.name === "leftArrow") {
       // Handle left arrow click
       currentModelIndex = (currentModelIndex - 1 + modelPaths.length) % modelPaths.length;
-      world.children.length = 0; // Remove current models
       loadAndAddModel(modelPaths[currentModelIndex]);
     } else if (clickedObject.name === "rightArrow") {
       // Handle right arrow click
       currentModelIndex = (currentModelIndex + 1) % modelPaths.length;
-      world.children.length = 0; // Remove current models
       loadAndAddModel(modelPaths[currentModelIndex]);
     }
   }

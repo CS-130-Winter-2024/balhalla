@@ -5,7 +5,7 @@ import { themeColors } from "../constants";
 const pfp_path = "../../assets/images/hehehaw.jpg";
 const coinImage = "../../assets/images/coinspin2.gif";
 
-export default function UI({}) {
+export default function UI() {
   const [showOverlay, setShowOverlay] = useState(false);
   const [username, setUsername] = useState("Guest");
   const [hoveringImage, setHoveringImage] = useState(false);
@@ -21,7 +21,22 @@ export default function UI({}) {
     coins: 42,
   });
 
-  
+
+  // update game stats every 10 seconds for testing purposes, but would use api endpoint in production
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setGameStats((prev) => ({
+        ...prev,
+        wins: Math.floor(Math.random() * 100),
+        gamesPlayed: Math.floor(Math.random() * 100),
+        winRate: Math.floor(Math.random() * 100) + "%",
+        eliminations: Math.floor(Math.random() * 1000),
+        coins: Math.floor(Math.random() * 100),
+      }));
+    }, 10000);
+    return () => clearInterval(interval);
+  }, []);
+
 
   useEffect(() => {
     document.addEventListener("lock", () => {

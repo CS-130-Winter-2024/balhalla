@@ -52,13 +52,11 @@ export default function UI({}) {
                   <img
                     src={pfp_path}
                     alt="Profile"
-                    style={{...styles.profilePicture, filter: hoveringImage ? "grayscale(70%)" : "grayscale(0%)"}}
+                    style={{...styles.profilePicture, opacity: hoveringImage ? 0.8 : 1, transition: "opacity 0.3s"}}
                     onMouseEnter={() => setHoveringImage(true)}
                     onMouseLeave={() => setHoveringImage(false)}
                     onClick={handleImageClick}
                   />
-                 
-
                   </div>
                   <div style={styles.usernameText}>{username}</div>
                 </div>

@@ -9,9 +9,9 @@ var states = [lobby,dodgeball]
 //Stores the gameloop interval ID
 var serverRepeater;
 
-function setState(newValue) {
+function setState(newValue, data) {
   if (state != newValue) {
-    states[state].startState();
+    states[state].startState(data);
   }
   state = value;
 }

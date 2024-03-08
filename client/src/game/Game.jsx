@@ -103,9 +103,6 @@ export default function main() {
   scene.add(Others.getPlayerModelGroup());
   scene.add(Balls.getBallGroup());
 
-  //Add controls to camera
-  var spectateControls = new OrbitControls(Player.getCamera(true), renderer.domElement);
-  spectateControls.update();
   var controls = new PointerLockControls(camera, renderer.domElement);
   controls.connect();
   //Add camera locking
@@ -125,6 +122,8 @@ export default function main() {
         controls.unlock();
         locked = true;
       }
+    } else if (ev.key == "T") {
+      Player.setSpectate(false);
     }
   });
 

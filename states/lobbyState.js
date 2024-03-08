@@ -4,6 +4,10 @@ var playerQueue = {}
 
 var onFinish = ()=>{}
 
+export function startState(sockets) {
+    
+}
+
 export function addPlayer(id, sockets) {
 
 }

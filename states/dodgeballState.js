@@ -18,6 +18,11 @@ var onFinish = ()=>{}
 //      Original plan
 //      Very inconsistent backend (what to do with new joins?)
 //      Possibly weird gameplay/strategies
+
+export function startState() {
+  
+}
+
 export function addPlayer(id, sockets) {
     
 }
@@ -183,7 +188,7 @@ export function doTick(sockets) {
               if (upper in sections && ballID in sections[upper]) {
                 delete sections[upper][ballID];
               }
-            } else if (!ball.isGrounded && ball.y <= constants.PLAYER_HEIGHT + constants.BALL_RADIUS && ball.throwerID != playerID) {
+            } else if (!ball.isGrounded && player.alive && ball.y <= constants.PLAYER_HEIGHT + constants.BALL_RADIUS && ball.throwerID != playerID) {
               console.log("[HIT] Ball from ",ball.throwerID, " killed ", playerID);
               players[playerID].alive = false;
               players[playerID].hasBall = false;

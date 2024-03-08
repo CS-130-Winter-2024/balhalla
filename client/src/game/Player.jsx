@@ -157,7 +157,7 @@ function createSpectateCamera() {
   spectateCamera = new three.PerspectiveCamera(75, 2, 0.1, 1000);
   spectateCamera.position.z = 0;
   spectateCamera.position.y = 10;
-  spectateCamera.position.x = 15;
+  spectateCamera.position.x = 17;
   spectateCamera.zoom = 1;
   spectateCamera.lookAt(0, 0, 0);
   spectateCamera.updateProjectionMatrix();

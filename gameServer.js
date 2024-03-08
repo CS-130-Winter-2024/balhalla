@@ -10,6 +10,9 @@ var states = [lobby,dodgeball]
 var serverRepeater;
 
 function setState(newValue) {
+  if (state != newValue) {
+    states[state].startState();
+  }
   state = value;
 }
 

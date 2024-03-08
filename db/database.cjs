@@ -1,3 +1,7 @@
+const bcrypt = require("bcrypt")
+const jwt = require("jsonwebtoken")
+const SECRET = "any_secret_you_want_to_use"
+
 const knex = require("knex")({
   // We are using PostgreSQL
   client: "postgres",
@@ -10,15 +14,74 @@ const knex = require("knex")({
 
 });
 
+function testSignup(request, response, next) {
+   bcrypt.hash(request.body.password, 10)
+   .then(hashedPassword => {
+      return knex("accounts").insert({
+         username: request.body.username,
+         password: hashedPassword
+      })
+      .returning(["username", "password"])
+      .then(users => {
+         response.json(users[0])
+         console.log("signup worked")
+      })
+      .catch(error => next(error))
+   })
+}
+function printUsers(request, response, next) {
+   knex("accounts")
+   .then(users => {
+      response.json(users)
+   })
+}
+
+function login(request, response, next) {
+   console.log(request.body)
+   knex("accounts")
+   .where({username: request.body.username})
+   .first()
+   .then(user => {
+      if(!user) {
+         response.status(401).json({
+            error: "No user by that name"
+         })
+      }
+      else {
+         return bcrypt
+         .compare(request.body.password, user.password)
+         .then(isAuthenticated => {
+            if(!isAuthenticated) {
+               response.status(401).json({
+                  error: "Unauthorized Access!"
+               })
+            }
+            else {
+               return jwt.sign(user, SECRET, (error, token) => {
+                  response.status(200).json({token})
+                  console.log("db token:", token)
+               })
+            }
+         })
+      }
+   })
+}
+
+module.exports = {
+  testSignup,
+  printUsers,
+  login
+};
+
 (async () => {
 
   // Only while developing, we will drop  database and re-create it
-  // await knex.schema.dropTableIfExists('accounts')
-  // await knex.schema.dropTableIfExists('items')
+  await knex.schema.dropTableIfExists('accounts')
+  await knex.schema.dropTableIfExists('items')
 
-  await knex.schema.hasTable('account').then(function(exists) {
+  await knex.schema.hasTable('accounts').then(function(exists) {
     if (!exists) {
-      return knex.schema.createTable('account', function(table) {
+      return knex.schema.createTable('accounts', function(table) {
         table.string('username').unique().primary();
         table.string('password');
         table.integer('points');
@@ -42,7 +105,7 @@ const knex = require("knex")({
       });
     }
   });
-  
+
   // TEST CASES - Ishaan
 
   await knex('accounts').insert({
@@ -67,8 +130,9 @@ const knex = require("knex")({
     .from('accounts')
     .leftOuterJoin('items', 'accounts.username', 'items.username')
 
+  console.log("test2");
   console.log(test2);
 
-  await knex("accounts").where("username", "admin").delete();
+  // await knex("accounts").where("username", "admin").delete();
 
 })();

@@ -1,4 +1,4 @@
-import express from "express";
+import express, { json } from "express";
 import * as url from "url";
 import path from "path";
 import { WebSocketServer } from "ws";
@@ -11,6 +11,9 @@ import { MESSAGES } from "./constants.js";
 
 const __dirname = url.fileURLToPath(new URL(".", import.meta.url));
 const app = express();
+
+import pkg from './db/database.cjs';
+const { testSignup, printUsers, login } = pkg;
 
 //Client Page Server
 app.use(express.static(path.join(__dirname, "public")));
@@ -26,6 +29,20 @@ const httpServer = app.listen(PORT, () => {
   console.log(`App listening on port ${PORT}`);
   console.log("Press Ctrl+C to quit.");
 });
+
+// Database Commands
+app.use(express.json());
+app.post("/signup", (request, response, next) => {
+  console.log("tryna post")
+  testSignup(request, response, next)
+})
+app.get("/signup", (request, response, next) => {
+  printUsers(request, response, next)
+})
+
+app.post("/login", (request, response, next) => {
+  login(request, response, next)
+})
 
 var connections = {};
 //Websocket Server
@@ -55,4 +72,5 @@ wss.on("connection", function connection(ws) {
     }
   });
 });
+
 startServer(connections);

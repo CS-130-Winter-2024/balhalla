@@ -10,7 +10,7 @@ function handleLogin() {
 async function handleSignup() {
   let admin = "test2";
   let pw = "12345";
-
+  console.log(location);
   await fetch("/signup", {
     method: "POST",
     headers: {
@@ -21,8 +21,8 @@ async function handleSignup() {
       password: pw,
     }),
   })
-  .then((response) => response.json())
-  .then((data) => console.log(data));
+    .then((response) => {console.log("test"); return response.json()})
+    .then((data) => console.log("signup data:", data));
 
   await fetch("/login", {
     method: "POST",
@@ -34,8 +34,8 @@ async function handleSignup() {
       password: pw,
     }),
   })
-  .then((response) => response.json())
-  .then((data) => console.log(data));
+    .then((response) => response.json())
+    .then((data) => console.log("login token:", data.token));
 }
 
 function DisplayComponent() {
@@ -83,11 +83,7 @@ export default function UI({}) {
           Log In
         </Button>
         {loginClicked && <DisplayComponent />}
-        <Button
-          variant="outlined"
-          id="logIn"
-          onClick={handleSignup}
-        >
+        <Button variant="outlined" id="logIn" onClick={handleSignup}>
           Sign Up
         </Button>
       </div>

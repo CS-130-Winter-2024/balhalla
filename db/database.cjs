@@ -14,8 +14,8 @@ const knex = require("knex")({
 
 });
 
-function testSignup(request, response, next) {
-   bcrypt.hash(request.body.password, 10)
+async function testSignup(request, response, next) {
+   await bcrypt.hash(request.body.password, 10)
    .then(hashedPassword => {
       return knex("accounts").insert({
          username: request.body.username,
@@ -23,18 +23,18 @@ function testSignup(request, response, next) {
       })
       .returning(["username", "password"])
       .then(users => {
-         response.json(users[0])
-         console.log("signup worked")
+        response.status(200).json(users[0])
+         console.log("signup worked:", users[0])
       })
       .catch(error => next(error))
    })
 }
-function printUsers(request, response, next) {
-   knex("accounts")
-   .then(users => {
-      response.json(users)
-   })
-}
+// function printUsers(request, response, next) {
+//    knex("accounts")
+//    .then(users => {
+//      response.status(200).send(JSON.stringify(users[0]))
+//    })
+// }
 
 function login(request, response, next) {
    console.log(request.body)
@@ -58,7 +58,7 @@ function login(request, response, next) {
             }
             else {
                return jwt.sign(user, SECRET, (error, token) => {
-                  response.status(200).json({token})
+                  response.status(200).json({token: token})
                   console.log("db token:", token)
                })
             }

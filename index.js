@@ -2,17 +2,13 @@ import express, { json } from "express";
 import * as url from "url";
 import path from "path";
 import { WebSocketServer } from "ws";
-import {
-  processMessage,
-  startServer,
-  deletePlayer,
-} from "./gameServer.js";
+import { processMessage, startServer, deletePlayer } from "./gameServer.js";
 import { MESSAGES } from "./constants.js";
 
 const __dirname = url.fileURLToPath(new URL(".", import.meta.url));
 const app = express();
 
-import pkg from './db/database.cjs';
+import pkg from "./db/database.cjs";
 const { testSignup, printUsers, login } = pkg;
 
 //Client Page Server
@@ -33,16 +29,16 @@ const httpServer = app.listen(PORT, () => {
 // Database Commands
 app.use(express.json());
 app.post("/signup", (request, response, next) => {
-  console.log("tryna post")
   testSignup(request, response, next)
-})
-app.get("/signup", (request, response, next) => {
-  printUsers(request, response, next)
-})
-
+});
 app.post("/login", (request, response, next) => {
-  login(request, response, next)
-})
+  login(request, response, next);
+});
+// app.get("/signup", (request, response, next) => {
+//   printUsers(request, response, next);
+// });
+
+
 
 var connections = {};
 //Websocket Server

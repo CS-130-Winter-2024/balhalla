@@ -91,3 +91,18 @@ export const colors = {
     yellow: 0xffff00,
     orange: 0xffa500,
 }
+
+var GLOBAL_STORE = {
+
+}
+
+export function get_global(key) {
+    if (key in GLOBAL_STORE) {
+        return GLOBAL_STORE[key];
+    }
+    return null;
+}
+
+export function set_global(key,value) {
+    GLOBAL_STORE[key] = value
+}

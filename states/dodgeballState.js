@@ -4,7 +4,10 @@ var players = {}; //playerid associated
 var playersMetadata = {}; //playerid associated
 var balls = {};
 
-var onFinish = ()=>{}
+var gameStartTimer;
+var gameEndTimer;
+
+var onFinish = ()=>{} //dont change this
 //ON DEATH -> WHAT DO?
 //  Set to spectate
 //      Against original plan
@@ -19,21 +22,52 @@ var onFinish = ()=>{}
 //      Very inconsistent backend (what to do with new joins?)
 //      Possibly weird gameplay/strategies
 
-export function startState() {
-  
+export function startState(sockets, data) {
+  //teams
+  let teams = constants.assign_random(data.count);
+  //add all the readied players to the game
+  let current = 0;
+  for (const id in data.players) {
+    //get base player
+    players[id] = {
+      ...constants.BASE_PLAYER,
+    };
+
+    playersMetadata[id] = {
+      username: data.username,
+      body: 0,
+      team: teams[current],
+      hits: 0,
+    };
+    
+    current++;
+  }
+
+  gameStartTimer = Date.now() + constants.START_COUNTDOWN;
+  gameEndTimer = gameStartTimer + constants.GAME_LENGTH;
+
+  //propagate the playerlist to everyone
+  for (const id in sockets) {
+    const broadcast = JSON.stringify([constants.MESSAGES.playerList, id, players, playersMetadata, gameStartTimer, gameEndTimer]);
+    sockets[id].send(broadcast);
+  }
 }
 
+//called when player joins. do nothing here (since they should only spectate)
 export function addPlayer(id, sockets) {
-    
+  let list = JSON.stringify([constants.MESSAGES.playerList, id, players, playersMetadata, gameStartTimer, gameEndTimer]);
+  sockets[id].send(list);
 }
 
 export function deletePlayer(id, sockets) {
+  if (id in players) {
     delete players[id];
     delete playersMetadata[id];
 
     for (let otherID in sockets) {
         sockets[otherID].send(JSON.stringify([constants.MESSAGES.playerLeave, id]));
     }
+  } 
 }
 //dodgeball logic
 //join -> add to lobby
@@ -41,66 +75,80 @@ export function deletePlayer(id, sockets) {
 //  send playerlist (rename playerlist to gamestart)
 //  send countdown
 export function processMessage(id, sockets, message) {
-    let data = constants.message_parse(message)
-    switch (data.type) {
-      case constants.MESSAGES.sendMovement:
-        //store player keys
-        players[id].direction = data.direction;
-        break;
-      case constants.MESSAGES.playerJoin:
-        //add player to players list
-        players[id] = {
-          ...constants.BASE_PLAYER,
-        };
-        playersMetadata[id] = {
-          username: data.username,
-          body: 0
-        };
-  
-        //send list of players to newly joined players
-        sockets[id].send(
-          JSON.stringify([constants.MESSAGES.playerList, id, players, playersMetadata]),
+  if (!(id in players)) {
+    return;
+  }
+  let data = constants.message_parse(message)
+  switch (data.type) {
+    case constants.MESSAGES.sendMovement:
+      //store player keys
+      players[id].direction = data.direction;
+      break;
+    case constants.MESSAGES.playerJoin:
+      break; //DO NOTHING ON PLAYER JOIN
+      //add player to players list
+      players[id] = {
+        ...constants.BASE_PLAYER,
+      };
+      playersMetadata[id] = {
+        username: data.username,
+        body: 0
+      };
+
+      //send list of players to newly joined players
+      sockets[id].send(
+        JSON.stringify([constants.MESSAGES.playerList, id, players, playersMetadata]),
+      );
+
+      //send new join to all other players
+      for (let otherID in players) {
+        if (id == otherID) continue;
+
+        sockets[otherID].send(
+          JSON.stringify([
+            constants.MESSAGES.playerJoin,
+            id,
+            players[id],
+            playersMetadata[id],
+          ]),
         );
-  
-        //send new join to all other players
-        for (let otherID in players) {
-          if (id == otherID) continue;
-  
-          sockets[otherID].send(
-            JSON.stringify([
-              constants.MESSAGES.playerJoin,
-              id,
-              players[id],
-              playersMetadata[id],
-            ]),
-          );
+      }
+      break;
+    case constants.MESSAGES.throwBall:
+      if (players[id].hasBall) {
+        //generate ball id
+        let ballID = Math.floor(Math.random() * 100000);
+        while (ballID in balls) {
+          ballID = Math.floor(Math.random() * 100000);
         }
-        break;
-      case constants.MESSAGES.throwBall:
-        if (players[id].hasBall) {
-          //generate ball id
-          let ballID = Math.floor(Math.random() * 100000);
-          while (ballID in balls) {
-            ballID = Math.floor(Math.random() * 100000);
-          }
-          players[id].hasBall = false;
-          let normal = Math.sqrt(data.x*data.x+data.z*data.z);
-          //the normal is for throwing to the right of the player
-          balls[ballID] = {
-            x: players[id].x - (data.z/normal)*0.3,
-            y: 1.25,
-            z: players[id].z + (data.x/normal)*0.3,
-            velocity: data.direction.map((x) => x * constants.BALL_SPEED),
-            throwerID: id,
-            isGrounded: false,
-          };
-        }
-        break;
-    }
+        players[id].hasBall = false;
+        let normal = Math.sqrt(data.x*data.x+data.z*data.z);
+        //the normal is for throwing to the right of the player
+        balls[ballID] = {
+          x: players[id].x - (data.z/normal)*0.3,
+          y: 1.25,
+          z: players[id].z + (data.x/normal)*0.3,
+          velocity: data.direction.map((x) => x * constants.BALL_SPEED),
+          throwerID: id,
+          isGrounded: false,
+        };
+      }
+      break;
+  }
 }
 
 
 export function doTick(sockets) {
+
+    if (Date.now() > gameEndTimer) {
+      //game has ended!
+
+
+      //calculate winner
+      //send winning team and MVP to everyone
+      //credit everyone with their points
+      
+    }
     // Split board into x-axis slices (increment by x, extends along z)
     let sections = {};
   

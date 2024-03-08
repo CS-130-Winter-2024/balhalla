@@ -1,9 +1,10 @@
-export const TICK_RATE = 50;
-export const TICK_DT = 0.05;
-export const PLAYER_SPEED = 5;
+export const GAME_LENGTH = 60000; //game length in milliseconds
+export const TICK_RATE = 50; //how often to update server in milliseconds
+export const TICK_DT = 0.05; //tick rate in seconds
+export const PLAYER_SPEED = 5;  //meters/second for players
 export const BALL_SPEED = 15; //INITIAL BALL SPEED
-export const BALL_GRAVITY = 9.8
-export const SPEED_DT = PLAYER_SPEED * TICK_DT
+export const BALL_GRAVITY = 9.8;
+export const SPEED_DT = PLAYER_SPEED * TICK_DT;
 
 export const WORLD_HALF_WIDTH = 14.5;
 export const WORLD_HALF_LENGTH = 10.5;
@@ -20,7 +21,6 @@ export const BASE_PLAYER = {
     alive: true,
     hasBall: true, //should be false, true in dev
 };
-
 
 export const MESSAGES = {
     sendMovement: "a", //server<-client DONE ON SERVER
@@ -54,4 +54,30 @@ export function message_parse(msg) {
             break
     }
     return output
+}
+
+//shuffle a team into 2 sides;
+export function assign_random(count) {
+    let tiebreaker = (count % 2 == 1) && Math.floor(Math.random()*2) || 0
+    let teamOneCount = Math.floor(count / 2) + tiebreaker
+    let teamTwoCount = count - teamOneCount;
+    var assignments = []
+    for (let i = 0; i<count; i++) {
+        let choice = Math.floor(Math.random()*2);
+        if (choice == 1) {
+            if (teamTwoCount > 0) {
+                teamTwoCount--;
+            } else {
+                choice = 0;
+            }
+        } else {
+            if (teamOneCount > 0) {
+                teamOneCount--;
+            } else {
+                choice = 1;
+            }
+        }
+        assignments.push(choice)
+    }
+    return assignments;
 }

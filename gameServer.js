@@ -5,15 +5,16 @@ import * as dodgeball from "./states/dodgeballState.js"
 
 var state = 1;
 var states = [lobby,dodgeball]
+var connections;
 
 //Stores the gameloop interval ID
 var serverRepeater;
 
 function setState(newValue, data) {
   if (state != newValue) {
-    states[state].startState(data);
+    states[newValue].startState(connections, data);
   }
-  state = value;
+  state = newValue;
 }
 
 for (let st of states) {
@@ -21,10 +22,13 @@ for (let st of states) {
 }
 
 export function addPlayer(id, sockets) {
+  connections = sockets
   states[state].addPlayer(id,sockets)
+  
 }
 
 export function deletePlayer(id, sockets) {
+  connections = sockets
   states[state].deletePlayer(id,sockets)
 }
 
@@ -32,9 +36,9 @@ export function processMessage(id, sockets, message) {
   states[state].processMessage(id,sockets,message);
 }
 
-export function startServer(sockets) {
+export function startServer() {
   serverRepeater = setInterval(() => {
-    states[state].doTick(sockets);
+    states[state].doTick(connections);
   }, TICK_RATE);
 }
 

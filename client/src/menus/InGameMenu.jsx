@@ -1,14 +1,15 @@
 import {useState, useEffect } from "react";
-import { Modal, Fade, Paper, Box, Typography, Button} from "@mui/material";
+import { Modal, Fade, Paper, Box, Typography, BottomNavigation, BottomNavigationAction, Button } from "@mui/material";
 import PropTypes from "prop-types";
 
-import { TabCarousel } from "./TabCarousel";
+import TabCarousel from "./TabCarousel";
 
 // modal constants
 const WIDTH_PERCENT = "50%";
 const HEIGHT_PERCENT = "65%";
 const MIN_WIDTH = "400px";
 const MIN_HEIGHT = "250px";
+const TOTAL_CAROUSEL_ITEMS = 2;
 
 // functions for Text
 function textStyle(size = 3, bolded = false) {
@@ -46,27 +47,15 @@ function InGameMenu({ handleClose, inGame }) {
         setOpen(!open);
     });
 
-    // Next and Previous handlers
+    // Next and Previous handlers of carousel
     const handleNext = () => {
-        setCarouselIndex((prevIndex) => (prevIndex + 1) % totalItems);
+        setCarouselIndex((prevIndex) => (prevIndex + 1) % TOTAL_CAROUSEL_ITEMS);
     };
 
     const handlePrev = () => {
-        setCarouselIndex((prevIndex) => (prevIndex - 1 + totalItems) % totalItems);
+        setCarouselIndex((prevIndex) => (prevIndex - 1 + TOTAL_CAROUSEL_ITEMS) % TOTAL_CAROUSEL_ITEMS);
     };
 
-    // Your carousel items
-    const items = [
-        {
-        name: "Random Name #1",
-        description: "Probably the most random thing you have ever seen!",
-        },
-        {
-        name: "Random Name #2",
-        description: "Hello World!",
-        },
-    ];
-    const totalItems = items.length;
 
 
     if (!inGame) return null;
@@ -79,7 +68,6 @@ function InGameMenu({ handleClose, inGame }) {
         >
         <Fade in={open} timeout={{ enter: 500, exit: 300 }}>
             <Paper style={styles.customModal}>
-                <Button onClick={handleNext}>Close</Button>
                 {/* Modal Header */}
                 <Box style={styles.modalHeader}> 
                     <Typography style={textStyle(5, true)}>Menu</Typography>
@@ -102,33 +90,18 @@ function InGameMenu({ handleClose, inGame }) {
 
                     </Box>
 
-
                     {/* Right Body */}
                     <Box style={styles.rightBody}>
-                    <TabCarousel index={carouselIndex}/>
-                    {/* <Carousel
-                index={carouselIndex}
-                autoPlay={false}
-                onChange={(index) => setCarouselIndex(index)}
-                navButtonsProps={{
-                  style: {
-                    backgroundColor: 'cornflowerblue',
-                    borderRadius: 0,
-                  },
-                }}
-                navButtonsWrapperProps={{
-                  style: {
-                    bottom: '0',
-                    top: 'unset',
-                  },
-                }}
-                NextIcon={<Button onClick={handleNext}>Custom Next</Button>}
-                PrevIcon={<Button onClick={handlePrev}>Custom Prev</Button>}
-              >
-                {items.map((item, i) => (
-                  <Item key={i} item={item} />
-                ))}
-              </Carousel> */}
+                        <TabCarousel index={carouselIndex}/>
+                         <BottomNavigation
+                            value={carouselIndex}
+                            onChange={(event, newValue) => setCarouselIndex(newValue)}
+                            showLabels
+                            style={styles.bottomNavigation}
+                        >
+                            <BottomNavigationAction label="Tab 1" icon={<Button>Icon 1</Button>} />
+                            <BottomNavigationAction label="Tab 2" icon={<Button>Icon 2</Button>} />
+                        </BottomNavigation>
                     </Box>
                 </Box>
 
@@ -144,6 +117,14 @@ function InGameMenu({ handleClose, inGame }) {
   
 
 const styles = {
+    bottomNavigation: {
+        flex: 1,
+        // position: 'absolute',
+        bottom: 0,
+        width: '100%',
+        // minHeight: `${MENU_HEIGHT * 0.15}px`,
+        backgroundColor: "orange"
+      },
     customModal: {
         position: "absolute",
         top: "50%",
@@ -187,7 +168,9 @@ const styles = {
     rightBody: {
         width: "45%",
         height: "100%",
-        backgroundColor: "orange", // CHANGE
+        backgroundColor: "purple", // CHANGE
+        display: "flex",
+        flexDirection: "column",
     },
     leftTop: {
         width: "100%",

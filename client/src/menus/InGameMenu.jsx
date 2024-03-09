@@ -53,16 +53,16 @@ function InGameMenu({ handleClose, inGame }) {
     });
 
     // if resized, we close the menu because
-    document.addEventListener("resize", () => setOpen(false));
+    addEventListener("resize", () => {setOpen(false); console.log("resized")});
 
 
     if (!inGame) return null;
 
     return (
         <Modal
-        open={open}
-        onClose={handleClose}
-        closeAfterTransition
+            open={open}
+            onClose={handleClose}
+            closeAfterTransition
         >
         <Fade in={open} timeout={{ enter: 500, exit: 300 }}>
             <Paper style={styles.customModal}>
@@ -92,7 +92,7 @@ function InGameMenu({ handleClose, inGame }) {
                     <Box style={styles.rightBody}>
                         
                         {/* Don't question it, if it works it works */}
-                        <TabCarousel index={carouselIndex == 0 ? 1: 0} menuHeight={menuHeight}/>
+                        <TabCarousel index={carouselIndex} menuHeight={menuHeight}/>
                             <BottomNavigation
                                 value={carouselIndex}
                                 onChange={(event, newValue) => setCarouselIndex(newValue)}
@@ -157,13 +157,13 @@ const styles = {
         backgroundColor: "green", // CHANGE
     },
     leftBody: {
-        width: "55%",
+        width: "50%",
         height: "100%",
         backgroundColor: "yellow", // CHANGE
     },
     
     rightBody: {
-        width: "45%",
+        width: "50%",
         height: "100%",
         backgroundColor: "purple", // CHANGE
         display: "flex",
@@ -183,7 +183,8 @@ const styles = {
         flex: 1,
         width: '100%',
         justifyContent: "center",
-        backgroundColor: "orange"
+        backgroundColor: "orange",
+        maxHeight: "75px",
     },
   };
 

@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import Carousel from 'react-material-ui-carousel';
-import { Paper, Button } from '@mui/material';
+import { Paper, Button, TextField, Box } from '@mui/material';
 import PropTypes from 'prop-types';
+import SettingsTabContent from './TabSettingsContent';
 
 TabCarousel.propTypes = {
   index: PropTypes.number.isRequired,
@@ -62,13 +64,16 @@ function TabCarousel({ index, menuHeight }) {
   return (
     <Paper style={styles.container}>
       <Carousel index={index} autoPlay={false} indicatorIconButtonProps={{ style: { display: 'none' } }}>
-        <Item1 item={items[0]} menuHeight={menuHeight} />
+        {/* <Item1 item={items[0]} menuHeight={menuHeight} /> */}
+        <SettingsTabContent height={menuHeight} />
         <Item2 item={items[1]} menuHeight={menuHeight} />
       </Carousel>
     </Paper>
   );
 }
 
-// Item1 and Item2 components remain unchanged
+
+
+  
 
 export default TabCarousel;

@@ -59,61 +59,63 @@ function InGameMenu({ handleClose, inGame }) {
     if (!inGame) return null;
 
     return (
-        <Modal
-            open={open}
-            onClose={handleClose}
-            closeAfterTransition
-        >
-        <Fade in={open} timeout={{ enter: 500, exit: 300 }}>
-            <Paper style={styles.customModal}>
-                {/* Modal Header */}
-                <Box style={styles.modalHeader}> 
-                    <Typography style={textStyle(5, true)}>Menu</Typography>
-                </Box>
-
-                {/* Modal Body */}
-                <Box style={styles.modalBody}> 
-
-
-                    {/* Left Body */}
-                    <Box style={styles.leftBody}>
-
-                        <Box style={styles.leftTop}> 
-
-                        </Box>
-
-                        <Box style={styles.leftBottom}>
-
-                        </Box>
-
+        <>
+            <Modal
+                open={open}
+                onClose={handleClose}
+                closeAfterTransition
+            >
+            <Fade in={open} timeout={{ enter: 500, exit: 300 }}>
+                <Paper style={styles.customModal}>
+                    {/* Modal Header */}
+                    <Box style={styles.modalHeader}> 
+                        <Typography style={textStyle(5, true)}>Menu</Typography>
                     </Box>
 
-                    {/* Right Body */}
-                    <Box style={styles.rightBody}>
-                        
-                        {/* Don't question it, if it works it works */}
-                        <TabCarousel index={carouselIndex} menuHeight={menuHeight}/>
-                            <BottomNavigation
-                                value={carouselIndex}
-                                onChange={(event, newValue) => setCarouselIndex(newValue)}
-                                showLabels
-                                style={styles.bottomNavigation}
-                            >
-                                <BottomNavigationAction
-                                    icon={<SettingsIcon style={{ fontSize: '42px' }}/>}
-                                />
-                                <BottomNavigationAction
-                                    icon={<HelpOutlineIcon style={{ fontSize: '42px' }}/>}
-                                />
-                            </BottomNavigation>
+                    {/* Modal Body */}
+                    <Box style={styles.modalBody}> 
+
+
+                        {/* Left Body */}
+                        <Box style={styles.leftBody}>
+
+                            <Box style={styles.leftTop}> 
+
+                            </Box>
+
+                            <Box style={styles.leftBottom}>
+
+                            </Box>
+
                         </Box>
-                </Box>
+
+                        {/* Right Body */}
+                        <Box style={styles.rightBody}>
+                            
+                            {/* Don't question it, if it works it works */}
+                            <TabCarousel index={carouselIndex} menuHeight={menuHeight}/>
+                                <BottomNavigation
+                                    value={carouselIndex}
+                                    onChange={(event, newValue) => setCarouselIndex(newValue)}
+                                    showLabels
+                                    style={styles.bottomNavigation}
+                                >
+                                    <BottomNavigationAction
+                                        icon={<SettingsIcon style={{ fontSize: '42px' }}/>}
+                                    />
+                                    <BottomNavigationAction
+                                        icon={<HelpOutlineIcon style={{ fontSize: '42px' }}/>}
+                                    />
+                                </BottomNavigation>
+                            </Box>
+                    </Box>
 
 
 
-            </Paper>
-        </Fade>
-        </Modal>
+                </Paper>
+            </Fade>
+            </Modal>
+        </>
     );
 }
 

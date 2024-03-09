@@ -1,7 +1,8 @@
 // SettingsTabContent.jsx
 import React, { useState, useEffect } from 'react';
-import { Button, Box, Typography } from '@mui/material';
+import { Button, Box, Typography, Alert } from '@mui/material';
 import PropTypes from 'prop-types';
+
 
 const styles = {
   container: {
@@ -73,6 +74,8 @@ const styles = {
   },
 };
 
+const forbiddenKeys = [' ', 'Escape', 'Enter', 'Tab', 'CapsLock', 'Shift', 'Control', 'Alt', 'Meta', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'];
+
 function textStyle(size = 3, bolded = false, color = 'black') {
   if (size < 0 || size > 6) {
     console.error('Invalid size for textStyle');
@@ -89,17 +92,22 @@ function textStyle(size = 3, bolded = false, color = 'black') {
   };
 }
 
+
+
 // props validation
 SettingsTabContent.propTypes = {
-    height: PropTypes.number.isRequired,
     initialKeybinds: PropTypes.arrayOf(PropTypes.shape({
         key: PropTypes.string.isRequired,
         description: PropTypes.string.isRequired,
     })),
 };
 
+function deepCopy(obj) {
+    return JSON.parse(JSON.stringify(obj));
+}
 
-function SettingsTabContent({ height, initialKeybinds = [
+
+function SettingsTabContent({ initialKeybinds = [
     { key: 'W', description: 'Up' },
     { key: 'A', description: 'Left' },
     { key: 'S', description: 'Down' },
@@ -107,32 +115,50 @@ function SettingsTabContent({ height, initialKeybinds = [
     { key: 'TAB', description: 'Throw' },
   ] }) {
 
-    const [keybinds, setKeybinds] = useState(JSON.parse(JSON.stringify(initialKeybinds)));
-    const [newKeybinds, setNewKeybinds] = useState(JSON.parse(JSON.stringify(initialKeybinds)));
+    const [keybinds, setKeybinds] = useState(deepCopy(initialKeybinds));
+    const [newKeybinds, setNewKeybinds] = useState(deepCopy(initialKeybinds));
     const [isSaveVisible, setSaveVisible] = useState(false);
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState({ message: '', severity: 'info' });
 
   const handleSave = () => {
-    setKeybinds(JSON.parse(JSON.stringify(newKeybinds)));
+    setKeybinds(deepCopy(newKeybinds));
     setSaveVisible(false);
   };
+
+  
+
 
   useEffect(() => {
     const isDifferent = JSON.stringify(keybinds) !== JSON.stringify(newKeybinds);
     setSaveVisible(isDifferent);
-    console.log(isDifferent)
-    console.log(keybinds)
-    console.log(newKeybinds)
-    
   }, [keybinds, newKeybinds]);
 
   const handleKeybindChange = (index, value) => {
     const updatedKeybinds = [...newKeybinds];
     updatedKeybinds[index].key = value;
-    setNewKeybinds(JSON.parse(JSON.stringify(updatedKeybinds)));
+    setNewKeybinds(deepCopy(updatedKeybinds));
   };
-  
+
+  const showSnackbar = (message, severity) => {
+    setSnackbarMessage({ message, severity });
+    setSnackbarOpen(true);
+  };
+
+  const handleSnackbarClose = () => {
+    setSnackbarOpen(false);
+  };
+
   const handleKeyDown = (index) => (event) => {
-    handleKeybindChange(index, event.key.toUpperCase());
+    const pressedKey = event.key.toUpperCase();
+
+    if (forbiddenKeys.includes(pressedKey)) {
+      showSnackbar(`You cannot assign ${pressedKey} to a keybind.`, 'error');
+      return;
+    }
+
+    showSnackbar(`Press ${pressedKey} to set it as the keybind.`, 'info');
+    handleKeybindChange(index, pressedKey);
   };
 
   return (
@@ -149,8 +175,6 @@ function SettingsTabContent({ height, initialKeybinds = [
               variant="outlined"
               style={styles.keybindButton}
               onKeyDown={handleKeyDown(index)}
-
-            //   onClick={() => handleKeybindChange(index, prompt('Enter new key:'))}
             >
               {key}
             </Button>
@@ -172,6 +196,23 @@ function SettingsTabContent({ height, initialKeybinds = [
         <Button variant="contained" onClick={handleSave} style={styles.saveButton} disabled={!isSaveVisible} >
           Save
         </Button>
+        {/* Snackbar */}
+        
+        {snackbarOpen && (
+        <Alert 
+            onClose={handleSnackbarClose}
+            severity={snackbarMessage.severity}
+            style={{
+                position: 'fixed',
+                top: 0,
+                left: '50%',
+                transform: 'translateX(-50%)',
+                zIndex: 9999, // Ensure the Alert is above other elements
+              }}
+        >
+          {snackbarMessage.message}
+        </Alert>
+      )}
     </Box>
   );
 }

@@ -14,6 +14,8 @@ import HelpOutlineIcon from '@mui/icons-material/HelpOutline'
 import CustomAlert from './CustomAlert'
 
 import TabCarousel from './TabCarousel'
+import AvatarSelector from './AvatarSelector'
+
 
 // modal constants
 const WIDTH_PERCENT = '50%'
@@ -61,8 +63,14 @@ function InGameMenu({ handleClose, inGame }) {
 
   // state for Alert
   const [alertOpen, setAlertOpen] = useState(false)
-  const [alertMessage, setAlertMessage] = useState('HEHEHEH')
+  const [alertMessage, setAlertMessage] = useState('')
   const [alertSeverity, setAlertSeverity] = useState('info')
+
+  // info states
+  const [avatarName, setAvatarName] = useState('Gus')
+  const [username, setUsername] = useState('Giang_Pappi')
+
+
 
   // function to show Alert
   const showAlert = (message, severity) => {
@@ -100,7 +108,11 @@ function InGameMenu({ handleClose, inGame }) {
             <Box style={styles.modalBody}>
               {/* Left Body */}
               <Box style={styles.leftBody}>
-                <Box style={styles.leftTop}></Box>
+                <Box style={styles.leftTop}>
+                    <AvatarSelector initImageName={avatarName}/>
+                    <Typography style={textStyle(3, true)}>{username}</Typography>
+                </Box>
+                    
 
                 <Box style={styles.leftBottom}></Box>
               </Box>
@@ -189,9 +201,13 @@ const styles = {
     flexDirection: 'column',
   },
   leftTop: {
+    display: 'flex',
+    flexDirection: 'column',
     width: '100%',
     height: '50%',
     backgroundColor: 'purple', // CHANGE
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   leftBottom: {
     width: '100%',

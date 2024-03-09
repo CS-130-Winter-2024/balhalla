@@ -1,8 +1,9 @@
 import {useState, useEffect } from "react";
-import { Modal, Fade, Paper, Box, Typography, BottomNavigation, BottomNavigationAction, Button , Icon} from "@mui/material";
+import { Modal, Fade, Paper, Box, Typography, BottomNavigation, BottomNavigationAction, Button , Icon, Alert } from "@mui/material";
 import PropTypes from "prop-types";
 import SettingsIcon from '@mui/icons-material/Settings';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
+import CustomAlert from "./CustomAlert";
 
 import TabCarousel from "./TabCarousel";
 
@@ -30,6 +31,7 @@ function textStyle(size = 3, bolded = false) {
 }
 
 
+
 // prop validation
 InGameMenu.propTypes = {
     handleClose: PropTypes.func.isRequired,
@@ -43,7 +45,18 @@ function InGameMenu({ handleClose, inGame }) {
     const [carouselIndex, setCarouselIndex] = useState(0);
     const [menuHeight, setMenuHeight] = useState(window.innerHeight);
 
+     // state for Alert
+    const [alertOpen, setAlertOpen] = useState(false);
+    const [alertMessage, setAlertMessage] = useState("HEHEHEH");
+    const [alertSeverity, setAlertSeverity] = useState("info");
 
+    // function to show Alert
+    const showAlert = (message, severity) => {
+        setAlertMessage(message);
+        setAlertSeverity(severity);
+        setAlertOpen(true);
+    };
+    
 
     // if spacebar pressed, toggle the open state
     document.addEventListener("spaceBarPressed", () => {
@@ -93,7 +106,7 @@ function InGameMenu({ handleClose, inGame }) {
                         <Box style={styles.rightBody}>
                             
                             {/* Don't question it, if it works it works */}
-                            <TabCarousel index={carouselIndex} menuHeight={menuHeight}/>
+                            <TabCarousel index={carouselIndex} menuHeight={menuHeight} showAlert={showAlert}/>
                                 <BottomNavigation
                                     value={carouselIndex}
                                     onChange={(event, newValue) => setCarouselIndex(newValue)}
@@ -115,6 +128,12 @@ function InGameMenu({ handleClose, inGame }) {
                 </Paper>
             </Fade>
             </Modal>
+            <CustomAlert
+                message={alertMessage}
+                severity={alertSeverity}
+                onClose={() => setAlertOpen(false)}
+                isOpen={alertOpen}
+            />
         </>
     );
 }

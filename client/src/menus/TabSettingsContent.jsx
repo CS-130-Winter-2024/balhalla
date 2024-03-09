@@ -100,6 +100,7 @@ SettingsTabContent.propTypes = {
         key: PropTypes.string.isRequired,
         description: PropTypes.string.isRequired,
     })),
+    showAlert: PropTypes.func.isRequired,  
 };
 
 function deepCopy(obj) {
@@ -113,13 +114,11 @@ function SettingsTabContent({ initialKeybinds = [
     { key: 'S', description: 'Down' },
     { key: 'D', description: 'Right' },
     { key: 'TAB', description: 'Throw' },
-  ] }) {
+  ], showAlert }) {
 
     const [keybinds, setKeybinds] = useState(deepCopy(initialKeybinds));
     const [newKeybinds, setNewKeybinds] = useState(deepCopy(initialKeybinds));
     const [isSaveVisible, setSaveVisible] = useState(false);
-    const [snackbarOpen, setSnackbarOpen] = useState(false);
-    const [snackbarMessage, setSnackbarMessage] = useState({ message: '', severity: 'info' });
 
   const handleSave = () => {
     setKeybinds(deepCopy(newKeybinds));
@@ -140,24 +139,15 @@ function SettingsTabContent({ initialKeybinds = [
     setNewKeybinds(deepCopy(updatedKeybinds));
   };
 
-  const showSnackbar = (message, severity) => {
-    setSnackbarMessage({ message, severity });
-    setSnackbarOpen(true);
-  };
 
-  const handleSnackbarClose = () => {
-    setSnackbarOpen(false);
-  };
 
   const handleKeyDown = (index) => (event) => {
     const pressedKey = event.key.toUpperCase();
 
     if (forbiddenKeys.includes(pressedKey)) {
-      showSnackbar(`You cannot assign ${pressedKey} to a keybind.`, 'error');
+      showAlert(`You cannot assign ${pressedKey} to a keybind.`, 'error');
       return;
     }
-
-    showSnackbar(`Press ${pressedKey} to set it as the keybind.`, 'info');
     handleKeybindChange(index, pressedKey);
   };
 
@@ -175,6 +165,7 @@ function SettingsTabContent({ initialKeybinds = [
               variant="outlined"
               style={styles.keybindButton}
               onKeyDown={handleKeyDown(index)}
+              onClick={()=> showAlert('Click a key to assign.', 'info')}
             >
               {key}
             </Button>
@@ -196,23 +187,6 @@ function SettingsTabContent({ initialKeybinds = [
         <Button variant="contained" onClick={handleSave} style={styles.saveButton} disabled={!isSaveVisible} >
           Save
         </Button>
-        {/* Snackbar */}
-        
-        {snackbarOpen && (
-        <Alert 
-            onClose={handleSnackbarClose}
-            severity={snackbarMessage.severity}
-            style={{
-                position: 'fixed',
-                top: 0,
-                left: '50%',
-                transform: 'translateX(-50%)',
-                zIndex: 9999, // Ensure the Alert is above other elements
-              }}
-        >
-          {snackbarMessage.message}
-        </Alert>
-      )}
     </Box>
   );
 }

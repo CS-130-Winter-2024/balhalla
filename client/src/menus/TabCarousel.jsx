@@ -7,9 +7,11 @@ import SettingsTabContent from './TabSettingsContent';
 TabCarousel.propTypes = {
   index: PropTypes.number.isRequired,
   menuHeight: PropTypes.number.isRequired,
+  showAlert: PropTypes.func.isRequired, 
+
 };
 
-function TabCarousel({ index, menuHeight }) {
+function TabCarousel({ index, menuHeight, showAlert  }) {
 
   const styles = {
     container: {
@@ -65,7 +67,7 @@ function TabCarousel({ index, menuHeight }) {
     <Paper style={styles.container}>
       <Carousel index={index} autoPlay={false} indicatorIconButtonProps={{ style: { display: 'none' } }}>
         {/* <Item1 item={items[0]} menuHeight={menuHeight} /> */}
-        <SettingsTabContent height={menuHeight} />
+        <SettingsTabContent height={menuHeight} showAlert={showAlert}/>
         <Item2 item={items[1]} menuHeight={menuHeight} />
       </Carousel>
     </Paper>

@@ -1,6 +1,8 @@
 import {useState, useEffect } from "react";
-import { Modal, Fade, Paper, Box, Typography, BottomNavigation, BottomNavigationAction, Button } from "@mui/material";
+import { Modal, Fade, Paper, Box, Typography, BottomNavigation, BottomNavigationAction, Button , Icon} from "@mui/material";
 import PropTypes from "prop-types";
+import SettingsIcon from '@mui/icons-material/Settings';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 
 import TabCarousel from "./TabCarousel";
 
@@ -39,12 +41,19 @@ function InGameMenu({ handleClose, inGame }) {
     // conditions and states
     const [open, setOpen] = useState(false);
     const [carouselIndex, setCarouselIndex] = useState(0);
+    const [menuHeight, setMenuHeight] = useState(window.innerHeight);
+
 
 
     // if spacebar pressed, toggle the open state
     document.addEventListener("spaceBarPressed", () => {
         setOpen(!open);
+        setMenuHeight(window.innerHeight)
+        console.log("menuHeight: ", menuHeight);
     });
+
+    // if resized, we close the menu because
+    document.addEventListener("resize", () => setOpen(false));
 
 
     if (!inGame) return null;
@@ -83,15 +92,19 @@ function InGameMenu({ handleClose, inGame }) {
                     <Box style={styles.rightBody}>
                         
                         {/* Don't question it, if it works it works */}
-                        <TabCarousel index={carouselIndex == 0 ? 1: 0}/>
+                        <TabCarousel index={carouselIndex == 0 ? 1: 0} menuHeight={menuHeight}/>
                             <BottomNavigation
                                 value={carouselIndex}
                                 onChange={(event, newValue) => setCarouselIndex(newValue)}
                                 showLabels
                                 style={styles.bottomNavigation}
                             >
-                                <BottomNavigationAction label="Tab 1" icon={<Button>Icon 1</Button>} />
-                                <BottomNavigationAction label="Tab 2" icon={<Button>Icon 2</Button>} />
+                                <BottomNavigationAction
+                                    icon={<SettingsIcon style={{ fontSize: '42px' }}/>}
+                                />
+                                <BottomNavigationAction
+                                    icon={<HelpOutlineIcon style={{ fontSize: '42px' }}/>}
+                                />
                             </BottomNavigation>
                         </Box>
                 </Box>
@@ -108,14 +121,7 @@ function InGameMenu({ handleClose, inGame }) {
   
 
 const styles = {
-    bottomNavigation: {
-        flex: 1,
-        // position: 'absolute',
-        bottom: 0,
-        width: '100%',
-        // minHeight: `${MENU_HEIGHT * 0.15}px`,
-        backgroundColor: "orange"
-      },
+    
     customModal: {
         position: "absolute",
         top: "50%",
@@ -172,7 +178,13 @@ const styles = {
         width: "100%",
         height: "50%",
         backgroundColor: "pink", // CHANGE
-    }
+    },
+    bottomNavigation: {
+        flex: 1,
+        width: '100%',
+        justifyContent: "center",
+        backgroundColor: "orange"
+    },
   };
 
 export default InGameMenu;

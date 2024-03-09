@@ -122,7 +122,10 @@ function InGameMenu({ handleClose, inGame }) {
               {/* Left Body */}
               <Box style={styles.leftBody}>
                 <Box style={styles.leftTop}>
-                  <AvatarSelector initImageName={avatarName} />
+                  <AvatarSelector
+                    initImageName={avatarName}
+                    showAlert={showAlert}
+                  />
                   <Typography style={textStyle(3, true)}>{username}</Typography>
                 </Box>
 

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import PropTypes from 'prop-types'
 import Alert from '@mui/material/Alert'
+import Fade from '@mui/material/Fade'
 
 const CustomAlert = ({ message, severity, onClose, isOpen }) => {
   const [visible, setVisible] = useState(isOpen)
@@ -18,7 +19,7 @@ const CustomAlert = ({ message, severity, onClose, isOpen }) => {
   }, [message, severity, isOpen, onClose])
 
   return (
-    visible && (
+    <Fade in={visible} timeout={500}>
       <Alert
         severity={severity}
         onClose={() => {
@@ -37,7 +38,7 @@ const CustomAlert = ({ message, severity, onClose, isOpen }) => {
       >
         {message}
       </Alert>
-    )
+    </Fade>
   )
 }
 

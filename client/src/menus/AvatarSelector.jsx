@@ -48,9 +48,10 @@ const styles = {
 // prop validation
 AvatarSelector.propTypes = {
   initImageName: PropTypes.string.isRequired,
+  showAlert: PropTypes.func.isRequired,
 }
 
-function AvatarSelector({ initImageName = 'Gus' }) {
+function AvatarSelector({ initImageName = 'Gus', showAlert }) {
   const theme = useTheme()
   const [open, setOpen] = useState(false)
   const [selectedAvatar, setSelectedAvatar] = useState(
@@ -71,6 +72,7 @@ function AvatarSelector({ initImageName = 'Gus' }) {
   const handleSave = () => {
     setSelectedAvatar(newAvatar)
     setOpen(false)
+    showAlert('Profile picture saved!', 'success')
   }
 
   const handleImageClick = imageUrl => {

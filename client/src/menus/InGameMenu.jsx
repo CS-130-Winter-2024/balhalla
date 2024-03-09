@@ -2,7 +2,7 @@ import {useState, useEffect } from "react";
 import { Modal, Fade, Paper, Box, Typography, Button} from "@mui/material";
 import PropTypes from "prop-types";
 
-import Carousel from 'react-material-ui-carousel';
+import { TabCarousel } from "./TabCarousel";
 
 // modal constants
 const WIDTH_PERCENT = "50%";
@@ -38,6 +38,7 @@ function InGameMenu({ handleClose, inGame }) {
 
     // conditions and states
     const [open, setOpen] = useState(false);
+    const [carouselIndex, setCarouselIndex] = useState(0);
 
 
     // if spacebar pressed, toggle the open state
@@ -45,6 +46,27 @@ function InGameMenu({ handleClose, inGame }) {
         setOpen(!open);
     });
 
+    // Next and Previous handlers
+    const handleNext = () => {
+        setCarouselIndex((prevIndex) => (prevIndex + 1) % totalItems);
+    };
+
+    const handlePrev = () => {
+        setCarouselIndex((prevIndex) => (prevIndex - 1 + totalItems) % totalItems);
+    };
+
+    // Your carousel items
+    const items = [
+        {
+        name: "Random Name #1",
+        description: "Probably the most random thing you have ever seen!",
+        },
+        {
+        name: "Random Name #2",
+        description: "Hello World!",
+        },
+    ];
+    const totalItems = items.length;
 
 
     if (!inGame) return null;
@@ -56,10 +78,8 @@ function InGameMenu({ handleClose, inGame }) {
         closeAfterTransition
         >
         <Fade in={open} timeout={{ enter: 500, exit: 300 }}>
-
             <Paper style={styles.customModal}>
-
-
+                <Button onClick={handleNext}>Close</Button>
                 {/* Modal Header */}
                 <Box style={styles.modalHeader}> 
                     <Typography style={textStyle(5, true)}>Menu</Typography>
@@ -85,7 +105,30 @@ function InGameMenu({ handleClose, inGame }) {
 
                     {/* Right Body */}
                     <Box style={styles.rightBody}>
-                        <CustomCarousel />
+                    <TabCarousel index={carouselIndex}/>
+                    {/* <Carousel
+                index={carouselIndex}
+                autoPlay={false}
+                onChange={(index) => setCarouselIndex(index)}
+                navButtonsProps={{
+                  style: {
+                    backgroundColor: 'cornflowerblue',
+                    borderRadius: 0,
+                  },
+                }}
+                navButtonsWrapperProps={{
+                  style: {
+                    bottom: '0',
+                    top: 'unset',
+                  },
+                }}
+                NextIcon={<Button onClick={handleNext}>Custom Next</Button>}
+                PrevIcon={<Button onClick={handlePrev}>Custom Prev</Button>}
+              >
+                {items.map((item, i) => (
+                  <Item key={i} item={item} />
+                ))}
+              </Carousel> */}
                     </Box>
                 </Box>
 
@@ -97,56 +140,7 @@ function InGameMenu({ handleClose, inGame }) {
     );
 }
 
-function CustomCarousel() {
-    const items = [
-      {
-        name: "Random Name #1",
-        description: "Probably the most random thing you have ever seen!",
-      },
-      {
-        name: "Random Name #2",
-        description: "Hello World!",
-      },
-    ];
-  
-    return (
-      <Carousel
-        fullHeightHover={false}
-        navButtonsProps={{
-          style: {
-            backgroundColor: 'cornflowerblue',
-            borderRadius: 0,
-          },
-        }}
-        navButtonsWrapperProps={{
-          style: {
-            bottom: '0',
-            top: 'unset',
-          },
-        }}
-        NextIcon={<Button>Custom Next</Button>}
-        PrevIcon={<Button>Custom Prev</Button>}
-      >
-        {items.map((item, i) => (
-          <Item key={i} item={item} />
-        ))}
-      </Carousel>
-    );
-  }
-  
-  function Item(props) {
-    return (
-      <Paper>
-        <h2>{props.item.name}</h2>
-        <p>{props.item.description}</p>
-  
-        {/* You can customize the button here */}
-        <Button className="CheckButton">
-          Check it out!
-        </Button>
-      </Paper>
-    );
-  }
+
   
 
 const styles = {

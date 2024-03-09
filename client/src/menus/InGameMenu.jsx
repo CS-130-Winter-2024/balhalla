@@ -9,7 +9,6 @@ const WIDTH_PERCENT = "50%";
 const HEIGHT_PERCENT = "65%";
 const MIN_WIDTH = "400px";
 const MIN_HEIGHT = "250px";
-const TOTAL_CAROUSEL_ITEMS = 2;
 
 // functions for Text
 function textStyle(size = 3, bolded = false) {
@@ -47,16 +46,6 @@ function InGameMenu({ handleClose, inGame }) {
         setOpen(!open);
     });
 
-    // Next and Previous handlers of carousel
-    const handleNext = () => {
-        setCarouselIndex((prevIndex) => (prevIndex + 1) % TOTAL_CAROUSEL_ITEMS);
-    };
-
-    const handlePrev = () => {
-        setCarouselIndex((prevIndex) => (prevIndex - 1 + TOTAL_CAROUSEL_ITEMS) % TOTAL_CAROUSEL_ITEMS);
-    };
-
-
 
     if (!inGame) return null;
 
@@ -92,17 +81,19 @@ function InGameMenu({ handleClose, inGame }) {
 
                     {/* Right Body */}
                     <Box style={styles.rightBody}>
-                        <TabCarousel index={carouselIndex}/>
-                         <BottomNavigation
-                            value={carouselIndex}
-                            onChange={(event, newValue) => setCarouselIndex(newValue)}
-                            showLabels
-                            style={styles.bottomNavigation}
-                        >
-                            <BottomNavigationAction label="Tab 1" icon={<Button>Icon 1</Button>} />
-                            <BottomNavigationAction label="Tab 2" icon={<Button>Icon 2</Button>} />
-                        </BottomNavigation>
-                    </Box>
+                        
+                        {/* Don't question it, if it works it works */}
+                        <TabCarousel index={carouselIndex == 0 ? 1: 0}/>
+                            <BottomNavigation
+                                value={carouselIndex}
+                                onChange={(event, newValue) => setCarouselIndex(newValue)}
+                                showLabels
+                                style={styles.bottomNavigation}
+                            >
+                                <BottomNavigationAction label="Tab 1" icon={<Button>Icon 1</Button>} />
+                                <BottomNavigationAction label="Tab 2" icon={<Button>Icon 2</Button>} />
+                            </BottomNavigation>
+                        </Box>
                 </Box>
 
 

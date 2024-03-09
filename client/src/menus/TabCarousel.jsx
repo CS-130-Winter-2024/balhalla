@@ -1,6 +1,6 @@
 import React from 'react';
 import Carousel from 'react-material-ui-carousel';
-import { Paper, Button, BottomNavigation, BottomNavigationAction } from '@mui/material';
+import { Paper, Button } from '@mui/material';
 import PropTypes from 'prop-types';
 
 TabCarousel.propTypes = {
@@ -21,28 +21,12 @@ function TabCarousel({ index }) {
     },
   ];
 
-  const [tabValue, setTabValue] = React.useState(0);
-
-  const handleTabChange = (event, newValue) => {
-    setTabValue(newValue);
-  };
-
   return (
     <Paper style={styles.container}>
       <Carousel index={index} autoPlay={false}>
         <Item1 item={items[0]} />
         <Item2 item={items[1]} />
       </Carousel>
-
-      {/* <BottomNavigation
-        value={tabValue}
-        onChange={handleTabChange}
-        showLabels
-        style={styles.bottomNavigation}
-      >
-        <BottomNavigationAction label="Tab 1" icon={<Button>Icon 1</Button>} />
-        <BottomNavigationAction label="Tab 2" icon={<Button>Icon 2</Button>} />
-      </BottomNavigation> */}
     </Paper>
   );
 }

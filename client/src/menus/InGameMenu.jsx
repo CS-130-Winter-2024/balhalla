@@ -71,10 +71,10 @@ function InGameMenu({ handleClose, inGame, showAlert }) {
     setAvatarName('Gus')
     setUsername('Giang_Pappi')
     setStats([
-      { key: 'Wins', value: 10 },
-      { key: 'Losses', value: 90 },
+      { key: 'Wins', value: '10' },
+      { key: 'Losses', value: '90' },
       { key: 'Win Rate', value: '10%' },
-      { key: 'Kills', value: 322 },
+      { key: 'Kills', value: '322' },
       { key: 'Rank', value: 'Diamond' },
       { key: 'Creation', value: '2022-03-08' },
     ])

@@ -11,6 +11,7 @@ PlayerStats.propTypes = {
 }
 
 function PlayerStats({ stats }) {
+  console.log('TESTING')
   const renderStats = () => {
     const rows = []
     const numRows = Math.ceil(stats.length / 3)

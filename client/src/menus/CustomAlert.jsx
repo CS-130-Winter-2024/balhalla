@@ -1,49 +1,51 @@
-import React, { useState, useEffect } from 'react';
-import PropTypes from 'prop-types';
-import Alert from '@mui/material/Alert';
+import { useState, useEffect } from 'react'
+import PropTypes from 'prop-types'
+import Alert from '@mui/material/Alert'
 
 const CustomAlert = ({ message, severity, onClose, isOpen }) => {
-  const [visible, setVisible] = useState(isOpen);
+  const [visible, setVisible] = useState(isOpen)
 
   useEffect(() => {
     if (isOpen) {
-      setVisible(true);
+      setVisible(true)
       const timeout = setTimeout(() => {
-        onClose();
-        setVisible(false);
-      }, 2000);
+        onClose()
+        setVisible(false)
+      }, 2000)
 
-      return () => clearTimeout(timeout);
+      return () => clearTimeout(timeout)
     }
-  }, [message, severity, isOpen, onClose]);
+  }, [message, severity, isOpen, onClose])
 
-  return visible && (
-    <Alert
-      severity={severity}
-      onClose={() => {
-        setVisible(false);
-        onClose();
-      }}
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: '50%',
-        transform: 'translateX(-50%)',
-        zIndex: 9999,
-        borderRadius: '5px',
-        textAlign: 'center',
-      }}
-    >
-      {message}
-    </Alert>
-  );
-};
+  return (
+    visible && (
+      <Alert
+        severity={severity}
+        onClose={() => {
+          setVisible(false)
+          onClose()
+        }}
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 9999,
+          borderRadius: '5px',
+          textAlign: 'center',
+        }}
+      >
+        {message}
+      </Alert>
+    )
+  )
+}
 
 CustomAlert.propTypes = {
   message: PropTypes.string.isRequired,
   severity: PropTypes.oneOf(['info', 'error', 'success']).isRequired,
   onClose: PropTypes.func.isRequired,
   isOpen: PropTypes.bool.isRequired,
-};
+}
 
-export default CustomAlert;
+export default CustomAlert

@@ -1,18 +1,15 @@
-import { useState } from 'react';
-import Carousel from 'react-material-ui-carousel';
-import { Paper, Button, TextField, Box } from '@mui/material';
-import PropTypes from 'prop-types';
-import SettingsTabContent from './TabSettingsContent';
+import Carousel from 'react-material-ui-carousel'
+import { Paper, Button } from '@mui/material'
+import PropTypes from 'prop-types'
+import SettingsTabContent from './TabSettingsContent'
 
 TabCarousel.propTypes = {
   index: PropTypes.number.isRequired,
   menuHeight: PropTypes.number.isRequired,
-  showAlert: PropTypes.func.isRequired, 
+  showAlert: PropTypes.func.isRequired,
+}
 
-};
-
-function TabCarousel({ index, menuHeight, showAlert  }) {
-
+function TabCarousel({ index, menuHeight, showAlert }) {
   const styles = {
     container: {
       height: '100%',
@@ -28,54 +25,33 @@ function TabCarousel({ index, menuHeight, showAlert  }) {
       width: '100%',
       backgroundColor: 'green',
     },
-  };
+  }
 
-  const items = [
-    {
-      name: 'Random Name #1',
-      description: 'Probably the most random thing you have ever seen!',
-    },
-    {
-      name: 'Random Name #2',
-      description: 'Hello World!',
-    },
-  ];
-
-  function Item1(props) {
+  function Item2() {
     return (
       <Paper style={styles.item}>
-        <h2>{props.item.name}</h2>
-        <p>{props.item.description}</p>
+        <h2>goo goo </h2>
+        <p>ga ga?</p>
         <Button className="CheckButton">Check it out!</Button>
+        <h2>GOOOOOOOOOOOOOOO</h2>
+        <h2>Harambe</h2>
       </Paper>
-    );
-  }
-  
-  function Item2(props) {
-    return (
-        <Paper style={styles.item}>
-        <h2>{props.item.name}</h2>
-        <p>{props.item.description}</p>
-        <Button className="CheckButton">Check it out!</Button>
-        <h2>{props.item.name}</h2>
-        <h2>{props.item.name}</h2>
-      </Paper>
-    );
+    )
   }
 
   return (
     <Paper style={styles.container}>
-      <Carousel index={index} autoPlay={false} indicatorIconButtonProps={{ style: { display: 'none' } }}>
+      <Carousel
+        index={index}
+        autoPlay={false}
+        indicatorIconButtonProps={{ style: { display: 'none' } }}
+      >
         {/* <Item1 item={items[0]} menuHeight={menuHeight} /> */}
-        <SettingsTabContent height={menuHeight} showAlert={showAlert}/>
-        <Item2 item={items[1]} menuHeight={menuHeight} />
+        <SettingsTabContent height={menuHeight} showAlert={showAlert} />
+        <Item2 />
       </Carousel>
     </Paper>
-  );
+  )
 }
 
-
-
-  
-
-export default TabCarousel;
+export default TabCarousel

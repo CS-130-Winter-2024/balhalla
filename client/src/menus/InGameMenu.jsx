@@ -11,7 +11,6 @@ import {
 import PropTypes from 'prop-types'
 import SettingsIcon from '@mui/icons-material/Settings'
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline'
-import CustomAlert from './CustomAlert'
 
 import TabCarousel from './TabCarousel'
 import AvatarSelector from './AvatarSelector'
@@ -53,18 +52,14 @@ function textStyle(size = 3, bolded = false) {
 InGameMenu.propTypes = {
   handleClose: PropTypes.func.isRequired,
   inGame: PropTypes.bool.isRequired,
+  showAlert: PropTypes.func.isRequired,
 }
 
-function InGameMenu({ handleClose, inGame }) {
+function InGameMenu({ handleClose, inGame, showAlert }) {
   // conditions and states
   const [open, setOpen] = useState(false)
   const [carouselIndex, setCarouselIndex] = useState(0)
   const [menuHeight, setMenuHeight] = useState(window.innerHeight)
-
-  // state for Alert
-  const [alertOpen, setAlertOpen] = useState(false)
-  const [alertMessage, setAlertMessage] = useState('')
-  const [alertSeverity, setAlertSeverity] = useState('info')
 
   // info states
   const [avatarName, setAvatarName] = useState('Gus')
@@ -84,13 +79,6 @@ function InGameMenu({ handleClose, inGame }) {
       { key: 'Creation', value: '2022-03-08' },
     ])
   }, [])
-
-  // function to show Alert
-  const showAlert = (message, severity) => {
-    setAlertMessage(message)
-    setAlertSeverity(severity)
-    setAlertOpen(true)
-  }
 
   // if spacebar pressed, toggle the open state
   document.addEventListener('spaceBarPressed', () => {
@@ -160,12 +148,6 @@ function InGameMenu({ handleClose, inGame }) {
           </Paper>
         </Fade>
       </Modal>
-      <CustomAlert
-        message={alertMessage}
-        severity={alertSeverity}
-        onClose={() => setAlertOpen(false)}
-        isOpen={alertOpen}
-      />
     </>
   )
 }

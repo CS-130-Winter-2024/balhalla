@@ -8,6 +8,8 @@ import tree from "../assets/models/pets/Tree.glb"
 import turtle from "../assets/models/pets/Turtle.glb"
 import pig from "../assets/models/pets/Pig.glb"
 import duck from "../assets/models/pets/Duck.glb"
+import vikingghost from "../assets/models/VikingGhost.glb"
+
 //GAME
 export const SPEED = 5;
 export const ALIVE_Y = 1.25;
@@ -76,7 +78,8 @@ export const MODEL_IDS = {
     "5": tree,
     "6": turtle,
     "7": pig,
-    "8": duck
+    "8": duck,
+    "9": vikingghost
 }
 
 // color constants themes

@@ -1,6 +1,7 @@
 // SettingsTabContent.jsx
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button, Box, Typography } from '@mui/material';
+import PropTypes from 'prop-types';
 
 const styles = {
   container: {
@@ -47,7 +48,7 @@ const styles = {
     height: '30px',
     borderRadius: '5px',
     fontSize: '16px',
-    marginBottom: '10px',
+    marginBottom: '7px',
   },
   keybindDescription: {
     backgroundColor: 'lightgrey',
@@ -62,11 +63,13 @@ const styles = {
     height: '30px',
     borderRadius: '5px',
     fontSize: '16px',
-    marginBottom: '10px',
+    marginBottom: '7px',
   },
   saveButton: {
     marginTop: '20px',
     width: '150px',
+    padding: '10px',
+    zIndex: 1,
   },
 };
 
@@ -86,18 +89,50 @@ function textStyle(size = 3, bolded = false, color = 'black') {
   };
 }
 
-function SettingsTabContent({ height }) {
-  const keybinds = [
+// props validation
+SettingsTabContent.propTypes = {
+    height: PropTypes.number.isRequired,
+    initialKeybinds: PropTypes.arrayOf(PropTypes.shape({
+        key: PropTypes.string.isRequired,
+        description: PropTypes.string.isRequired,
+    })),
+};
+
+
+function SettingsTabContent({ height, initialKeybinds = [
     { key: 'W', description: 'Up' },
     { key: 'A', description: 'Left' },
     { key: 'S', description: 'Down' },
     { key: 'D', description: 'Right' },
     { key: 'TAB', description: 'Throw' },
-  ];
+  ] }) {
+
+    const [keybinds, setKeybinds] = useState(JSON.parse(JSON.stringify(initialKeybinds)));
+    const [newKeybinds, setNewKeybinds] = useState(JSON.parse(JSON.stringify(initialKeybinds)));
+    const [isSaveVisible, setSaveVisible] = useState(false);
 
   const handleSave = () => {
-    // Implement logic to save keybinds
-    console.log('Keybinds saved:', keybinds);
+    setKeybinds(JSON.parse(JSON.stringify(newKeybinds)));
+    setSaveVisible(false);
+  };
+
+  useEffect(() => {
+    const isDifferent = JSON.stringify(keybinds) !== JSON.stringify(newKeybinds);
+    setSaveVisible(isDifferent);
+    console.log(isDifferent)
+    console.log(keybinds)
+    console.log(newKeybinds)
+    
+  }, [keybinds, newKeybinds]);
+
+  const handleKeybindChange = (index, value) => {
+    const updatedKeybinds = [...newKeybinds];
+    updatedKeybinds[index].key = value;
+    setNewKeybinds(JSON.parse(JSON.stringify(updatedKeybinds)));
+  };
+  
+  const handleKeyDown = (index) => (event) => {
+    handleKeybindChange(index, event.key.toUpperCase());
   };
 
   return (
@@ -108,8 +143,15 @@ function SettingsTabContent({ height }) {
 
       <Box style={styles.keybindBody}> 
         <Box style={styles.leftSide}>
-          {keybinds.map(({ key }) => (
-            <Button key={key} variant="outlined" style={styles.keybindButton}>
+          {newKeybinds.map(({ key }, index) => (
+            <Button
+              key={key}
+              variant="outlined"
+              style={styles.keybindButton}
+              onKeyDown={handleKeyDown(index)}
+
+            //   onClick={() => handleKeybindChange(index, prompt('Enter new key:'))}
+            >
               {key}
             </Button>
           ))}
@@ -127,9 +169,9 @@ function SettingsTabContent({ height }) {
         </Box>
       </Box>
 
-      <Button variant="contained" onClick={handleSave} style={styles.saveButton}>
-        Save Keybinds
-      </Button>
+        <Button variant="contained" onClick={handleSave} style={styles.saveButton} disabled={!isSaveVisible} >
+          Save
+        </Button>
     </Box>
   );
 }

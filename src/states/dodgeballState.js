@@ -1,4 +1,5 @@
-import * as constants from "../constants.js";
+import * as constants from "../../constants.js";
+import { getConnections } from "../connection.js";
 
 var players = {}; //playerid associated
 var playersMetadata = {}; //playerid associated
@@ -7,22 +8,10 @@ var balls = {};
 var gameStartTimer;
 var gameEndTimer;
 
-var onFinish = ()=>{} //dont change this
-//ON DEATH -> WHAT DO?
-//  Set to spectate
-//      Against original plan
-//      Very easy
-//  Do parkour. if you did it, you revive. if you didn't, you spectate
-//      Makes backend consistent
-//      Not against original plan
-//      Fun!
-//      Extra work for parkour
-//  Have players interfere with the balls
-//      Original plan
-//      Very inconsistent backend (what to do with new joins?)
-//      Possibly weird gameplay/strategies
+var onFinish = (newValue, data)=>{} //dont change this
 
-export function startState(sockets, data) {
+export function startState(data) {
+  let sockets = getConnections();
   //teams
   let teams = constants.assign_random(data.count);
   //add all the readied players to the game
@@ -34,8 +23,7 @@ export function startState(sockets, data) {
     };
 
     playersMetadata[id] = {
-      username: data.username,
-      body: 0,
+      ...data.players[id],
       team: teams[current],
       hits: 0,
     };
@@ -48,18 +36,77 @@ export function startState(sockets, data) {
 
   //propagate the playerlist to everyone
   for (const id in sockets) {
-    const broadcast = JSON.stringify([constants.MESSAGES.playerList, id, players, playersMetadata, gameStartTimer, gameEndTimer]);
+    const broadcast = JSON.stringify([constants.MESSAGES.gameStart, id, players, playersMetadata, gameStartTimer, gameEndTimer]);
     sockets[id].send(broadcast);
   }
 }
 
+function isWinner() {
+  let counts = [0,0];
+  for (id in players) {
+    if (players[id].alive)
+      counts[playersMetadata[id].team] += 1;
+  }
+
+  if (counts[0] == 0 || counts[1] == 0) {
+    return ((counts[1] == 0) && 0) || 1
+  }
+
+  return -1;
+}
+
+export function endState() {
+  let winner = 2; //0=team 1, 1=team2, 2=tie
+  let mvp = -1;
+  let teamOneAdvantage = 0;
+
+  let mvpMax = 0;
+  for (id in players) {
+    if (players[id].alive) {
+      teamOneAdvantage += (1 - (playersMetadata[id].team * 2))
+    }
+
+    if (playersMetadata[id].hits > mvpMax) {
+      mvp = id;
+      mvpMax = playersMetadata[id].hits;
+    }
+  }
+
+  //calculate winner
+  if (teamOneAdvantage > 0) {
+    winner = 0
+  } else if (teamOneAdvantage < 0) {
+    winner = 1
+  } else {
+    winner = 2
+  }
+
+
+  //credit points to players
+
+  //TODO
+
+  //wipe everything
+  players = {};
+  playersMetadata = {};
+  balls = {};
+
+  for (const id in sockets) {
+    sockets[id].send([constants.MESSAGES.gameEnd, winner, mvp]);
+  }
+
+  onFinish(0,null)
+}
+
 //called when player joins. do nothing here (since they should only spectate)
-export function addPlayer(id, sockets) {
-  let list = JSON.stringify([constants.MESSAGES.playerList, id, players, playersMetadata, gameStartTimer, gameEndTimer]);
+export function addPlayer(id) {
+  let sockets = getConnections();
+  let list = JSON.stringify([constants.MESSAGES.playerList, 1, id, players, playersMetadata, gameStartTimer, gameEndTimer]);
   sockets[id].send(list);
 }
 
-export function deletePlayer(id, sockets) {
+export function deletePlayer(id) {
+  let sockets = getConnections();
   if (id in players) {
     delete players[id];
     delete playersMetadata[id];
@@ -74,10 +121,11 @@ export function deletePlayer(id, sockets) {
 //when game starts
 //  send playerlist (rename playerlist to gamestart)
 //  send countdown
-export function processMessage(id, sockets, message) {
+export function processMessage(id, message) {
   if (!(id in players)) {
     return;
   }
+  let sockets = getConnections();
   let data = constants.message_parse(message)
   switch (data.type) {
     case constants.MESSAGES.sendMovement:
@@ -137,18 +185,18 @@ export function processMessage(id, sockets, message) {
   }
 }
 
-
-export function doTick(sockets) {
+export function doTick() {
 
     if (Date.now() > gameEndTimer) {
-      //game has ended!
-
-
-      //calculate winner
-      //send winning team and MVP to everyone
-      //credit everyone with their points
-      
+      endState()
     }
+
+    if (Date.now() < gameStartTimer) {
+      //game has not started yet! Do not process anything!
+      return;
+    }
+
+    let sockets = getConnections();
     // Split board into x-axis slices (increment by x, extends along z)
     let sections = {};
   

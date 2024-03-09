@@ -1,3 +1,5 @@
+export const MINIMUM_PLAYERS = 1;
+export const LOBBY_LENGTH = 30000;
 export const GAME_LENGTH = 60000; //game length in milliseconds
 export const TICK_RATE = 50; //how often to update server in milliseconds
 export const TICK_DT = 0.05; //tick rate in seconds
@@ -28,7 +30,6 @@ export const MESSAGES = {
     playerJoin: "c", //server<->client DONE ON SERVER
     playerLeave: "d", // server->client DONE ON SERVER
     playerList: "e", // server->client DONE ON SERVER
-  
     gameStart: "f", // server->client
     playerKnockout: "g", //server->client
     gameEnd: "h", //server->client
@@ -45,6 +46,7 @@ export function message_parse(msg) {
             break
         case MESSAGES.playerJoin:
             output.username = data[1].username
+            output.ready = data[1].ready
             break
         case MESSAGES.throwBall:
             output.direction = data[1];

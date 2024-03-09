@@ -15,6 +15,7 @@ import CustomAlert from './CustomAlert'
 
 import TabCarousel from './TabCarousel'
 import AvatarSelector from './AvatarSelector'
+import PlayerStats from './PlayerStats'
 
 // modal constants
 const WIDTH_PERCENT = '50%'
@@ -68,11 +69,20 @@ function InGameMenu({ handleClose, inGame }) {
   // info states
   const [avatarName, setAvatarName] = useState('Gus')
   const [username, setUsername] = useState('Giang_Pappi')
+  const [stats, setStats] = useState([])
 
   // useEffect to set default values based on endpoint
   useEffect(() => {
     setAvatarName('Gus')
     setUsername('Giang_Pappi')
+    setStats([
+      { key: 'Wins', value: 10 },
+      { key: 'Losses', value: 90 },
+      { key: 'Win Rate', value: '10%' },
+      { key: 'Kills', value: 322 },
+      { key: 'Rank', value: 'Diamond' },
+      { key: 'Creation', value: '2022-03-08' },
+    ])
   }, [])
 
   // function to show Alert
@@ -116,7 +126,9 @@ function InGameMenu({ handleClose, inGame }) {
                   <Typography style={textStyle(3, true)}>{username}</Typography>
                 </Box>
 
-                <Box style={styles.leftBottom}></Box>
+                <Box style={styles.leftBottom}>
+                  <PlayerStats stats={stats} />
+                </Box>
               </Box>
 
               {/* Right Body */}
@@ -215,6 +227,10 @@ const styles = {
     width: '100%',
     height: '50%',
     backgroundColor: 'pink', // CHANGE
+    // flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    display: 'flex',
   },
   bottomNavigation: {
     flex: 1,

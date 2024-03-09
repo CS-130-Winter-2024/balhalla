@@ -128,4 +128,4 @@ function AvatarSelector({ initImageName = 'Gus' }) {
   )
 }
 
-export default AvatarSelector;
+export default AvatarSelector

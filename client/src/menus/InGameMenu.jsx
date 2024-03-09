@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Modal,
   Fade,
@@ -15,7 +15,6 @@ import CustomAlert from './CustomAlert'
 
 import TabCarousel from './TabCarousel'
 import AvatarSelector from './AvatarSelector'
-
 
 // modal constants
 const WIDTH_PERCENT = '50%'
@@ -70,7 +69,11 @@ function InGameMenu({ handleClose, inGame }) {
   const [avatarName, setAvatarName] = useState('Gus')
   const [username, setUsername] = useState('Giang_Pappi')
 
-
+  // useEffect to set default values based on endpoint
+  useEffect(() => {
+    setAvatarName('Gus')
+    setUsername('Giang_Pappi')
+  }, [])
 
   // function to show Alert
   const showAlert = (message, severity) => {
@@ -109,10 +112,9 @@ function InGameMenu({ handleClose, inGame }) {
               {/* Left Body */}
               <Box style={styles.leftBody}>
                 <Box style={styles.leftTop}>
-                    <AvatarSelector initImageName={avatarName}/>
-                    <Typography style={textStyle(3, true)}>{username}</Typography>
+                  <AvatarSelector initImageName={avatarName} />
+                  <Typography style={textStyle(3, true)}>{username}</Typography>
                 </Box>
-                    
 
                 <Box style={styles.leftBottom}></Box>
               </Box>

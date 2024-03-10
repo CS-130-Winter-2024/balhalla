@@ -13,6 +13,7 @@ import {
   MenuItem,
   FormControl,
   Select,
+  Box
 } from '@mui/material';
 import PropTypes from 'prop-types';
 
@@ -57,9 +58,18 @@ function deepCopy(obj) {
     return JSON.parse(JSON.stringify(obj));
 }
 
+const TYPE_MAP = [
+    'weapon',
+    'weapon',
+    'accessory',
+    'armor',
+    'weapon',
+]
+
 function Store({ isOpen, availableItems, ownedItems, onClose, onBuy, onEquip, equippedItem }) {
   const [currentlyEquipped, setCurrentlyEquipped] = useState(deepCopy(equippedItem));
   const [prevEquippedItem, setPrevEquippedItem] = useState(deepCopy(currentlyEquipped));
+  const ITEMS_COUNT = availableItems.length;
 
   const handleBuy = (item) => {
     onBuy(item);
@@ -69,6 +79,9 @@ function Store({ isOpen, availableItems, ownedItems, onClose, onBuy, onEquip, eq
     const selectedItemId = event.target.value;
     const selectedOwnedItem = ownedItems.find((item) => item.id === selectedItemId);
     setCurrentlyEquipped(deepCopy(selectedOwnedItem));
+    console.log('Selected item:', selectedOwnedItem)
+    console.log('Currently equipped:', currentlyEquipped)
+    console.log('Prev equipped:', prevEquippedItem)
   };
 
   const handleSave = () => {
@@ -98,22 +111,33 @@ function Store({ isOpen, availableItems, ownedItems, onClose, onBuy, onEquip, eq
                       alt={item.name}
                       style={ownedItems.some((ownedItem) => ownedItem.id === item.id) ? { filter: 'grayscale(100%)' } : {}}
                     />
-                    <CardContent>
-                      <Typography variant="subtitle1">{item.name}</Typography>
+                    <CardContent style={{height: "100%"}}>
+                        <Box style={{width: "100%", height: "80%", display: "flex", flexDirection: "column", justifyContent: "flex-start", alignItems: 'center'}}>
+                        <Typography variant="subtitle1">{item.name}</Typography>
+                        <Typography variant="caption" color={primaryColor}> {TYPE_MAP[item.id % ITEMS_COUNT]} </Typography>
                       {ownedItems.some((ownedItem) => ownedItem.id === item.id) ? (
                         <Typography variant="caption" color="textSecondary">
                           OWNED
                         </Typography>
                       ) : (
+                        <Box style={{display: "flex", height: "100%", width: "100%", alignItems: "center", justifyContent: "space-around", marginBottom: 20}}> 
                         <Button
                           variant="contained"
                           color="primary"
                           disabled={ownedItems.some((ownedItem) => ownedItem.id === item.id)}
                           onClick={() => handleBuy(item)}
+                          style={{width: "30%", maxHeight: "20%"}}
                         >
                           Buy
                         </Button>
+                        <Typography variant="subtitle2"  style={{fontFamily, fontWeight: "bold", color: "#C8b273"}}>
+                            {item.cost} C
+                        </Typography>
+                        </Box>
                       )}
+
+                        </Box>
+                      
                     </CardContent>
                   </Card>
                 </Grid>
@@ -137,11 +161,12 @@ function Store({ isOpen, availableItems, ownedItems, onClose, onBuy, onEquip, eq
                 variant="contained"
                 color="primary"
                 onClick={handleSave}
-                disabled={!currentlyEquipped && prevEquippedItem === null || currentlyEquipped.id === prevEquippedItem.id}
+                disabled={!(currentlyEquipped && (prevEquippedItem === null || currentlyEquipped.id !== prevEquippedItem.id))}
                 style={{ marginTop: '16px' }}
               >
                 Save
               </Button>
+              
             </FormControl>
           </Grid>
         </Grid>

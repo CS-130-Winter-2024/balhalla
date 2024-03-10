@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -30,6 +30,7 @@ Store.propTypes = {
       id: PropTypes.string.isRequired,
       name: PropTypes.string.isRequired,
       image: PropTypes.string.isRequired,
+      cost: PropTypes.number.isRequired,
     })
   ),
   ownedItems: PropTypes.arrayOf(
@@ -37,14 +38,32 @@ Store.propTypes = {
       id: PropTypes.string.isRequired,
       name: PropTypes.string.isRequired,
       image: PropTypes.string.isRequired,
+      cost: PropTypes.number.isRequired,
     })
   ).isRequired,
   onClose: PropTypes.func.isRequired,
   onBuy: PropTypes.func.isRequired,
+  onEquip: PropTypes.func.isRequired,
+  equippedItem: PropTypes.shape({
+    id: PropTypes.string.isRequired,
+    name: PropTypes.string.isRequired,
+    image: PropTypes.string.isRequired,
+    cost: PropTypes.number.isRequired,
+  }),
 };
 
-function Store({ isOpen, availableItems, ownedItems, onClose, onBuy }) {
-  const [equippedItem, setEquippedItem] = useState(null);
+// make copy of object
+function deepCopy(obj) {
+    return JSON.parse(JSON.stringify(obj));
+}
+
+function Store({ isOpen, availableItems, ownedItems, onClose, onBuy, onEquip, equippedItem }) {
+  const [currentlyEquipped, setCurrentlyEquipped] = useState(deepCopy(equippedItem));
+  const [prevEquippedItem, setPrevEquippedItem] = useState(deepCopy(equippedItem));
+
+//   useEffect(() => {
+//     setPrevEquippedItem(equippedItem);
+//   }, [equippedItem]);
 
   const handleBuy = (item) => {
     onBuy(item);
@@ -53,13 +72,14 @@ function Store({ isOpen, availableItems, ownedItems, onClose, onBuy }) {
   const handleEquipChange = (event) => {
     const selectedItemId = event.target.value;
     const selectedOwnedItem = ownedItems.find((item) => item.id === selectedItemId);
-    setEquippedItem(selectedOwnedItem);
+    setCurrentlyEquipped(deepCopy(selectedOwnedItem));
   };
 
   const handleSave = () => {
-    // Implement save functionality here with the equippedItem
-    // You can use equippedItem for further logic or API calls
-    console.log('Equipped Item:', equippedItem);
+    if (currentlyEquipped && currentlyEquipped.id !== prevEquippedItem.id) {
+      onEquip(deepCopy(currentlyEquipped));
+      setPrevEquippedItem(deepCopy(currentlyEquipped));
+    }
   };
 
   return (
@@ -110,7 +130,7 @@ function Store({ isOpen, availableItems, ownedItems, onClose, onBuy }) {
               <Typography variant="h6" gutterBottom style={{ fontFamily, color: primaryColor }}>
                 Equip Item
               </Typography>
-              <Select value={equippedItem ? equippedItem.id : ''} onChange={handleEquipChange}>
+              <Select value={currentlyEquipped ? currentlyEquipped.id : ''} onChange={handleEquipChange}>
                 {ownedItems.map((item) => (
                   <MenuItem key={item.id} value={item.id}>
                     {item.name}
@@ -121,7 +141,7 @@ function Store({ isOpen, availableItems, ownedItems, onClose, onBuy }) {
                 variant="contained"
                 color="primary"
                 onClick={handleSave}
-                disabled={!equippedItem}
+                disabled={!currentlyEquipped || currentlyEquipped.id === prevEquippedItem.id}
                 style={{ marginTop: '16px' }}
               >
                 Save

@@ -15,7 +15,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       <AlertWrapper>
         {showAlert => (
           <>
-            <UI />
+            <UI showAlert={showAlert}/>
 
             <InGameMenu
               handleClose={() => {}}

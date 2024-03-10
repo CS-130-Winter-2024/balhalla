@@ -77,14 +77,21 @@ export default function UI({showAlert}) {
   const [allItems, setAllItems] = useState(deepCopy(ITEMS_MAP));
   const [equippedItems, setEquippedItems] = useState([null, null, null]); // 0 is weapon, 1 is armor, 2 is accessory
   const [ownedItems, setOwnedItems] = useState([]);
-
+  const [coins, setCoins] = useState(1000); // default 1000 coins
 
   // useEffect to set default values based on endpoint
   useEffect(() => {
     setAllItems(deepCopy(ITEMS_MAP));
     setOwnedItems([]);
     setEquippedItems([null, null, null]);
+    setCoins(1000);
   }, []);
+
+
+  // update the backend with the new owned items
+  useEffect(() => {
+
+  }, [ownedItems, equippedItems, coins]);
 
 
   const handleBuy = (item) => {
@@ -132,6 +139,8 @@ export default function UI({showAlert}) {
             equippedItems={equippedItems}
             handleEquip={handleEquip}
             showAlert={showAlert}
+            coins={coins}
+            setCoins={setCoins}
       />
       {/* END: Giang's stuff */}
       <div id="UI" style={{ display: (showOverlay && "none") || "block" }}>

@@ -57,6 +57,9 @@ Store.propTypes = {
       cost: PropTypes.number.isRequired,
       type: PropTypes.oneOf(['weapon', 'armor', 'accessory']).isRequired,
     })).isRequired,
+    showAlert: PropTypes.func.isRequired,
+    coins: PropTypes.number.isRequired,
+    setCoins: PropTypes.func.isRequired
 };
 
 // make copy of object
@@ -64,7 +67,7 @@ function deepCopy(obj) {
     return JSON.parse(JSON.stringify(obj));
 }
 
-function Store({ isOpen, availableItems, ownedItems, onClose, onBuy, handleEquip, equippedItems }) {
+function Store({ isOpen, availableItems, ownedItems, onClose, onBuy, handleEquip, equippedItems, showAlert, coins, setCoins }) {
   const [currWeapon, setCurrWeapon] = useState(deepCopy(equippedItems[0]));
   const [prevWeapon, setPrevWeapon] = useState(deepCopy(equippedItems[0]));
 

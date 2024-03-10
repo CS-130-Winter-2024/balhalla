@@ -94,4 +94,3 @@ export function update() {
 export function getPlayerModelGroup() {
   return otherPlayerGroup;
 }
-

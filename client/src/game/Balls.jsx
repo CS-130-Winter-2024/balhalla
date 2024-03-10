@@ -7,13 +7,6 @@ var balls = {}; // associates each ball with game data
 var ballsModels = {}; // associates each ball with 3d model
 var ballGroup = new three.Group();
 
-const ballGeometry = new three.SphereGeometry(
-  0.25,
-  DODGE_BALL_SIDES,
-  DODGE_BALL_SIDES,
-);
-const ballMaterial = new three.MeshLambertMaterial({});
-
 var intermediateVector = new three.Vector3();
 
 // update ball data from server update
@@ -53,6 +46,13 @@ export function removeBall(id) {
   //dispose of 3d model
   ballGroup.remove(ballsModels[id]);
   delete ballsModels[id];
+}
+
+
+export function clearBalls() {
+  for (const id in ballsModels) {
+    removeBall(id);
+  }
 }
 
 // updates all in-game balls with server information

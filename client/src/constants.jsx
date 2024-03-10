@@ -38,6 +38,32 @@ export function message_parse(msg) {
     let data = JSON.parse(msg)
     output.type = data[0];
     switch (data[0]) { //data[0] = type
+        case MESSAGES.playerList:
+            if (data[1] == 0) {
+                output.gameState = data[1]
+                output.id = data[2]
+                output.startTime = data[3]
+            } else {
+                output.gameState = data[1]
+                output.id = data[2]
+                output.playerData = data[3]
+                output.metaData = data[4]
+                output.startTime = data[5]
+                output.endTime = data[6]
+            }
+            break
+        case MESSAGES.gameStart:
+            output.id = data[1]
+            output.playerData = data[2]
+            output.metaData = data[3]
+            output.startTime = data[4]
+            output.endTime = data[5]
+            break
+        case MESSAGES.gameEnd:
+            output.winner = data[1]
+            output.mvp = data[2]
+            output.points = data[3]
+            break
         case MESSAGES.serverUpdate:
             output.playerData = data[1]
             output.ballData = data[2]
@@ -50,15 +76,11 @@ export function message_parse(msg) {
         case MESSAGES.playerLeave:
             output.id = data[1]
             break
-        case MESSAGES.playerList:
-            output.id = data[1]
-            output.playerData = data[2]
-            output.metaData = data[3]
-            break
         case MESSAGES.playerKnockout:
             output.target = data[1];
             output.killer = data[2];
             break
+        
     }
     return output
 }
@@ -96,6 +118,33 @@ var GLOBAL_STORE = {
 
 }
 
+var LISTENERS = {
+
+}
+
+export function add_listener(key,fun, repeat=true) {
+    let index = 0;
+    if (key in LISTENERS) {
+        let last;
+        for (x in LISTENERS[key]) {
+            last = x;
+        }
+        index = Number(last) + 1;
+        LISTENERS[key][index] = [fun,repeat];
+    } else {
+        LISTENERS[key] = {0:[fun,repeat]};
+    }
+    return index;
+}
+
+export function remove_listener(key, index) {
+    if (key in LISTENERS && index in LISTENERS[key]) {
+        delete LISTENERS[key][index]
+    } else {
+        console.error("Tried to remove listener",index,"from key",key,", but index does not exist");
+    }
+}
+
 export function get_global(key) {
     if (key in GLOBAL_STORE) {
         return GLOBAL_STORE[key];
@@ -105,4 +154,12 @@ export function get_global(key) {
 
 export function set_global(key,value) {
     GLOBAL_STORE[key] = value
+    if (key in LISTENERS) {
+        for (const fun in LISTENERS[key]) {
+            LISTENERS[key][fun][0](value);
+            if (!LISTENERS[key][fun][1]) {
+                delete LISTENERS[key][fun]
+            }
+        }
+    }
 }

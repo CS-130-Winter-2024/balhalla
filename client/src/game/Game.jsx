@@ -1,6 +1,5 @@
 import * as three from "three";
 import { PointerLockControls } from "three/addons/controls/PointerLockControls.js";
-import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { createWorld, getSkybox } from "./World";
 import { setupConnection, setHandler } from "./Connection";
 import * as constants from "../constants"
@@ -10,8 +9,8 @@ import * as Balls from "./Balls";
 import { loadDefault } from "./Models";
 
 function getUsername() {
-  return prompt("What is your username?");
-  return "Player" + Math.floor(Math.random() * 1000);
+  //return prompt("What is your username?");
+  return "Guest " + Math.floor(Math.random() * 1000);
 }
 
 // Defines how the game handles messages from server
@@ -26,13 +25,41 @@ function websocketSetup() {
 
   //On player list sent, add all players to scene
   setHandler(constants.MESSAGES.playerList, (socket, data) => {
-    Others.setClientID(data.id);
-    Player.updatePlayer(data.playerData[data.id]);
+    constants.set_global("CLIENT_ID",data.id);
+    constants.set_global("GAME_STATE",data.gameState);
+    if (data.gameState == 1) { //do nothing if lobby state
+      for (let player in data.playerData) {
+        if (player == data.id) continue;
+        Others.addPlayer(player, data.playerData[player], data.metaData[player]);
+      }
+    }
+    Player.setSpectate(true);
+  });
+
+  setHandler(constants.MESSAGES.gameStart, (socket, data) => {
+    constants.set_global("GAME_STATE",1);
     for (let player in data.playerData) {
-      if (player == data.id) continue;
+      if (player == constants.get_global("CLIENT_ID")) {
+        Player.updatePlayer(data.playerData[constants.get_global("CLIENT_ID")]);
+        Player.setSpectate(false);
+        continue
+      }
       Others.addPlayer(player, data.playerData[player], data.metaData[player]);
     }
-  });
+
+    constants.set_global("GAME_START_TIME",data.startTime);
+    constants.set_global("GAME_END_TIME",data.endTime);
+
+  })
+
+  setHandler(constants.MESSAGES.gameEnd, (socket,data) =>{ 
+    constants.set_global("GAME_STATE",0);
+    constants.set_global("PLAYING",false);
+    Player.setSpectate(true);
+
+    Others.clearPlayers();
+    Balls.clearBalls();
+  })
 
   //On other player connect, add their data to scene
   setHandler(constants.MESSAGES.playerJoin, (socket, data) => {
@@ -46,16 +73,16 @@ function websocketSetup() {
 
   //On server update, update scene
   setHandler(constants.MESSAGES.serverUpdate, (socket, data) => {
-    Player.updatePlayer(data.playerData[Others.getClientID()]);
+    Player.updatePlayer(data.playerData[constants.get_global("CLIENT_ID")]);
     Others.updatePlayers(data.playerData);
     Balls.updateBalls(data.ballData);
   });
 
   setHandler(constants.MESSAGES.playerKnockout, (socket,data) => {
     console.log("[HIT]",data);
-    if (data.target == Others.getClientID()) {
-      Player.setSpectate(true)
-      alert("I was hit!");
+    if (data.target == constants.get_global("CLIENT_ID")) {
+      Player.setSpectate(true) //HANDLE DEATH! DONT DO THIS;
+      console.log("I was hit!");
     }
   })
 
@@ -128,7 +155,10 @@ export default function main() {
   });
 
   //setup websockets
-  websocketSetup();
+  constants.add_listener("LOADED",()=>{
+    console.log("LOADED ALL MODELS!");
+    websocketSetup();
+  }, false)
 
   //Attach player keybinds
   Player.attachKeybinds();
@@ -140,7 +170,7 @@ export default function main() {
   });
 
   //Render loop
-  function animate(time) {
+  function animate() {
     Player.update();
     Others.update();
     Balls.update();

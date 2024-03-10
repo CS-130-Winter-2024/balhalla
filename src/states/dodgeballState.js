@@ -61,7 +61,7 @@ export function endState() {
   let teamOneAdvantage = 0;
 
   let mvpMax = 0;
-  for (id in players) {
+  for (const id in players) {
     if (players[id].alive) {
       teamOneAdvantage += (1 - (playersMetadata[id].team * 2))
     }
@@ -91,8 +91,10 @@ export function endState() {
   playersMetadata = {};
   balls = {};
 
+  let sockets = getConnections();
+  const broadcast = JSON.stringify([constants.MESSAGES.gameEnd, winner, mvp])
   for (const id in sockets) {
-    sockets[id].send([constants.MESSAGES.gameEnd, winner, mvp]);
+    sockets[id].send(broadcast);
   }
 
   onFinish(0,null)
@@ -265,6 +267,7 @@ export function doTick() {
       };
       for (const ballID in possibleCollisons) {
         //check z and y axis of player and ball
+        if (!(ballID in balls)) continue;
         let ball = balls[ballID];
         if (Math.abs(player.z - ball.z) <= constants.BALL_RADIUS + constants.PLAYER_RADIUS) {
           let dist =
@@ -284,7 +287,7 @@ export function doTick() {
               if (upper in sections && ballID in sections[upper]) {
                 delete sections[upper][ballID];
               }
-            } else if (!ball.isGrounded && player.alive && ball.y <= constants.PLAYER_HEIGHT + constants.BALL_RADIUS && ball.throwerID != playerID) {
+            } else if (!ball.isGrounded && player.alive && ball.y <= constants.PLAYER_HEIGHT + constants.BALL_RADIUS && ball.throwerID != playerID && playersMetadata[ball.throwerID].team != playersMetadata[playerID].team) {
               console.log("[HIT] Ball from ",ball.throwerID, " killed ", playerID);
               players[playerID].alive = false;
               players[playerID].hasBall = false;

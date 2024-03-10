@@ -4,7 +4,7 @@ import * as dodgeball from "./states/dodgeballState.js"
 import { getConnections } from "./connection.js";
 
 
-var state = 1;
+var state = 0;
 var states = [lobby,dodgeball]
 
 //Stores the gameloop interval ID
@@ -35,6 +35,7 @@ export function processMessage(id, message) {
 }
 
 export function startServer() {
+  states[state].startState();
   serverRepeater = setInterval(() => {
     states[state].doTick();
   }, TICK_RATE);

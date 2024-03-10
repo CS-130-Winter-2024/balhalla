@@ -1,16 +1,22 @@
+
 export const MINIMUM_PLAYERS = 1;
-export const LOBBY_LENGTH = 30000;
-export const GAME_LENGTH = 60000; //game length in milliseconds
+
+//times
+export const LOBBY_LENGTH = 20000;
+export const START_COUNTDOWN = 5000;
+export const GAME_LENGTH = 20000; //game length in milliseconds
 export const TICK_RATE = 50; //how often to update server in milliseconds
 export const TICK_DT = 0.05; //tick rate in seconds
+
+//speed
 export const PLAYER_SPEED = 5;  //meters/second for players
 export const BALL_SPEED = 15; //INITIAL BALL SPEED
 export const BALL_GRAVITY = 9.8;
 export const SPEED_DT = PLAYER_SPEED * TICK_DT;
 
+//sizing
 export const WORLD_HALF_WIDTH = 14.5;
 export const WORLD_HALF_LENGTH = 10.5;
-
 export const BALL_RADIUS = 0.25;
 export const PLAYER_RADIUS = 0.5;
 export const COLLISION_R2 = 0.5625;
@@ -40,6 +46,7 @@ export function message_parse(msg) {
     let output = {}
     let data = JSON.parse(msg)
     output.type = data[0];
+    console.log("[MESSAGE]",data)
     switch (data[0]) { //data[0] = type
         case MESSAGES.sendMovement:
             output.direction = data[1].direction

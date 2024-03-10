@@ -180,6 +180,9 @@ export function createCamera(spectate = false) {
 
 export function setSpectate(value) {
   spectating = (value && true) || false;
+  constants.set_global("SPECTATING",spectating);
+  camera.updateProjectionMatrix();
+  spectateCamera.updateProjectionMatrix();
 }
 
 export function getCamera() {

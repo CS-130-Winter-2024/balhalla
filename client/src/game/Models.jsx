@@ -1,6 +1,7 @@
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { Group } from "three";
 import { MODEL_IDS } from "../constants";
+import { set_global } from "../constants";
 
 
 var models = {
@@ -31,6 +32,9 @@ export function updateModelList(modelList) {
                 (gltf) => {
                     models[model].add(gltf.scene);
                     loaded++;
+                    if (loaded == totalModels) {
+                        set_global("LOADED", true);
+                    }
                 }
             )
         }
@@ -39,6 +43,6 @@ export function updateModelList(modelList) {
 
 export function getModelInstance(modelID) {
     if (modelID in models) {
-        return models[modelID]
+        return models[modelID].clone();
     }
 }

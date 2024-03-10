@@ -12,7 +12,7 @@ export function startState() {
 
 export function addPlayer(id) {
     let sockets = getConnections();
-    let list = JSON.stringify([constants.MESSAGES.playerList, 0, gameStartTimer]);
+    let list = JSON.stringify([constants.MESSAGES.playerList,0, id, gameStartTimer]);
     sockets[id].send(list)
 }
 
@@ -50,27 +50,32 @@ export function processMessage(id, message) {
     }
 }
 
-var timer = 1000;
+var prev = -1;
 export function doTick() {
     if (playerQueue < constants.MINIMUM_PLAYERS) {
         gameStartTimer = Date.now() + constants.LOBBY_LENGTH;
         return;
     }
-    if (timer < 0) {
-        if (Date.now() >= gameStartTimer) {
+    if (Date.now() >= gameStartTimer) {
 
-            //process data
+        //process data
 
-            //TODO: validate player metadata
-            //get username from token (DB function)
-            //check skins against token (DB function)
-            let data = {}
-            data.players = playerQueue
-            data.count = Object.keys(playerQueue).length
-            onFinish(0,data)
-        }
+        //TODO: validate player metadata
+        //get username from token (DB function)
+        //check skins against token (DB function)
+        let data = {}
+        data.players = playerQueue
+        data.count = Object.keys(playerQueue).length
+        console.log("[START]",data.players)
+        onFinish(1,data)
+        return
     }
-    timer -= constants.TICK_RATE;
+    let calc = (gameStartTimer - Date.now())/1000
+    if (Math.floor(calc) != prev) {
+        console.log("[TIMER] %d seconds until start",calc);
+        prev = Math.floor(calc);
+    }
+    
 }
 
 export function setFinishCallback(val) {

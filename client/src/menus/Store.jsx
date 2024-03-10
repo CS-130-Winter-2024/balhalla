@@ -27,7 +27,7 @@ Store.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   availableItems: PropTypes.arrayOf(
     PropTypes.shape({
-      id: PropTypes.string.isRequired,
+      id: PropTypes.number.isRequired,
       name: PropTypes.string.isRequired,
       image: PropTypes.string.isRequired,
       cost: PropTypes.number.isRequired,
@@ -35,7 +35,7 @@ Store.propTypes = {
   ),
   ownedItems: PropTypes.arrayOf(
     PropTypes.shape({
-      id: PropTypes.string.isRequired,
+      id: PropTypes.number.isRequired,
       name: PropTypes.string.isRequired,
       image: PropTypes.string.isRequired,
       cost: PropTypes.number.isRequired,
@@ -45,7 +45,7 @@ Store.propTypes = {
   onBuy: PropTypes.func.isRequired,
   onEquip: PropTypes.func.isRequired,
   equippedItem: PropTypes.shape({
-    id: PropTypes.string.isRequired,
+    id: PropTypes.number.isRequired,
     name: PropTypes.string.isRequired,
     image: PropTypes.string.isRequired,
     cost: PropTypes.number.isRequired,
@@ -59,11 +59,7 @@ function deepCopy(obj) {
 
 function Store({ isOpen, availableItems, ownedItems, onClose, onBuy, onEquip, equippedItem }) {
   const [currentlyEquipped, setCurrentlyEquipped] = useState(deepCopy(equippedItem));
-  const [prevEquippedItem, setPrevEquippedItem] = useState(deepCopy(equippedItem));
-
-//   useEffect(() => {
-//     setPrevEquippedItem(equippedItem);
-//   }, [equippedItem]);
+  const [prevEquippedItem, setPrevEquippedItem] = useState(deepCopy(currentlyEquipped));
 
   const handleBuy = (item) => {
     onBuy(item);
@@ -76,7 +72,7 @@ function Store({ isOpen, availableItems, ownedItems, onClose, onBuy, onEquip, eq
   };
 
   const handleSave = () => {
-    if (currentlyEquipped && currentlyEquipped.id !== prevEquippedItem.id) {
+    if (currentlyEquipped && (prevEquippedItem === null || currentlyEquipped.id !== prevEquippedItem.id)) {
       onEquip(deepCopy(currentlyEquipped));
       setPrevEquippedItem(deepCopy(currentlyEquipped));
     }
@@ -141,7 +137,7 @@ function Store({ isOpen, availableItems, ownedItems, onClose, onBuy, onEquip, eq
                 variant="contained"
                 color="primary"
                 onClick={handleSave}
-                disabled={!currentlyEquipped || currentlyEquipped.id === prevEquippedItem.id}
+                disabled={!currentlyEquipped && prevEquippedItem === null || currentlyEquipped.id === prevEquippedItem.id}
                 style={{ marginTop: '16px' }}
               >
                 Save

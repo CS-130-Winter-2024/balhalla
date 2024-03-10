@@ -5,18 +5,18 @@ import PropTypes from 'prop-types'
 
 const forbiddenKeys = [
   ' ',
-  'Escape',
-  'Enter',
-  'Tab',
-  'CapsLock',
-  'Shift',
-  'Control',
-  'Alt',
-  'Meta',
-  'ArrowUp',
-  'ArrowDown',
-  'ArrowLeft',
-  'ArrowRight',
+  'ESCAPE',
+  'ENTER',
+  'TAB',
+  'CAPSLOCK',
+  'SHIFT',
+  'CONTROL',
+  'ALT',
+  'META',
+  'ARROWUP',
+  'ARROWDOWN',
+  'ARROWLEFT',
+  'ARROWRIGHT',
 ]
 
 function textStyle(size = 3, bolded = false, color = 'black') {
@@ -65,7 +65,7 @@ function SettingsTabContent({
     { key: 'A', description: 'Left' },
     { key: 'S', description: 'Down' },
     { key: 'D', description: 'Right' },
-    { key: 'TAB', description: 'Throw' },
+    { key: 'SPACE', description: 'Throw' },
   ],
   showAlert,
 }) {
@@ -74,6 +74,9 @@ function SettingsTabContent({
   const [isSaveVisible, setSaveVisible] = useState(false)
 
   const handleSave = () => {
+
+    // save keys to local storage
+    localStorage.setItem('keybinds', JSON.stringify(newKeybinds))
     setKeybinds(deepCopy(newKeybinds))
     setSaveVisible(false)
   }
@@ -84,6 +87,13 @@ function SettingsTabContent({
   }, [keybinds, newKeybinds])
 
   const handleKeybindChange = (index, value) => {
+
+    // checking if the key is already assigned
+    const keyExists = newKeybinds.some((keybind, i) => i !== index && keybind.key === value)
+    if (keyExists) {
+      showAlert(`Key ${value} is already assigned.`, 'error')
+      return
+    }
     const updatedKeybinds = [...newKeybinds]
     updatedKeybinds[index].key = value
     setNewKeybinds(deepCopy(updatedKeybinds))
@@ -91,7 +101,6 @@ function SettingsTabContent({
 
   const handleKeyDown = index => event => {
     const pressedKey = event.key.toUpperCase()
-
     if (forbiddenKeys.includes(pressedKey)) {
       showAlert(`You cannot assign ${pressedKey} to a keybind.`, 'error')
       return
@@ -101,7 +110,7 @@ function SettingsTabContent({
 
   return (
     <Box style={styles.container}>
-      <Typography variant="h4" gutterBottom style={textStyle(3, true)}>
+      <Typography variant="h4" gutterBottom style={{...textStyle(4, true), ...styles.settingHeader}}>
         Settings
       </Typography>
 
@@ -160,6 +169,9 @@ const styles = {
     justifyContent: 'center',
     alignItems: 'center',
     padding: '20px',
+  },
+  settingHeader: {
+    borderBottom: '2px solid black',
   },
   keybindBody: {
     display: 'flex',

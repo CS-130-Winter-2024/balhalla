@@ -1,13 +1,25 @@
 import Carousel from 'react-material-ui-carousel'
-import { Paper, Button } from '@mui/material'
+import { Paper } from '@mui/material'
 import PropTypes from 'prop-types'
 import SettingsTabContent from './TabSettingsContent'
+import TabInstructionsContent from './TabInstructionsContent'
 
 TabCarousel.propTypes = {
   index: PropTypes.number.isRequired,
   menuHeight: PropTypes.number.isRequired,
   showAlert: PropTypes.func.isRequired,
 }
+
+
+const INSTRUCTIONS = `
+  Welcome to the game! Here are the instructions:\n
+  1. Use the arrow keys to move the character\n
+  2. Collect the coins to earn points\n
+  3. Avoid the balls\n
+  4. Throw your balls\n
+  5. Make sure you hit your ops with your balls\n
+  6. Buy skins so we can make money\n
+`
 
 function TabCarousel({ index, menuHeight, showAlert }) {
   const styles = {
@@ -26,18 +38,7 @@ function TabCarousel({ index, menuHeight, showAlert }) {
       backgroundColor: 'green',
     },
   }
-
-  function Item2() {
-    return (
-      <Paper style={styles.item}>
-        <h2>goo goo </h2>
-        <p>ga ga?</p>
-        <Button className="CheckButton">Check it out!</Button>
-        <h2>GOOOOOOOOOOOOOOO</h2>
-        <h2>Harambe</h2>
-      </Paper>
-    )
-  }
+  
 
   return (
     <Paper style={styles.container}>
@@ -46,9 +47,8 @@ function TabCarousel({ index, menuHeight, showAlert }) {
         autoPlay={false}
         indicatorIconButtonProps={{ style: { display: 'none' } }}
       >
-        {/* <Item1 item={items[0]} menuHeight={menuHeight} /> */}
         <SettingsTabContent height={menuHeight} showAlert={showAlert} />
-        <Item2 />
+        <TabInstructionsContent text={INSTRUCTIONS}/>
       </Carousel>
     </Paper>
   )

@@ -21,6 +21,9 @@ const WIDTH_PERCENT = '50%'
 const HEIGHT_PERCENT = '65%'
 const MIN_WIDTH = '400px'
 const MIN_HEIGHT = '250px'
+const SECOND_BLUE = "#35baf6"
+const FIRST_BLUE = "#1976D2"
+
 
 // functions for Text
 function textStyle(size = 3, bolded = false) {
@@ -117,6 +120,9 @@ function InGameMenu({ handleClose, inGame, showAlert }) {
                   <Typography style={textStyle(3, true)}>{username}</Typography>
                 </Box>
 
+                {/* Divider */}
+                <Box style={styles.divider}></Box>
+
                 <Box style={styles.leftBottom}>
                   <PlayerStats stats={stats} />
                 </Box>
@@ -177,6 +183,9 @@ const styles = {
     width: '100%',
     backgroundColor: 'red', // CHANGE
     minHeight: '50px',
+    borderTop: `3px solid ${FIRST_BLUE}`,
+    borderRight: `3px solid ${FIRST_BLUE}`,
+    borderLeft: `3px solid ${FIRST_BLUE}`,
   },
   modalBody: {
     display: 'flex',
@@ -185,11 +194,17 @@ const styles = {
     height: '90%',
     width: '100%',
     backgroundColor: 'green', // CHANGE
+    borderBottom: `3px solid ${FIRST_BLUE}`,
+    borderRight: `3px solid ${FIRST_BLUE}`,
+    borderLeft: `3px solid ${FIRST_BLUE}`,
+    borderTop: `3px solid ${SECOND_BLUE}`,
+    
   },
   leftBody: {
     width: '50%',
     height: '100%',
     backgroundColor: 'yellow', // CHANGE
+    borderRight: `3px solid ${FIRST_BLUE}`,
   },
 
   rightBody: {
@@ -207,6 +222,7 @@ const styles = {
     backgroundColor: 'purple', // CHANGE
     justifyContent: 'center',
     alignItems: 'center',
+    marginBottom: '-3px', // this is account for the divider
   },
   leftBottom: {
     width: '100%',
@@ -223,6 +239,11 @@ const styles = {
     justifyContent: 'center',
     backgroundColor: 'orange',
     maxHeight: '75px',
+  },
+  divider: {
+    width: '80%',
+    borderBottom: `3px solid ${SECOND_BLUE}`,
+    margin: 'auto',
   },
 }
 

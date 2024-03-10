@@ -11,7 +11,6 @@ PlayerStats.propTypes = {
 }
 
 function PlayerStats({ stats }) {
-  console.log('TESTING')
   const renderStats = () => {
     const rows = []
     const numRows = Math.ceil(stats.length / 3)
@@ -27,7 +26,7 @@ function PlayerStats({ stats }) {
             display: 'flex',
             justifyContent: 'space-around',
             height: rowHeight,
-            width: '100%', // Set the width to 100%
+            width: '100%',
           }}
         >
           {rowStats.map(({ key, value }, index) => (
@@ -40,7 +39,7 @@ function PlayerStats({ stats }) {
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
-                width: '100%', // Set the width to 100%
+                width: '100%',
               }}
             >
               <Typography
@@ -54,7 +53,7 @@ function PlayerStats({ stats }) {
                   width: '50%',
                   height: '1px',
                   backgroundColor: 'black',
-                  margin: '4px 0', // Adjust the margin to control the spacing between key and value
+                  margin: '4px 0',
                 }}
               />
               <Typography variant="subtitle1" style={{ color: '#1976D2' }}>

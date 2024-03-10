@@ -21,9 +21,8 @@ const WIDTH_PERCENT = '50%'
 const HEIGHT_PERCENT = '65%'
 const MIN_WIDTH = '400px'
 const MIN_HEIGHT = '250px'
-const SECOND_BLUE = "#35baf6"
-const FIRST_BLUE = "#1976D2"
-
+const SECOND_BLUE = 'lightgray' // "#35baf6"
+const FIRST_BLUE = '#1976D2'
 
 // functions for Text
 function textStyle(size = 3, bolded = false) {
@@ -168,7 +167,7 @@ const styles = {
     minHeight: MIN_HEIGHT,
     width: WIDTH_PERCENT,
     height: HEIGHT_PERCENT,
-    backgroundColor: 'blue', // CHANGE
+    // backgroundColor: 'blue', // CHANGE
     padding: '20px',
     display: 'flex',
     borderRadius: '20px',
@@ -181,11 +180,12 @@ const styles = {
     alignItems: 'center',
     height: '10%',
     width: '100%',
-    backgroundColor: 'red', // CHANGE
+    // backgroundColor: 'red', // CHANGE
     minHeight: '50px',
     borderTop: `3px solid ${FIRST_BLUE}`,
     borderRight: `3px solid ${FIRST_BLUE}`,
     borderLeft: `3px solid ${FIRST_BLUE}`,
+    borderRadius: '10px 10px 0 0',
   },
   modalBody: {
     display: 'flex',
@@ -193,24 +193,25 @@ const styles = {
     alignItems: 'center',
     height: '90%',
     width: '100%',
-    backgroundColor: 'green', // CHANGE
+    // backgroundColor: 'green', // CHANGE
     borderBottom: `3px solid ${FIRST_BLUE}`,
     borderRight: `3px solid ${FIRST_BLUE}`,
     borderLeft: `3px solid ${FIRST_BLUE}`,
     borderTop: `3px solid ${SECOND_BLUE}`,
-    
+    borderRadius: '0 0 10px 10px',
+    zIndex: 1,
   },
   leftBody: {
     width: '50%',
     height: '100%',
-    backgroundColor: 'yellow', // CHANGE
-    borderRight: `3px solid ${FIRST_BLUE}`,
+    // backgroundColor: 'yellow', // CHANGE
+    borderRight: `3px solid ${SECOND_BLUE}`,
   },
 
   rightBody: {
     width: '50%',
     height: '100%',
-    backgroundColor: 'purple', // CHANGE
+    // backgroundColor: 'purple', // CHANGE
     display: 'flex',
     flexDirection: 'column',
   },
@@ -219,7 +220,7 @@ const styles = {
     flexDirection: 'column',
     width: '100%',
     height: '50%',
-    backgroundColor: 'purple', // CHANGE
+    // backgroundColor: 'purple', // CHANGE
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: '-3px', // this is account for the divider
@@ -227,8 +228,7 @@ const styles = {
   leftBottom: {
     width: '100%',
     height: '50%',
-    backgroundColor: 'pink', // CHANGE
-    // flex: 1,
+    // backgroundColor: 'pink', // CHANGE
     alignItems: 'center',
     justifyContent: 'center',
     display: 'flex',
@@ -237,7 +237,7 @@ const styles = {
     flex: 1,
     width: '100%',
     justifyContent: 'center',
-    backgroundColor: 'orange',
+    // backgroundColor: 'orange', // CHANGE
     maxHeight: '75px',
   },
   divider: {

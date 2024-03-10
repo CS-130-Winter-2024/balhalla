@@ -74,7 +74,6 @@ function SettingsTabContent({
   const [isSaveVisible, setSaveVisible] = useState(false)
 
   const handleSave = () => {
-
     // save keys to local storage
     localStorage.setItem('keybinds', JSON.stringify(newKeybinds))
     setKeybinds(deepCopy(newKeybinds))
@@ -87,9 +86,10 @@ function SettingsTabContent({
   }, [keybinds, newKeybinds])
 
   const handleKeybindChange = (index, value) => {
-
     // checking if the key is already assigned
-    const keyExists = newKeybinds.some((keybind, i) => i !== index && keybind.key === value)
+    const keyExists = newKeybinds.some(
+      (keybind, i) => i !== index && keybind.key === value,
+    )
     if (keyExists) {
       showAlert(`Key ${value} is already assigned.`, 'error')
       return
@@ -110,7 +110,11 @@ function SettingsTabContent({
 
   return (
     <Box style={styles.container}>
-      <Typography variant="h4" gutterBottom style={{...textStyle(4, true), ...styles.settingHeader}}>
+      <Typography
+        variant="h5"
+        gutterBottom
+        style={{ ...textStyle(3, true), ...styles.settingHeader }}
+      >
         Settings
       </Typography>
 
@@ -163,7 +167,7 @@ const styles = {
   container: {
     height: '100%',
     width: '100%',
-    backgroundColor: 'maroon',
+    // backgroundColor: 'maroon', // CHANGE
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'center',
@@ -171,7 +175,10 @@ const styles = {
     padding: '20px',
   },
   settingHeader: {
-    borderBottom: '2px solid black',
+    borderBottom: '2px solid #1976D2',
+    width: '27%',
+    marginHorizontal: 'auto',
+    marginBottom: '20px',
   },
   keybindBody: {
     display: 'flex',
@@ -180,7 +187,7 @@ const styles = {
     alignItems: 'flex-start',
     width: '100%',
     height: '100%',
-    backgroundColor: 'lightblue',
+    // backgroundColor: 'lightblue', // CHANGE
   },
   leftSide: {
     height: '100%',
@@ -189,7 +196,7 @@ const styles = {
     flexDirection: 'column',
     justifyContent: 'flex-start',
     alignItems: 'center',
-    backgroundColor: 'pink',
+    // backgroundColor: 'pink', // CHANGE
     marginBottom: '20px',
   },
   rightSide: {
@@ -198,8 +205,8 @@ const styles = {
     width: '100%',
     flexDirection: 'column',
     justifyContent: 'flex-start',
-    alignItems: 'flex-start',
-    backgroundColor: 'orange',
+    alignItems: 'center',
+    // backgroundColor: 'orange', // CHANGE
   },
   keybindButton: {
     fontWeight: 'bold',
@@ -210,7 +217,7 @@ const styles = {
     marginBottom: '7px',
   },
   keybindDescription: {
-    backgroundColor: 'lightgrey',
+    // backgroundColor: 'lightgrey', // CHANGE
     marginLeft: '20px',
     display: 'flex',
     flexDirection: 'row',
@@ -218,6 +225,7 @@ const styles = {
   },
   transparentButton: {
     backgroundColor: 'transparent',
+    borderColor: 'transparent',
     width: '30px',
     height: '30px',
     borderRadius: '5px',

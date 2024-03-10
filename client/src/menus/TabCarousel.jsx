@@ -10,7 +10,6 @@ TabCarousel.propTypes = {
   showAlert: PropTypes.func.isRequired,
 }
 
-
 const INSTRUCTIONS = `
   Welcome to the game! Here are the instructions:\n
   1. Use the arrow keys to move the character\n
@@ -26,19 +25,11 @@ function TabCarousel({ index, menuHeight, showAlert }) {
     container: {
       height: '100%',
       width: '100%',
-      backgroundColor: 'maroon',
+      // backgroundColor: 'maroon', // CHANGE
       flex: 1,
       position: 'relative',
     },
-    item: {
-      flex: 1,
-      alignItems: 'center',
-      height: `${menuHeight * 0.7 * 0.6}px`,
-      width: '100%',
-      backgroundColor: 'green',
-    },
   }
-  
 
   return (
     <Paper style={styles.container}>
@@ -48,7 +39,7 @@ function TabCarousel({ index, menuHeight, showAlert }) {
         indicatorIconButtonProps={{ style: { display: 'none' } }}
       >
         <SettingsTabContent height={menuHeight} showAlert={showAlert} />
-        <TabInstructionsContent text={INSTRUCTIONS}/>
+        <TabInstructionsContent height={menuHeight} text={INSTRUCTIONS} />
       </Carousel>
     </Paper>
   )

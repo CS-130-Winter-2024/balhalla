@@ -203,7 +203,16 @@ function Store({
         fullWidth
         style={{ marginLeft: OFFSET }}
       >
-        <DialogTitle style={{ fontFamily, color: primaryColor }}>
+        <DialogTitle
+          style={{
+            fontFamily,
+            color: primaryColor,
+            textAlign: 'center',
+            fontWeight: 'bold',
+            fontSize: '32px',
+            textDecoration: 'underline',
+          }}
+        >
           Shop
         </DialogTitle>
         <DialogContent>
@@ -298,7 +307,10 @@ function Store({
                 <Typography
                   variant="h6"
                   gutterBottom
-                  style={{ fontFamily, color: primaryColor }}
+                  style={{
+                    fontFamily,
+                    color: primaryColor,
+                  }}
                 >
                   Equip Weapon
                 </Typography>
@@ -307,7 +319,10 @@ function Store({
                 <Select
                   value={currWeapon ? currWeapon.id : ''}
                   onChange={handleEquipChange}
-                  style={{ height: 40, marginBottom: 10 }}
+                  style={{
+                    height: 40,
+                    marginBottom: 10,
+                  }}
                 >
                   {ownedItems
                     .filter(e => e.type === 'weapon')
@@ -320,7 +335,10 @@ function Store({
                 <Typography
                   variant="h6"
                   gutterBottom
-                  style={{ fontFamily, color: primaryColor }}
+                  style={{
+                    fontFamily,
+                    color: primaryColor,
+                  }}
                 >
                   Equip Armor
                 </Typography>
@@ -329,7 +347,10 @@ function Store({
                 <Select
                   value={currArmor ? currArmor.id : ''}
                   onChange={handleEquipChange}
-                  style={{ height: 40, marginBottom: 10 }}
+                  style={{
+                    height: 40,
+                    marginBottom: 10,
+                  }}
                 >
                   {ownedItems
                     .filter(e => e.type === 'armor')
@@ -342,7 +363,10 @@ function Store({
                 <Typography
                   variant="h6"
                   gutterBottom
-                  style={{ fontFamily, color: primaryColor }}
+                  style={{
+                    fontFamily,
+                    color: primaryColor,
+                  }}
                 >
                   Equip Assessory
                 </Typography>
@@ -351,7 +375,10 @@ function Store({
                 <Select
                   value={currAccessory ? currAccessory.id : ''}
                   onChange={handleEquipChange}
-                  style={{ height: 40, marginBottom: 10 }}
+                  style={{
+                    height: 40,
+                    marginBottom: 10,
+                  }}
                 >
                   {ownedItems
                     .filter(e => e.type === 'accessory')

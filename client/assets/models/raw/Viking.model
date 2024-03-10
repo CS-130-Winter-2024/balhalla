@@ -1,0 +1,26 @@
+# Made using Asset Forge (2.2.0)
+
+:materials
+
+[name:wood;color:RGBA(0.902, 0.753, 0.200, 1.000);scale:(1.0, 1.0);shader:Default;valueA:0.35;valueB:0;]
+[name:stone;color:RGBA(0.571, 0.559, 0.736, 1.000);scale:(1.0, 1.0);shader:Default;valueA:0.5;valueB:0;]
+[name:skin;color:RGBA(0.966, 0.735, 0.623, 1.000);scale:(1.0, 1.0);shader:Default;valueA:0;valueB:0;]
+[name:_defaultMat;color:RGBA(0.276, 0.282, 0.303, 1.000);scale:(1.0, 1.0);shader:Default;valueA:0.35;valueB:0.25;]
+[name:foliage;color:RGBA(0.371, 0.428, 0.413, 1.000);scale:(1.0, 1.0);shader:Default;valueA:0.35;valueB:0;]
+[name:woodDark;color:RGBA(0.338, 0.212, 0.172, 1.000);scale:(1.0, 1.0);shader:Default;valueA:0.35;valueB:0;]
+[name:skinDark;color:RGBA(0.793, 0.401, 0.213, 1.000);scale:(1.0, 1.0);shader:Default;valueA:0;valueB:0;]
+[name:metal;color:RGBA(0.580, 0.569, 0.769, 1.000);scale:(1.0, 1.0);shader:Default;valueA:0.35;valueB:0.25;]
+[name:custom8;color:RGBA(0.338, 0.129, 0.129, 1.000);scale:(1.0, 1.0);shader:Default;valueA:0.35;valueB:0.25;]
+[name:metalLight;color:RGBA(1.000, 1.000, 1.000, 1.000);scale:(1.0, 1.0);shader:Default;valueA:0.35;valueB:0.25;]
+
+:models
+
+[name:;collection:Characters;type:torso_nude;position:(0.0000, 0.6000, -0.0054);rotation:(0.0000, 0.0000, 0.0000);scale:(1.5000, 2.0000, 1.5000);group:Group_2;locked:False;hidden:False;materials:_defaultMat;]
+[name:;collection:Characters;type:head_angry;position:(0.0000, 1.2000, -0.0054);rotation:(0.0000, 0.0000, 0.0000);scale:(1.5000, 2.0000, 1.5000);group:Group_2;locked:False;hidden:False;materials:skin+woodDark+wood+skinDark;]
+[name:;collection:Characters;type:headwear_helmet;position:(0.0000, 1.2000, -0.0054);rotation:(0.0000, 0.0000, 0.0000);scale:(1.5000, 2.0000, 1.5000);group:Group_2;locked:False;hidden:False;materials:_defaultMat+foliage+_defaultMat;]
+[name:;collection:Swords;type:blade_bend;position:(-0.1125, 1.6000, -0.0054);rotation:(0.0000, 0.0000, 45.0000);scale:(-0.4498, 0.3173, 1.2657);group:Group_2;locked:False;hidden:False;materials:metalLight;]
+[name:;collection:Swords;type:blade_bend;position:(0.1170, 1.6008, -0.0054);rotation:(0.0000, 0.0000, 315.0000);scale:(0.4498, 0.3173, 1.1250);group:Group_2;locked:False;hidden:False;materials:metalLight;]
+[name:;collection:Characters;type:arm_sleeve;position:(0.0000, 1.2000, -0.0054);rotation:(0.0000, 0.0000, 0.0000);scale:(1.5000, 2.0000, 1.5000);group:;locked:False;hidden:False;materials:skin+_defaultMat+custom8+_defaultMat;]
+[name:;collection:Characters;type:leg_boots;position:(0.0000, 0.6000, -0.0054);rotation:(0.0000, 0.0000, 0.0000);scale:(1.5000, 2.0000, 1.5000);group:;locked:False;hidden:False;materials:_defaultMat+custom8;]
+[name:;collection:Characters;type:leg_boots;position:(0.2400, 0.6000, -0.0054);rotation:(0.0000, 0.0000, 0.0000);scale:(1.5000, 2.0000, 1.5000);group:;locked:False;hidden:False;materials:_defaultMat+custom8;]
+[name:;collection:Characters;type:arm_sleeve;position:(0.0000, 1.2000, -0.0054);rotation:(0.0000, 0.0000, 0.0000);scale:(-1.5000, 2.0000, 1.5000);group:;locked:False;hidden:False;materials:skin+_defaultMat+custom8+_defaultMat;]

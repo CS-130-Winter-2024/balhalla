@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react'
 import {
   Dialog,
   DialogTitle,
@@ -13,16 +13,17 @@ import {
   FormControl,
   Select,
   Box,
-  Avatar
-} from '@mui/material';
-import PropTypes from 'prop-types';
+  Avatar,
+  DialogActions,
+} from '@mui/material'
+import PropTypes from 'prop-types'
 
 // Constants for styling
-const fontFamily = 'Roboto, Helvetica, Arial';
-const primaryColor = '#1976D2'; // Replace with your desired primary color
+const fontFamily = 'Roboto, Helvetica, Arial'
+const primaryColor = '#1976D2' // Replace with your desired primary color
 
 // Offset to account for left sidebar
-const OFFSET = '300px';
+const OFFSET = '300px'
 
 Store.propTypes = {
   isOpen: PropTypes.bool.isRequired,
@@ -33,8 +34,7 @@ Store.propTypes = {
       image: PropTypes.string.isRequired,
       cost: PropTypes.number.isRequired,
       type: PropTypes.oneOf(['weapon', 'armor', 'accessory']).isRequired,
-
-    })
+    }),
   ),
   ownedItems: PropTypes.arrayOf(
     PropTypes.shape({
@@ -43,8 +43,7 @@ Store.propTypes = {
       image: PropTypes.string.isRequired,
       cost: PropTypes.number.isRequired,
       type: PropTypes.oneOf(['weapon', 'armor', 'accessory']).isRequired,
-
-    })
+    }),
   ).isRequired,
   onClose: PropTypes.func.isRequired,
   onBuy: PropTypes.func.isRequired,
@@ -56,218 +55,431 @@ Store.propTypes = {
       image: PropTypes.string.isRequired,
       cost: PropTypes.number.isRequired,
       type: PropTypes.oneOf(['weapon', 'armor', 'accessory']).isRequired,
-    })).isRequired,
-    showAlert: PropTypes.func.isRequired,
-    coins: PropTypes.number.isRequired,
-    setCoins: PropTypes.func.isRequired
-};
+    }),
+  ).isRequired,
+  showAlert: PropTypes.func.isRequired,
+  coins: PropTypes.number.isRequired,
+  setCoins: PropTypes.func.isRequired,
+}
 
 // make copy of object
 function deepCopy(obj) {
-    return JSON.parse(JSON.stringify(obj));
+  return JSON.parse(JSON.stringify(obj))
 }
 
-function Store({ isOpen, availableItems, ownedItems, onClose, onBuy, handleEquip, equippedItems, showAlert, coins, setCoins }) {
-  const [currWeapon, setCurrWeapon] = useState(deepCopy(equippedItems[0]));
-  const [prevWeapon, setPrevWeapon] = useState(deepCopy(equippedItems[0]));
+BuyConfirmationDialog.propTypes = {
+  isOpen: PropTypes.bool.isRequired,
+  item: PropTypes.shape({
+    name: PropTypes.string.isRequired,
+    cost: PropTypes.number.isRequired,
+  }),
+  remainingBalance: PropTypes.number.isRequired,
+  onClose: PropTypes.func.isRequired,
+  onConfirm: PropTypes.func.isRequired,
+}
 
-  const [currArmor, setCurrArmor] = useState(deepCopy(equippedItems[1]));
-    const [prevArmor, setPrevArmor] = useState(deepCopy(equippedItems[1]));
+function BuyConfirmationDialog({
+  isOpen,
+  item,
+  remainingBalance,
+  onClose,
+  onConfirm,
+}) {
+  return (
+    <Dialog open={isOpen} onClose={onClose}>
+      <DialogTitle>Confirmation</DialogTitle>
+      <DialogContent>
+        <Typography>{`You are about to buy ${item.name} for ${item.cost} coins.`}</Typography>
+        <Typography>{`Remaining balance: ${remainingBalance} coins.`}</Typography>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose} color="primary">
+          Cancel
+        </Button>
+        <Button onClick={() => onConfirm(item)} color="primary">
+          Confirm
+        </Button>
+      </DialogActions>
+    </Dialog>
+  )
+}
 
-const [currAccessory, setCurrAccessory] = useState(deepCopy(equippedItems[2]));
-const [prevAccessory, setPrevAccessory] = useState(deepCopy(equippedItems[2]));
+function Store({
+  isOpen,
+  availableItems,
+  ownedItems,
+  onClose,
+  onBuy,
+  handleEquip,
+  equippedItems,
+  showAlert,
+  coins,
+  setCoins,
+}) {
+  const [currWeapon, setCurrWeapon] = useState(deepCopy(equippedItems[0]))
+  const [prevWeapon, setPrevWeapon] = useState(deepCopy(equippedItems[0]))
 
-  const handleBuy = (item) => {
-    onBuy(item);
-  };
+  const [currArmor, setCurrArmor] = useState(deepCopy(equippedItems[1]))
+  const [prevArmor, setPrevArmor] = useState(deepCopy(equippedItems[1]))
 
-  const handleEquipChange = (event) => {
+  const [currAccessory, setCurrAccessory] = useState(deepCopy(equippedItems[2]))
+  const [prevAccessory, setPrevAccessory] = useState(deepCopy(equippedItems[2]))
 
-    const selectedItemId = event.target.value;
-    const selectedOwnedItem = ownedItems.find((item) => item.id === selectedItemId);
-    // finds the type of item
-    const itemType = selectedOwnedItem.type;
-    if (itemType === "weapon") {
-      setCurrWeapon(deepCopy(selectedOwnedItem));
+  const [showConfirmationDialog, setShowConfirmationDialog] = useState(false)
+  const [selectedItemForPurchase, setSelectedItemForPurchase] = useState(null)
+  const [remainingBalance, setRemainingBalance] = useState(coins)
+
+  const handleBuy = item => {
+    if (coins < item.cost) {
+      showAlert('You too broke, sorry', 'error')
+    } else {
+      setSelectedItemForPurchase(item)
+      setRemainingBalance(coins - item.cost)
+      setShowConfirmationDialog(true)
     }
-    else if (itemType === "armor") {
-        setCurrArmor(deepCopy(selectedOwnedItem));
+  }
+
+  const handleEquipChange = event => {
+    const selectedItemId = event.target.value
+    const selectedOwnedItem = ownedItems.find(
+      item => item.id === selectedItemId,
+    )
+    const itemType = selectedOwnedItem.type
+    if (itemType === 'weapon') {
+      setCurrWeapon(deepCopy(selectedOwnedItem))
+    } else if (itemType === 'armor') {
+      setCurrArmor(deepCopy(selectedOwnedItem))
+    } else if (itemType === 'accessory') {
+      setCurrAccessory(deepCopy(selectedOwnedItem))
     }
-    else if (itemType === "accessory"){
-        setCurrAccessory(deepCopy(selectedOwnedItem));
-    }
-  };
+  }
 
   const canSave = () => {
-    const armorChanged = currArmor && (prevArmor === null || currArmor.id !== prevArmor.id);
-  const weaponChanged = currWeapon && (prevWeapon === null || currWeapon.id !== prevWeapon.id);
-  const accessoryChanged = currAccessory && (prevAccessory === null || currAccessory.id !== prevAccessory.id);
-    return armorChanged || weaponChanged || accessoryChanged;
+    const armorChanged =
+      currArmor && (prevArmor === null || currArmor.id !== prevArmor.id)
+    const weaponChanged =
+      currWeapon && (prevWeapon === null || currWeapon.id !== prevWeapon.id)
+    const accessoryChanged =
+      currAccessory &&
+      (prevAccessory === null || currAccessory.id !== prevAccessory.id)
+    return armorChanged || weaponChanged || accessoryChanged
   }
 
   const handleSave = () => {
-    handleEquip(currWeapon, currArmor, currAccessory);
-    setPrevWeapon(deepCopy(currWeapon));
-    setPrevArmor(deepCopy(currArmor));
-    setPrevAccessory(deepCopy(currAccessory));
-  };
+    handleEquip(currWeapon, currArmor, currAccessory)
+    setPrevWeapon(deepCopy(currWeapon))
+    setPrevArmor(deepCopy(currArmor))
+    setPrevAccessory(deepCopy(currAccessory))
+  }
+
+  const handleConfirmBuy = item => {
+    showAlert(`You bought ${item.name} for ${item.cost} coins`, 'success')
+    setShowConfirmationDialog(false)
+    setCoins(coins - item.cost)
+    onBuy(item)
+  }
+
+  const onCloseDialog = item => {
+    setShowConfirmationDialog(false)
+    setRemainingBalance(coins + item.cost)
+  }
 
   return (
-    <Dialog open={isOpen} onClose={onClose} maxWidth="md" fullWidth style={{ marginLeft: OFFSET}}>
-      <DialogTitle style={{ fontFamily, color: primaryColor }}>Shop</DialogTitle>
-      <DialogContent>
-        <Grid container spacing={2}>
-          <Grid item xs={8}>
-            {/* Left Side: Display available items for purchase */}
-            <Grid container spacing={2}>
-              {availableItems.map((item, index) => (
-                <Grid item key={index} xs={4}>
-                  <Card style={{ width: '90%', height: 300 }}>
-                    {/* Adjust width and height as needed */}
-                    <CardMedia
-                      component="img"
-                      height="140"
-                      width="100%"
-                      image={item.image}
-                      alt={item.name}
-                      style={ownedItems.some((ownedItem) => ownedItem.id === item.id) ? { filter: 'grayscale(100%)' } : {}}
-                    />
-                    <CardContent style={{ height: "100%" }}>
-                      <Box style={{ width: "100%", height: "80%", display: "flex", flexDirection: "column", justifyContent: "flex-start", alignItems: 'center' }}>
-                        <Typography variant="subtitle1">{item.name}</Typography>
-                        <Typography variant="caption" color={primaryColor}> {item.type} </Typography>
-                        {ownedItems.some((ownedItem) => ownedItem.id === item.id) ? (
-                          <Typography variant="caption" color="textSecondary">
-                            OWNED
+    <>
+      {showConfirmationDialog && selectedItemForPurchase && (
+        <BuyConfirmationDialog
+          isOpen={showConfirmationDialog}
+          item={selectedItemForPurchase}
+          remainingBalance={remainingBalance}
+          onClose={() => onCloseDialog(selectedItemForPurchase)}
+          onConfirm={() => handleConfirmBuy(selectedItemForPurchase)}
+        />
+      )}
+
+      <Dialog
+        open={isOpen}
+        onClose={onClose}
+        maxWidth="md"
+        fullWidth
+        style={{ marginLeft: OFFSET }}
+      >
+        <DialogTitle style={{ fontFamily, color: primaryColor }}>
+          Shop
+        </DialogTitle>
+        <DialogContent>
+          <Grid container spacing={2}>
+            <Grid item xs={8}>
+              {/* Left Side: Display available items for purchase */}
+              <Grid container spacing={2}>
+                {availableItems.map((item, index) => (
+                  <Grid item key={index} xs={4}>
+                    <Card style={{ width: '90%', height: 300 }}>
+                      {/* Adjust width and height as needed */}
+                      <CardMedia
+                        component="img"
+                        height="140"
+                        width="100%"
+                        image={item.image}
+                        alt={item.name}
+                        style={
+                          ownedItems.some(ownedItem => ownedItem.id === item.id)
+                            ? { filter: 'grayscale(100%)' }
+                            : {}
+                        }
+                      />
+                      <CardContent style={{ height: '100%' }}>
+                        <Box
+                          style={{
+                            width: '100%',
+                            height: '80%',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'flex-start',
+                            alignItems: 'center',
+                          }}
+                        >
+                          <Typography variant="subtitle1">
+                            {item.name}
                           </Typography>
-                        ) : (
-                            <Box style={{ display: "flex", height: "100%", width: "100%", alignItems: "center", justifyContent: "space-around", marginBottom: 20 }}>
+                          <Typography variant="caption" color={primaryColor}>
+                            {' '}
+                            {item.type}{' '}
+                          </Typography>
+                          {ownedItems.some(
+                            ownedItem => ownedItem.id === item.id,
+                          ) ? (
+                            <Typography variant="caption" color="textSecondary">
+                              OWNED
+                            </Typography>
+                          ) : (
+                            <Box
+                              style={{
+                                display: 'flex',
+                                height: '100%',
+                                width: '100%',
+                                alignItems: 'center',
+                                justifyContent: 'space-around',
+                                marginBottom: 20,
+                              }}
+                            >
                               <Button
                                 variant="contained"
                                 color="primary"
-                                disabled={ownedItems.some((ownedItem) => ownedItem.id === item.id)}
+                                disabled={ownedItems.some(
+                                  ownedItem => ownedItem.id === item.id,
+                                )}
                                 onClick={() => handleBuy(item)}
-                                style={{ width: "30%", maxHeight: "20%" }}
+                                style={{ width: '30%', maxHeight: '20%' }}
                               >
                                 Buy
                               </Button>
-                              <Typography variant="subtitle2" style={{ fontFamily, fontWeight: "bold", color: "#C8b273" }}>
+                              <Typography
+                                variant="subtitle2"
+                                style={{
+                                  fontFamily,
+                                  fontWeight: 'bold',
+                                  color: '#C8b273',
+                                }}
+                              >
                                 {item.cost} C
                               </Typography>
                             </Box>
                           )}
+                        </Box>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                ))}
+              </Grid>
+            </Grid>
+            <Grid item xs={4}>
+              {/* Right Side: Equip section */}
+              <FormControl fullWidth>
+                <Typography
+                  variant="h6"
+                  gutterBottom
+                  style={{ fontFamily, color: primaryColor }}
+                >
+                  Equip Weapon
+                </Typography>
 
-                      </Box>
+                {/* Select for Weapon */}
+                <Select
+                  value={currWeapon ? currWeapon.id : ''}
+                  onChange={handleEquipChange}
+                  style={{ height: 40, marginBottom: 10 }}
+                >
+                  {ownedItems
+                    .filter(e => e.type === 'weapon')
+                    .map(item => (
+                      <MenuItem key={item.id} value={item.id}>
+                        {item.name}
+                      </MenuItem>
+                    ))}
+                </Select>
+                <Typography
+                  variant="h6"
+                  gutterBottom
+                  style={{ fontFamily, color: primaryColor }}
+                >
+                  Equip Armor
+                </Typography>
 
-                    </CardContent>
-                  </Card>
-                </Grid>
-              ))}
+                {/* Select for Armor */}
+                <Select
+                  value={currArmor ? currArmor.id : ''}
+                  onChange={handleEquipChange}
+                  style={{ height: 40, marginBottom: 10 }}
+                >
+                  {ownedItems
+                    .filter(e => e.type === 'armor')
+                    .map(item => (
+                      <MenuItem key={item.id} value={item.id}>
+                        {item.name}
+                      </MenuItem>
+                    ))}
+                </Select>
+                <Typography
+                  variant="h6"
+                  gutterBottom
+                  style={{ fontFamily, color: primaryColor }}
+                >
+                  Equip Assessory
+                </Typography>
+
+                {/* Select for Assessories */}
+                <Select
+                  value={currAccessory ? currAccessory.id : ''}
+                  onChange={handleEquipChange}
+                  style={{ height: 40, marginBottom: 10 }}
+                >
+                  {ownedItems
+                    .filter(e => e.type === 'accessory')
+                    .map(item => (
+                      <MenuItem key={item.id} value={item.id}>
+                        {item.name}
+                      </MenuItem>
+                    ))}
+                </Select>
+
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={handleSave}
+                  disabled={!canSave()}
+                  style={{ marginTop: '16px' }}
+                >
+                  Save
+                </Button>
+                {equippedItems[0] && (
+                  <Box
+                    style={{
+                      marginTop: '16px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <Typography
+                      variant="subtitle1"
+                      style={{ marginBottom: '8px' }}
+                    >
+                      Equipped Weapon:
+                    </Typography>
+                    <Avatar
+                      style={{
+                        border: `2px solid ${primaryColor}`,
+                        width: '80px',
+                        height: '80px',
+                      }}
+                    >
+                      <img
+                        src={equippedItems[0].image}
+                        alt={equippedItems[0].name}
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover',
+                        }}
+                      />
+                    </Avatar>
+                  </Box>
+                )}
+                {equippedItems[1] && (
+                  <Box
+                    style={{
+                      marginTop: '16px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <Typography
+                      variant="subtitle1"
+                      style={{ marginBottom: '8px' }}
+                    >
+                      Equipped Armor:
+                    </Typography>
+                    <Avatar
+                      style={{
+                        border: `2px solid ${primaryColor}`,
+                        width: '80px',
+                        height: '80px',
+                      }}
+                    >
+                      <img
+                        src={equippedItems[1].image}
+                        alt={equippedItems[1].name}
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover',
+                        }}
+                      />
+                    </Avatar>
+                  </Box>
+                )}
+                {equippedItems[2] && (
+                  <Box
+                    style={{
+                      marginTop: '16px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <Typography
+                      variant="subtitle1"
+                      style={{ marginBottom: '8px' }}
+                    >
+                      Equipped Accessory:
+                    </Typography>
+                    <Avatar
+                      style={{
+                        border: `2px solid ${primaryColor}`,
+                        width: '80px',
+                        height: '80px',
+                      }}
+                    >
+                      <img
+                        src={equippedItems[2].image}
+                        alt={equippedItems[2].name}
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover',
+                        }}
+                      />
+                    </Avatar>
+                  </Box>
+                )}
+              </FormControl>
             </Grid>
           </Grid>
-          <Grid item xs={4}>
-            {/* Right Side: Equip section */}
-            <FormControl fullWidth>
-              <Typography variant="h6" gutterBottom style={{ fontFamily, color: primaryColor }}>
-                Equip Weapon
-              </Typography>
-
-              {/* Select for Weapon */}
-              <Select value={currWeapon ? currWeapon.id : ''} onChange={handleEquipChange} style={{height: 40, marginBottom: 10}}>
-
-                {ownedItems.filter((e)=> e.type === 'weapon').map((item) => (
-                  <MenuItem key={item.id} value={item.id}>
-                    {item.name}
-                  </MenuItem>
-                ))}
-              </Select>
-              <Typography variant="h6" gutterBottom style={{ fontFamily, color: primaryColor }}>
-                Equip Armor
-              </Typography>
-
-              {/* Select for Armor */}
-              <Select value={currArmor ? currArmor.id : ''} onChange={handleEquipChange}  style={{height: 40, marginBottom: 10}}>
-
-                {ownedItems.filter((e)=> e.type === 'armor').map((item) => (
-                  <MenuItem key={item.id} value={item.id}>
-                    {item.name}
-                  </MenuItem>
-                ))}
-              </Select>
-              <Typography variant="h6" gutterBottom style={{ fontFamily, color: primaryColor }}>
-                Equip Assessory
-              </Typography>
-
-              {/* Select for Assessories */}
-              <Select value={currAccessory ? currAccessory.id : ''} onChange={handleEquipChange}  style={{height: 40, marginBottom: 10}}>
-
-                {ownedItems.filter((e)=> e.type === 'accessory').map((item) => (
-                  <MenuItem key={item.id} value={item.id}>
-                    {item.name}
-                  </MenuItem>
-                ))}
-              </Select>
-              
-              
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={handleSave}
-                // disabled={!(currentlyEquipped && (prevEquippedItem === null || currentlyEquipped.id !== prevEquippedItem.id))}
-                disabled={!canSave()}
-                style={{ marginTop: '16px' }}
-              >
-                Save
-              </Button>
-              {equippedItems[0] && (
-                <Box style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                  <Typography variant="subtitle1" style={{ marginBottom: '8px' }}>
-                    Equipped Weapon:
-                  </Typography>
-                  <Avatar style={{ border: `2px solid ${primaryColor}`, width: '80px', height: '80px' }}>
-                    <img
-                      src={equippedItems[0].image}
-                      alt={equippedItems[0].name}
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                    />
-                  </Avatar>
-                </Box>
-              )}
-              {equippedItems[1] && (
-                <Box style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                  <Typography variant="subtitle1" style={{ marginBottom: '8px' }}>
-                    Equipped Armor:
-                  </Typography>
-                  <Avatar style={{ border: `2px solid ${primaryColor}`, width: '80px', height: '80px' }}>
-                    <img
-                      src={equippedItems[1].image}
-                      alt={equippedItems[1].name}
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                    />
-                  </Avatar>
-                </Box>
-              )}
-              {equippedItems[2] && (
-                <Box style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                  <Typography variant="subtitle1" style={{ marginBottom: '8px' }}>
-                    Equipped Accessory:
-                  </Typography>
-                  <Avatar style={{ border: `2px solid ${primaryColor}`, width: '80px', height: '80px' }}>
-                    <img
-                      src={equippedItems[2].image}
-                      alt={equippedItems[2].name}
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                    />
-                  </Avatar>
-                </Box>
-              )}
-
-            </FormControl>
-          </Grid>
-        </Grid>
-      </DialogContent>
-    </Dialog>
-  );
+        </DialogContent>
+      </Dialog>
+    </>
+  )
 }
 
-export default Store;
+export default Store

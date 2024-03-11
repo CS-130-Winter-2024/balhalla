@@ -6,7 +6,7 @@ import Box from '@mui/material/Box'
 import TextField from '@mui/material/TextField'
 import Store from '../menus/Store'
 import PropTypes from 'prop-types'
-import { BUYABLE_MODELS } from '../constants'
+import { BUYABLE_MODELS, add_listener, set_global } from '../constants'
 
 // when page is loaded, check token in cookies against server
 // if so, start as logged in, otherwise logged out
@@ -250,7 +250,7 @@ UI.propTypes = {
 }
 
 export default function UI({ showAlert }) {
-  const [showOverlay, setShowOverlay] = useState(false)
+  const [locked, setLocked] = useState(false)
   const [username, setUsername] = useState('Hello World')
   const [loginClicked, setLoginClicked] = useState(false) // eslint-disable-line
 
@@ -300,12 +300,7 @@ export default function UI({ showAlert }) {
   }
   // END Giang's stuff
   useEffect(() => {
-    document.addEventListener('lock', () => {
-      setShowOverlay(true)
-    })
-    document.addEventListener('unlock', () => {
-      setShowOverlay(false)
-    })
+    add_listener("LOCKED",setLocked);
     document.addEventListener('setUsername', e => {
       setUsername(e.detail)
     })
@@ -327,7 +322,7 @@ export default function UI({ showAlert }) {
         setCoins={setCoins}
       />
       {/* END: Giang's stuff */}
-      <div id="UI" style={{ display: (showOverlay && 'none') || 'block' }}>
+      <div id="UI" style={{ display: (locked && 'none') || 'block' }}>
         <h1 id="logo">Balhalla</h1>
         <h2>{username}</h2>
 
@@ -335,7 +330,7 @@ export default function UI({ showAlert }) {
           variant="contained"
           id="logIn"
           onClick={() => {
-            document.dispatchEvent(new CustomEvent('lock'))
+            set_global("LOCKED",true)
           }}
         >
           Return to Game
@@ -351,7 +346,7 @@ export default function UI({ showAlert }) {
       </div>
       <div
         id="crosshair"
-        style={{ display: (showOverlay && 'block') || 'none' }}
+        style={{ display: (locked && 'block') || 'none' }}
       >
         <img src={crosshair} width={50} height={50} />
       </div>

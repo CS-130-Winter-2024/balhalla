@@ -19,8 +19,6 @@ var properties = {
 // Meta data of the client player (player's points, selected ball, selected pet, etc.)
 var myMetadata;
 
-var locked = false; //Locked = First Person Cam; Unlocked = Mouse Movement
-
 var movementVector = new three.Vector3();
 var perpVector = new three.Vector3();
 var intermediateVector = new three.Vector3();
@@ -83,7 +81,7 @@ function throwBall() {
 function onKeyDown(e) {
   if (spectating) return;
   // callback is sendMovement(vector) from Connection.jsx
-  if (locked) {
+  if (constants.get_global("LOCKED")) {
     let wasMovement = false;
 
     if (e.key in constants.MOVEMENT_MAP) { // Movement keys: WASD
@@ -119,7 +117,7 @@ function onKeyDown(e) {
 function onKeyUp(e) {
   if (spectating) return;
   // callback is sendMovement(vector) from Connection.jsx
-  if (locked) {
+  if (constants.get_global("LOCKED")) {
     let wasMovement = false;
 
     if (e.key in constants.MOVEMENT_MAP) { // Movement keys: WASD

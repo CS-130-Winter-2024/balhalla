@@ -136,17 +136,18 @@ export default function main() {
 
   var controls = new PointerLockControls(camera, renderer.domElement);
   controls.connect();
+  constants.set_global("LOCKED",false);
+  document.addEventListener("pointerlockerror",()=>{
+    constants.set_global("LOCKED",false);
+  })
   //Add camera locking
-  var locked = false;
-  document.addEventListener("lock", () => {
-    //document.dispatchEvent(new CustomEvent("lock"));
-    controls.lock();
-    locked = true;
-  });
+  constants.add_listener("LOCKED",(isLocked)=>{
+    if (isLocked) {
+      controls.lock();
+    }
+  })
   controls.addEventListener("unlock", () => {
-    document.dispatchEvent(new CustomEvent("unlock"));
-    locked = false;
-    console.log('escaped!')
+    constants.set_global("LOCKED",false);
   });
   // document.addEventListener("keydown", (ev) => {
   //   if (ev.key == " " || ev.key == "Enter") {

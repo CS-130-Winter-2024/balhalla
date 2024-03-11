@@ -206,7 +206,7 @@ export function add_listener(key,fun, repeat=true) {
     let index = 0;
     if (key in LISTENERS) {
         let last;
-        for (x in LISTENERS[key]) {
+        for (const x in LISTENERS[key]) {
             last = x;
         }
         index = Number(last) + 1;

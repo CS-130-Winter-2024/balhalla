@@ -15,7 +15,7 @@ export const BALL_GRAVITY = 9.8;
 export const SPEED_DT = PLAYER_SPEED * TICK_DT;
 
 //sizing
-export const WORLD_HALF_WIDTH = 14.5; //POSITIVE X is RED TEAM, NEGATIVE X is BLUE TEAM
+export const WORLD_HALF_WIDTH = 14.5; //POSITIVE Z is RED TEAM (TEAM 1), NEGATIVE Z is BLUE TEAM (TEAM 0)
 export const WORLD_HALF_LENGTH = 10.5;
 export const SPAWN_DISTANCE = 3; //maximum spawn distance from the edge
 export const BALL_RADIUS = 0.25;

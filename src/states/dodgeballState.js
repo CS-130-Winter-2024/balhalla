@@ -18,19 +18,29 @@ export function startState(data) {
   let tiebreaker = assignments[1]
   //add all the readied players to the game
   let current = 0;
+  let playerCount = [0,0]
   for (const id in data.players) {
+
+    //pick z coordinate
     let zVal = (teams[current]*2*constants.WORLD_HALF_WIDTH - constants.WORLD_HALF_WIDTH);
     zVal += Math.random()*3*(1-2*teams[current]);
+    
+
+    //get player index on team and total size of the team
+    playerCount[teams[current]]++;
     let teamSize = (teams[current] == tiebreaker && Math.floor(teams.length/2)) || Math.ceil(teams.length/2)
-    let currentPlayer = Math.floor(current/2) + 1;
+    let currentPlayer = playerCount[teams[current]];
+    //get X offset
     let xVal = (2*constants.WORLD_HALF_LENGTH/(teamSize+1))*currentPlayer - constants.WORLD_HALF_LENGTH;
-    //get base player
+    
+    //create player object
     players[id] = {
       ...constants.BASE_PLAYER,
       x:xVal,
       z:zVal,
     };
 
+    //give player metadata (obtained from client and verified against database)
     playersMetadata[id] = {
       ...data.players[id],
       team: teams[current],
@@ -140,7 +150,6 @@ export function processMessage(id, message) {
   if (!(id in players)) {
     return;
   }
-  let sockets = getConnections();
   let data = constants.message_parse(message)
   switch (data.type) {
     case constants.MESSAGES.sendMovement:
@@ -188,7 +197,8 @@ export function doTick() {
     //Update Ball physics
     for (const ballID in balls) {
       let ball = balls[ballID];
-  
+      
+      //If the ball isn't grounded, apply velocity
       if (!ball.isGrounded) { // only mid-air balls should be moving
         ball.spin += 1;
         ball.velocity[1] -= constants.TICK_DT * constants.BALL_GRAVITY; // acceleration due to gravity
@@ -205,7 +215,7 @@ export function doTick() {
           ball.isGrounded = true;
         }
   
-        //check if ball in bounds
+        //Check if ball is in bounds
         if (
           ball.x < -constants.WORLD_HALF_LENGTH ||
           ball.x > constants.WORLD_HALF_LENGTH ||
@@ -216,7 +226,7 @@ export function doTick() {
           // resets ball to center of the arena for now
           ball.velocity = [0, 0, 0];
           ball.x = 0;
-          ball.z = 0;
+          ball.z = playersMetadata[ball.throwerID].team * 6 - 3;
           ball.y = constants.BALL_RADIUS;
           ball.isGrounded = true;
         }
@@ -236,22 +246,29 @@ export function doTick() {
     //Update Player movements
     for (const playerID in players) {
       let player = players[playerID];
+
+
+      //move player according to their velocity
       player.x += player.direction[0] * constants.SPEED_DT;
       player.x = Math.min(
-        Math.max(player.x, -constants.WORLD_HALF_LENGTH),
+        Math.max(player.x, -constants.WORLD_HALF_LENGTH ),
         constants.WORLD_HALF_LENGTH,
-      ); //clamp to world border
+      ); //clamp to world border on X
   
+      //move player according to their velocity
       player.z += player.direction[1] * constants.SPEED_DT;
       player.z = Math.min(
-        Math.max(player.z, -constants.WORLD_HALF_WIDTH),
-        constants.WORLD_HALF_WIDTH,
-      ); //clamp to world border
+        Math.max(player.z, playersMetadata[playerID].team == 0 && -constants.WORLD_HALF_WIDTH || 0),
+        playersMetadata[playerID].team * constants.WORLD_HALF_WIDTH,
+      ); //clamp to team's side
   
       let possibleCollisons = { // dividing arena in sections to avoid unnecessary hit detection calculations
         ...sections[Math.floor(player.x - constants.PLAYER_RADIUS)],
         ...sections[Math.floor(player.x + constants.PLAYER_RADIUS)],
       };
+
+      //check every ball in the same x-position slice for a collision
+      //makes the m*n algorithm faster by bounding both m and n
       for (const ballID in possibleCollisons) {
         //check z and x axis of player and ball
         if (!(ballID in balls)) continue;

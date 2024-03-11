@@ -1,13 +1,33 @@
 // here we store universal constants
 import viking from "../assets/models/Viking.glb"
+import vikingboat from "../assets/models/VikingBoat.glb"
+import axe from "../assets/models/weapons/Axe.glb"
+import hammer from "../assets/models/weapons/Mjolnir.glb"
+import trident from "../assets/models/weapons/Trident.glb"
+import tree from "../assets/models/pets/Tree.glb"
+import turtle from "../assets/models/pets/Turtle.glb"
+import pig from "../assets/models/pets/Pig.glb"
+import duck from "../assets/models/pets/Duck.glb"
+import vikingghost from "../assets/models/VikingGhost.glb"
+
+import axePng from "../assets/images/axe.png"
+import hammerPng from "../assets/images/hammer.png"
+import tridentPng from "../assets/images/trident.png"
+import treePng from "../assets/images/tree.png"
+import turtlePng from "../assets/images/turtle.png"
+import pigPng from "../assets/images/pig.png"
+import duckPng from "../assets/images/duck.png"
+
 //GAME
 export const SPEED = 5;
 export const ALIVE_Y = 1.25;
 export const DEAD_Y = 5;
 
+export const THROW_KEY = "f"
 export const MOVEMENT_MAP = { w: 0, a: 1, s: 2, d: 3 };
 
-
+export const DASH_COOLDOWN = 5000;
+export const DASH_SPEED = 15;
 
 //WEBSOCKETS ----------------
 export const UPDATE_RATE = 25;
@@ -28,6 +48,32 @@ export function message_parse(msg) {
     let data = JSON.parse(msg)
     output.type = data[0];
     switch (data[0]) { //data[0] = type
+        case MESSAGES.playerList:
+            if (data[1] == 0) {
+                output.gameState = data[1]
+                output.id = data[2]
+                output.startTime = data[3]
+            } else {
+                output.gameState = data[1]
+                output.id = data[2]
+                output.playerData = data[3]
+                output.metaData = data[4]
+                output.startTime = data[5]
+                output.endTime = data[6]
+            }
+            break
+        case MESSAGES.gameStart:
+            output.id = data[1]
+            output.playerData = data[2]
+            output.metaData = data[3]
+            output.startTime = data[4]
+            output.endTime = data[5]
+            break
+        case MESSAGES.gameEnd:
+            output.winner = data[1]
+            output.mvp = data[2]
+            output.points = data[3]
+            break
         case MESSAGES.serverUpdate:
             output.playerData = data[1]
             output.ballData = data[2]
@@ -40,15 +86,11 @@ export function message_parse(msg) {
         case MESSAGES.playerLeave:
             output.id = data[1]
             break
-        case MESSAGES.playerList:
-            output.id = data[1]
-            output.playerData = data[2]
-            output.metaData = data[3]
-            break
         case MESSAGES.playerKnockout:
             output.target = data[1];
             output.killer = data[2];
             break
+        
     }
     return output
 }
@@ -58,9 +100,74 @@ export function message_parse(msg) {
 //THREE.JS
 export const DODGE_BALL_SIDES = 28;
 
+
+// uncomment this out when we merge it into the main branch
 export const MODEL_IDS = {
-    "0": viking
+    "0": viking,
+    "1": vikingboat,
+    "2": axe,
+    "3": hammer,
+    "4": trident,
+    "5": tree,
+    "6": turtle,
+    "7": pig,
+    "8": duck,
+    "9": vikingghost
 }
+
+
+
+export const BUYABLE_MODELS = [
+    {
+        id: 2, 
+        type: "weapon",
+        cost: 45,
+        name: "Axe",
+        image: axePng,
+    },
+    {
+        id: 3,
+        type: "weapon",
+        cost: 60,
+        name: "Mjolnir",
+        image: hammerPng,
+    },
+    {
+        id: 4,
+        type: "weapon",
+        cost: 75,
+        name: "Trident",
+        image: tridentPng,
+    },
+    {
+        id: 5,
+        type: "accessory",
+        cost: 100,
+        name: "Tree",
+        image: treePng,
+    },
+    {
+        id: 6,
+        type: "accessory",
+        cost: 125,
+        name: "Turtle",
+        image: turtlePng,
+    },
+    {
+        id: 7,
+        type: "accessory",
+        cost: 150,
+        name: "Pig",
+        image: pigPng,
+    },
+    {
+        id: 8,
+        type: "accessory",
+        cost: 175,
+        name: "Duck",
+        image: duckPng,
+    },
+]
 
 // color constants themes
 export const colors = {
@@ -72,4 +179,54 @@ export const colors = {
     blue: 0x0000ff,
     yellow: 0xffff00,
     orange: 0xffa500,
+}
+
+var GLOBAL_STORE = {
+
+}
+
+var LISTENERS = {
+
+}
+
+export function add_listener(key,fun, repeat=true) {
+    let index = 0;
+    if (key in LISTENERS) {
+        let last;
+        for (x in LISTENERS[key]) {
+            last = x;
+        }
+        index = Number(last) + 1;
+        LISTENERS[key][index] = [fun,repeat];
+    } else {
+        LISTENERS[key] = {0:[fun,repeat]};
+    }
+    return index;
+}
+
+export function remove_listener(key, index) {
+    if (key in LISTENERS && index in LISTENERS[key]) {
+        delete LISTENERS[key][index]
+    } else {
+        console.error("Tried to remove listener",index,"from key",key,", but index does not exist");
+    }
+}
+
+export function get_global(key) {
+    if (key in GLOBAL_STORE) {
+        return GLOBAL_STORE[key];
+    }
+    return null;
+}
+
+export function set_global(key,value) {
+    GLOBAL_STORE[key] = value
+    if (key in LISTENERS) {
+        for (const fun in LISTENERS[key]) {
+            LISTENERS[key][fun][0](value);
+            if (!LISTENERS[key][fun][1]) {
+                delete LISTENERS[key][fun]
+            }
+        }
+    }
 }

@@ -119,6 +119,18 @@ export default function main() {
   //   }
   // });
 
+  // 
+
+  // event for when space bar is pressed, it will trigger the ingame menu IF x condition is met
+  document.addEventListener("keydown", (ev) => {
+    if (ev.key === " ") {
+      console.log("space bar pressed")
+      document.dispatchEvent(new CustomEvent("spaceBarPressed"));
+    } 
+  });
+
+
+
   //setup websockets
   websocketSetup();
 

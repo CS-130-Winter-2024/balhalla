@@ -6,6 +6,12 @@
   position:absolute;
 }
 
+#box{
+  color:#1977d3;
+}
+#field{
+  padding:10px;
+}
 #logIn{
   width:250px;
   /* position:absolute; */

@@ -107,9 +107,11 @@ module.exports = {
 
   // TEST CASES - Ishaan
 
+  const testpw = await bcrypt.hash('1234', 10)
+  
   await knex('accounts').insert({
     username: 'admin',
-    password: '1234',
+    password: testpw,
     points: 0,
   });
 

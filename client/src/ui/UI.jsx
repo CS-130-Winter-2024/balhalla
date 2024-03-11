@@ -8,14 +8,13 @@ import TextField from "@mui/material/TextField";
 // when page is loaded, check token in cookies against server
 // if so, start as logged in, otherwise logged out
 
-function handleLogin() {
-  setLoginClicked(true);
-}
 // CURRENTLY ONLY TESTING SIGNUP/LOGIN
 async function handleSignup() {
-  let admin = "test2";
-  let pw = "12345";
-  console.log(location);
+  // let admin = "test2";
+  // let pw = "12345";
+  // console.log(admin);
+  // console.log(pw);
+  
   await fetch("/signup", {
     method: "POST",
     headers: {
@@ -31,20 +30,29 @@ async function handleSignup() {
       return response.json();
     })
     .then((data) => console.log("signup data:", data));
+}
 
+async function handleLogin(username, pw) {
+  // setLoginClicked(true);
+
+  console.log(username);
+  console.log(pw);
+  
   await fetch("/login", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      username: admin,
+      username: username,
       password: pw,
     }),
   })
     .then((response) => response.json())
-    .then((data) => console.log("login token:", data.token));
-  localStorage.setItem("token", data.token);
+    .then((data) => {
+      console.log("login token:", data.token);
+      localStorage.setItem("token", data.token);
+    });
 }
 
 function DisplayComponent() {
@@ -65,10 +73,6 @@ function ToggleLoginScreen() {
     setShowLogin(!showLogin);
   }
 
-  // function handleLogin() {
-  //   console.log('Email:', email);
-  //   console.log('Password:', password);
-  // }
   return (
     <Box position="relative">
       <Button id="logIn" variant="outlined" onClick={handleToggleLogin}>
@@ -106,7 +110,7 @@ function ToggleLoginScreen() {
             onChange={(e) => setPassword(e.target.value)}
           />
           <br />
-          <Button onClick={handleLogin}>Submit</Button>
+          <Button onClick={() => handleLogin(email, password)}>Submit</Button>
         </Box>
       )}
     </Box>
@@ -148,61 +152,61 @@ function ToggleLoginScreen() {
   //   </div>
   // );
 }
-function ToggleSignUpScreen() {
-  const [showLogin, setShowLogin] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+// function ToggleSignUpScreen() {
+//   const [showLogin, setShowLogin] = useState(false);
+//   const [email, setEmail] = useState("");
+//   const [password, setPassword] = useState("");
 
-  function handleToggleLogin() {
-    setShowLogin(!showLogin);
-  }
+//   function handleToggleLogin() {
+//     setShowLogin(!showLogin);
+//   }
 
   // function handleLogin() {
   //   console.log('Email:', email);
   //   console.log('Password:', password);
   // }
-  return (
-    <Box position="relative">
-      <Button id="logIn" variant="outlined" onClick={handleToggleLogin}>
-        {showLogin ? "Hide Login" : "Login"}
-      </Button>
-      {showLogin && (
-        <Box
-          position="absolute"
-          top={0}
-          height={270}
-          width={200}
-          left="calc(100% + 50px)"
-          padding="10px"
-          border="1px solid #ccc"
-          bgcolor="#42a5f5"
-          alignItems="center"
-          gap={4}
-          p={2}
-        >
-          <h2 id="box">Login</h2>
-          <TextField
-            id="field"
-            style={{ padding: 10 }}
-            label="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-          <br />
-          <TextField
-            id="field"
-            label="Password"
-            type="password"
-            style={{ padding: 10 }}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-          <br />
-          <Button onClick={handleLogin}>Submit</Button>
-        </Box>
-      )}
-    </Box>
-  );
+  // return (
+  //   <Box position="relative">
+  //     <Button id="logIn" variant="outlined" onClick={handleToggleLogin}>
+  //       {showLogin ? "Hide Login" : "Login"}
+  //     </Button>
+  //     {showLogin && (
+  //       <Box
+  //         position="absolute"
+  //         top={0}
+  //         height={270}
+  //         width={200}
+  //         left="calc(100% + 50px)"
+  //         padding="10px"
+  //         border="1px solid #ccc"
+  //         bgcolor="#42a5f5"
+  //         alignItems="center"
+  //         gap={4}
+  //         p={2}
+  //       >
+  //         <h2 id="box">Login</h2>
+  //         <TextField
+  //           id="field"
+  //           style={{ padding: 10 }}
+  //           label="Email"
+  //           value={email}
+  //           onChange={(e) => setEmail(e.target.value)}
+  //         />
+  //         <br />
+  //         <TextField
+  //           id="field"
+  //           label="Password"
+  //           type="password"
+  //           style={{ padding: 10 }}
+  //           value={password}
+  //           onChange={(e) => setPassword(e.target.value)}
+  //         />
+  //         <br />
+  //         <Button onClick={handleLogin}>Submit</Button>
+  //       </Box>
+  //     )}
+  //   </Box>
+  // );
   // return (
   //   <div style={{ position: "relative" }}>
   //     <Button id="logIn" onClick={handleToggleLogin}>
@@ -239,7 +243,7 @@ function ToggleSignUpScreen() {
   //     )}
   //   </div>
   // );
-}
+// }
 
 export default function UI({}) {
   const [showOverlay, setShowOverlay] = useState(false);

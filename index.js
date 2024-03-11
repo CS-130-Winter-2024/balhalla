@@ -1,9 +1,13 @@
 import express, { json } from "express";
 import * as url from "url";
 import path from "path";
-import { WebSocketServer } from "ws";
-import { processMessage, startServer, deletePlayer } from "./gameServer.js";
-import { MESSAGES } from "./constants.js";
+import {
+  processMessage,
+  startServer,
+  deletePlayer,
+  addPlayer,
+} from "./src/gameServer.js";
+import { setHandler, setupWSS } from "./src/connection.js";
 
 const __dirname = url.fileURLToPath(new URL(".", import.meta.url));
 const app = express();
@@ -38,35 +42,8 @@ app.post("/login", (request, response, next) => {
 //   printUsers(request, response, next);
 // });
 
-
-
-var connections = {};
-//Websocket Server
-const wss = new WebSocketServer({ server: httpServer, clientTracking: true });
-wss.on("connection", function connection(ws) {
-  //Generate ID for websocket
-  let id = Math.floor(Math.random() * 100000);
-  while (id in connections) {
-    id = Math.floor(Math.random() * 100000);
-  }
-  connections[id] = ws;
-  console.log("[CONNECT] ID:%d", id);
-
-  ws.on("error", console.error); //errors don't happen :)
-
-  ws.on("message", function message(data) {
-    processMessage(id, connections, data);
-  });
-
-  ws.on("close", function close() {
-    console.log("[DISCONNECT] ID:%d", id);
-    deletePlayer(id);
-    delete connections[id];
-    //Notify every connected player
-    for (let otherID in connections) {
-      connections[otherID].send(JSON.stringify([MESSAGES.playerLeave, id]));
-    }
-  });
-});
-
-startServer(connections);
+setHandler("msg",processMessage);
+setHandler("connect", addPlayer);
+setHandler("disconnect", deletePlayer);
+setupWSS(httpServer); //setup websocket server
+startServer(); //start game server

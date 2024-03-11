@@ -2,6 +2,7 @@ import * as three from "three";
 import { Text } from "troika-three-text";
 import { getCamera } from "./Player";
 import { getModelInstance } from "./Models";
+import { get_global } from "../constants";
 
 
 class PlayerModel {
@@ -10,7 +11,7 @@ class PlayerModel {
     this.body.add(getModelInstance(metadata["body"]));
     this.group = new three.Group();
     this.tag = new Text();
-    this.tag.text = metadata.username;
+    this.tag.text = metadata.username + (metadata.team == 0 && " [BLUE]" || " [RED]");
     this.tag.fontSize = 0.5;
     this.tag.anchorX = "center";
     this.tag.anchory = "center";
@@ -24,6 +25,8 @@ class PlayerModel {
 
   dispose() {
     this.tag.dispose();
+    this.group.remove(tag);
+    this.group.remove(body);
   }
 
   update(camera) {
@@ -31,7 +34,7 @@ class PlayerModel {
   }
 }
 
-var clientID = -1;
+
 var players = {};
 var playersMetadata = {};
 var playersModels = {};
@@ -60,6 +63,13 @@ export function removePlayer(playerID) {
   delete playersMetadata[playerID];
 }
 
+export function clearPlayers() {
+  for (const playerID in players) {
+    if (playerID == get_global("CLIENT_ID")) continue;
+    removePlayer(playerID);
+  }
+}
+
 // Called on server update message
 export function updatePlayers(update) {
   players = {
@@ -72,7 +82,7 @@ export function updatePlayers(update) {
 //called every frame
 export function update() {
   for (let playerID in players) {
-    if (playerID == clientID) continue;
+    if (playerID == get_global("CLIENT_ID")) continue;
     if (!(playerID in playersModels)) continue;
     playersModels[playerID].update(getCamera());
     reusableVector.set(players[playerID].x, 0.5, players[playerID].z); // reusableVector holds actual position in server
@@ -85,10 +95,3 @@ export function getPlayerModelGroup() {
   return otherPlayerGroup;
 }
 
-export function setClientID(id) {
-  clientID = id;
-}
-
-export function getClientID() {
-  return clientID;
-}

@@ -62,6 +62,8 @@ Store.propTypes = {
   setCoins: PropTypes.func.isRequired,
 }
 
+
+
 // make copy of object
 function deepCopy(obj) {
   return JSON.parse(JSON.stringify(obj))
@@ -252,7 +254,9 @@ function Store({
                           </Typography>
                           <Typography variant="caption" color={primaryColor}>
                             {' '}
-                            {item.type}{' '}
+
+                            
+                            {item.type === 'accessory' ? 'pet' : `${item.type}`}{' '}
                           </Typography>
                           {ownedItems.some(
                             ownedItem => ownedItem.id === item.id,
@@ -332,7 +336,7 @@ function Store({
                       </MenuItem>
                     ))}
                 </Select>
-                <Typography
+                {/* <Typography
                   variant="h6"
                   gutterBottom
                   style={{
@@ -341,10 +345,10 @@ function Store({
                   }}
                 >
                   Equip Armor
-                </Typography>
+                </Typography> */}
 
                 {/* Select for Armor */}
-                <Select
+                {/* <Select
                   value={currArmor ? currArmor.id : ''}
                   onChange={handleEquipChange}
                   style={{
@@ -359,7 +363,7 @@ function Store({
                         {item.name}
                       </MenuItem>
                     ))}
-                </Select>
+                </Select> */}
                 <Typography
                   variant="h6"
                   gutterBottom
@@ -368,7 +372,7 @@ function Store({
                     color: primaryColor,
                   }}
                 >
-                  Equip Assessory
+                  Equip Pets
                 </Typography>
 
                 {/* Select for Assessories */}
@@ -479,7 +483,7 @@ function Store({
                       variant="subtitle1"
                       style={{ marginBottom: '8px' }}
                     >
-                      Equipped Accessory:
+                      Equipped Pet:
                     </Typography>
                     <Avatar
                       style={{

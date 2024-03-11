@@ -64,13 +64,13 @@ function InGameMenu({ handleClose, inGame, showAlert }) {
   const [menuHeight, setMenuHeight] = useState(window.innerHeight)
 
   // info states
-  const [avatarName, setAvatarName] = useState('Gus')
+  const [avatarName, setAvatarName] = useState('You')
   const [username, setUsername] = useState('Giang_Pappi')
   const [stats, setStats] = useState([])
 
   // useEffect to set default values based on endpoint
   useEffect(() => {
-    setAvatarName('Gus')
+    setAvatarName('You')
     setUsername('Giang_Pappi')
     setStats([
       { key: 'Wins', value: '10' },

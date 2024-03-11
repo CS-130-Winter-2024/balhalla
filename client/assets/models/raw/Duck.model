@@ -1,0 +1,19 @@
+# Made using Asset Forge (2.4.1)
+
+:materials
+
+[name:wood;color:RGBA(0.819, 0.592, 0.112, 1.000);scale:(1.0, 1.0);shader:Default;mapping:0;valueA:0;valueB:0;]
+[name:_defaultMat;color:RGBA(0.000, 0.000, 0.000, 1.000);scale:(1.0, 1.0);shader:Default;mapping:0;valueA:0.35;valueB:0.25;]
+[name:custom2;color:RGBA(1.000, 0.512, 0.000, 1.000);scale:(1.0, 1.0);shader:Default;mapping:0;valueA:0.5;valueB:0.15;]
+
+:models
+
+[name:;collection:Animals;type:body_half_round;position:(-0.1000, 0.0000, -0.2000);rotation:(0.0000, 345.0000, 0.0000);scale:(0.4000, 0.2000, 0.2000);group:;locked:False;hidden:False;materials:custom2;]
+[name:;collection:Animals;type:body_half_round;position:(-0.1000, 0.0000, 0.2000);rotation:(0.0000, 15.0000, 0.0000);scale:(0.4000, 0.2000, 0.2000);group:;locked:False;hidden:False;materials:custom2;]
+[name:;collection:Animals;type:body_half_round;position:(-0.4000, 0.5000, 0.0000);rotation:(0.0000, 0.0000, 195.0000);scale:(0.1000, 0.1000, 0.2000);group:;locked:False;hidden:False;materials:custom2;]
+[name:;collection:Animals;type:body_half_round;position:(-0.4000, 0.5000, 0.0000);rotation:(0.0000, 0.0000, 345.0000);scale:(0.1000, 0.1000, 0.2000);group:;locked:False;hidden:False;materials:custom2;]
+[name:;collection:Primitives;type:sphere_half;position:(-0.3000, 0.7000, 0.1000);rotation:(0.0000, 0.0000, 90.0000);scale:(0.1000, 0.1000, 0.1000);group:;locked:False;hidden:False;materials:_defaultMat;]
+[name:;collection:Primitives;type:sphere_half;position:(-0.3000, 0.7000, -0.1000);rotation:(0.0000, 0.0000, 90.0000);scale:(0.1000, 0.1000, 0.1000);group:;locked:False;hidden:False;materials:_defaultMat;]
+[name:;collection:Animals;type:body_round;position:(0.0000, 0.5000, 0.0000);rotation:(0.0000, 0.0000, 0.0000);scale:(0.8000, 1.1000, 1.0000);group:;locked:False;hidden:False;materials:wood;]
+[name:;collection:Animals;type:body_half_point;position:(0.0000, 0.4000, 0.5000);rotation:(60.0000, 0.0000, 0.0000);scale:(0.2000, 0.2000, 0.3000);group:;locked:False;hidden:False;materials:wood;]
+[name:;collection:Animals;type:body_half_point;position:(0.0000, 0.4000, -0.5000);rotation:(60.0000, 180.0000, 0.0000);scale:(0.2000, 0.2000, 0.3000);group:;locked:False;hidden:False;materials:wood;]

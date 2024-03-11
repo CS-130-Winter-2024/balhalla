@@ -15,14 +15,23 @@ import {
 } from '@mui/material'
 import PropTypes from 'prop-types'
 
+import gojo from '../../assets/images/gojo_pfp.jpg'
+import aot from '../../assets/images/aot_pfp.jpg'
+import sukuna from '../../assets/images/sukuna_pfp.jpg'
+import thorfinn from '../../assets/images/thorfinn_pfp.jpg'
+import goku from '../../assets/images/goku_pfp.jpg'
+
 // Sample image options (you can replace these with your image URLs)
+
 const imageOptions = [
-  'https://cdn.discordapp.com/attachments/371115539365494794/1216003698887757834/image.png?ex=65feceb2&is=65ec59b2&hm=30ff98c6839e422ba8396b14394e47cc44d7a6196d8e870d6916f1a48d0fdd48&',
-  'https://cdn.discordapp.com/attachments/371115539365494794/1216003940324475010/image.png?ex=65feceeb&is=65ec59eb&hm=3fa574f77a1a6ea9c26c51734d9b219e6ca5786a8e9bce169a7cac6034a49edc&',
-  'https://cdn.discordapp.com/attachments/371115539365494794/1216004308143968357/image.png?ex=65fecf43&is=65ec5a43&hm=e0bc3fb6968fd977819d4aa3ffdd00cdffe284429fe6ebd7a483813e449e8adb&',
+  gojo,
+  aot,
+  sukuna,
+  thorfinn,
+  goku,
 ]
 
-const descriptionMap = ['Am', 'Mo', 'Gus']
+const descriptionMap = ['Gojo', 'You', 'Kevin Nguyen', "No Enemies", "Goku"]
 
 const styles = {
   avatarButton: {

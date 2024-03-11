@@ -15,19 +15,19 @@ const knex = require("knex")({
 });
 
 async function testSignup(request, response, next) {
-   await bcrypt.hash(request.body.password, 10)
-   .then(hashedPassword => {
+  await bcrypt.hash(request.body.password, 10)
+    .then(hashedPassword => {
       return knex("accounts").insert({
-         username: request.body.username,
-         password: hashedPassword
+        username: request.body.username,
+        password: hashedPassword
       })
-      .returning(["username", "password"])
-      .then(users => {
-        response.status(200).json(users[0])
-         console.log("signup worked:", users[0])
-      })
-      .catch(error => next(error))
-   })
+        .returning(["username", "password"])
+        .then(users => {
+          response.status(200).json(users[0])
+          console.log("signup worked:", users[0])
+        })
+        .catch(error => next(error))
+    })
 }
 // function printUsers(request, response, next) {
 //    knex("accounts")
@@ -37,39 +37,38 @@ async function testSignup(request, response, next) {
 // }
 
 function login(request, response, next) {
-   console.log(request.body)
-   knex("accounts")
-   .where({username: request.body.username})
-   .first()
-   .then(user => {
-      if(!user) {
-         response.status(401).json({
-            error: "No user by that name"
-         })
+  console.log(request.body)
+  knex("accounts")
+    .where({ username: request.body.username })
+    .first()
+    .then(user => {
+      if (!user) {
+        response.status(401).json({
+          error: "No user by that name"
+        })
       }
       else {
-         return bcrypt
-         .compare(request.body.password, user.password)
-         .then(isAuthenticated => {
-            if(!isAuthenticated) {
-               response.status(401).json({
-                  error: "Unauthorized Access!"
-               })
+        return bcrypt
+          .compare(request.body.password, user.password)
+          .then(isAuthenticated => {
+            if (!isAuthenticated) {
+              response.status(401).json({
+                error: "Unauthorized Access!"
+              })
             }
             else {
-               return jwt.sign(user, SECRET, (error, token) => {
-                  response.status(200).json({token: token})
-                  console.log("db token:", token)
-               })
+              return jwt.sign(user, SECRET, (error, token) => {
+                response.status(200).json({ token: token })
+                console.log("db token:", token)
+              })
             }
-         })
+          })
       }
-   })
+    })
 }
 
 module.exports = {
   testSignup,
-  printUsers,
   login
 };
 

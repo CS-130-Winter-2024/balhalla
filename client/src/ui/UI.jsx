@@ -2,9 +2,14 @@ import { useEffect, useState } from 'react'
 import './ui.css'
 import crosshair from './crosshair.svg'
 import Button from '@mui/material/Button'
+import Box from "@mui/material/Box";
+import TextField from "@mui/material/TextField";
 import Store from '../menus/Store'
 import PropTypes from 'prop-types'
 import { BUYABLE_MODELS } from '../constants'
+
+// when page is loaded, check token in cookies against server
+// if so, start as logged in, otherwise logged out
 
 function handleLogin() {
   setLoginClicked(true) // eslint-disable-line no-undef
@@ -30,6 +35,7 @@ async function handleSignup() {
     })
     .then(data => console.log('signup data:', data))
 
+
   await fetch('/login', {
     method: 'POST',
     headers: {
@@ -40,8 +46,10 @@ async function handleSignup() {
       password: pw,
     }),
   })
-    .then(response => response.json())
-    .then(data => console.log('login token:', data.token))
+
+    .then((response) => response.json())
+    .then((data) => console.log("login token:", data.token));
+  localStorage.setItem("token", data.token);
 }
 
 function DisplayComponent() {
@@ -51,6 +59,193 @@ function DisplayComponent() {
       <p>Replace this with your desired content.</p>
     </div>
   )
+}
+
+
+
+function ToggleLoginScreen() {
+  const [showLogin, setShowLogin] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  function handleToggleLogin() {
+    setShowLogin(!showLogin);
+  }
+
+  // function handleLogin() {
+  //   console.log('Email:', email);
+  //   console.log('Password:', password);
+  // }
+  return (
+    <Box position="relative">
+      <Button id="logIn" variant="outlined" onClick={handleToggleLogin}>
+        {showLogin ? "Hide Login" : "Login"}
+      </Button>
+      {showLogin && (
+        <Box
+          position="absolute"
+          top={0}
+          height={270}
+          width={200}
+          left="calc(100% + 50px)"
+          padding="10px"
+          border="1px solid #ccc"
+          bgcolor="#42a5f5"
+          alignItems="center"
+          gap={4}
+          p={2}
+        >
+          <h2 id="box">Login</h2>
+          <TextField
+            id="field"
+            style={{ padding: 10 }}
+            label="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          <br />
+          <TextField
+            id="field"
+            label="Password"
+            type="password"
+            style={{ padding: 10 }}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          <br />
+          <Button onClick={handleLogin}>Submit</Button>
+        </Box>
+      )}
+    </Box>
+  );
+  // return (
+  //   <div style={{ position: "relative" }}>
+  //     <Button id="logIn" onClick={handleToggleLogin}>
+  //       {showLogin ? "Hide Login" : "Show Login"}
+  //     </Button>
+  //     {showLogin && (
+  //       <div
+  //         style={{
+  //           position: "absolute",
+  //           top: 0,
+  //           left: "calc(100% + 50px)",
+  //           padding: "10px",
+  //           border: "1px solid #ccc",
+  //           backgroundColor: "#f5f5f5",
+  //         }}
+  //       >
+  //         <h2>Login</h2>
+  //         <label>Email:</label>
+  //         <input
+  //           type="email"
+  //           value={email}
+  //           onChange={(e) => setEmail(e.target.value)}
+  //         />
+  //         <br />
+  //         <label>Password:</label>
+  //         <input
+  //           type="password"
+  //           value={password}
+  //           onChange={(e) => setPassword(e.target.value)}
+  //         />
+  //         <br />
+  //         <button onClick={handleLogin}>Submit</button>
+  //       </div>
+  //     )}
+  //   </div>
+  // );
+}
+function ToggleSignUpScreen() {
+  const [showLogin, setShowLogin] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  function handleToggleLogin() {
+    setShowLogin(!showLogin);
+  }
+
+  // function handleLogin() {
+  //   console.log('Email:', email);
+  //   console.log('Password:', password);
+  // }
+  return (
+    <Box position="relative">
+      <Button id="logIn" variant="outlined" onClick={handleToggleLogin}>
+        {showLogin ? "Hide Login" : "Login"}
+      </Button>
+      {showLogin && (
+        <Box
+          position="absolute"
+          top={0}
+          height={270}
+          width={200}
+          left="calc(100% + 50px)"
+          padding="10px"
+          border="1px solid #ccc"
+          bgcolor="#42a5f5"
+          alignItems="center"
+          gap={4}
+          p={2}
+        >
+          <h2 id="box">Login</h2>
+          <TextField
+            id="field"
+            style={{ padding: 10 }}
+            label="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          <br />
+          <TextField
+            id="field"
+            label="Password"
+            type="password"
+            style={{ padding: 10 }}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          <br />
+          <Button onClick={handleLogin}>Submit</Button>
+        </Box>
+      )}
+    </Box>
+  );
+  // return (
+  //   <div style={{ position: "relative" }}>
+  //     <Button id="logIn" onClick={handleToggleLogin}>
+  //       {showLogin ? "Hide Login" : "Show Login"}
+  //     </Button>
+  //     {showLogin && (
+  //       <div
+  //         style={{
+  //           position: "absolute",
+  //           top: 0,
+  //           left: "calc(100% + 50px)",
+  //           padding: "10px",
+  //           border: "1px solid #ccc",
+  //           backgroundColor: "#f5f5f5",
+  //         }}
+  //       >
+  //         <h2>Login</h2>
+  //         <label>Email:</label>
+  //         <input
+  //           type="email"
+  //           value={email}
+  //           onChange={(e) => setEmail(e.target.value)}
+  //         />
+  //         <br />
+  //         <label>Password:</label>
+  //         <input
+  //           type="password"
+  //           value={password}
+  //           onChange={(e) => setPassword(e.target.value)}
+  //         />
+  //         <br />
+  //         <button onClick={handleLogin}>Submit</button>
+  //       </div>
+  //     )}
+  //   </div>
+  // );
 }
 
 // props validation
@@ -108,7 +303,6 @@ export default function UI({ showAlert }) {
     setEquippedItems(deepCopy([weapon, armor, accessory]))
   }
   // END Giang's stuff
-
   useEffect(() => {
     document.addEventListener('lock', () => {
       setShowOverlay(true)
@@ -150,9 +344,10 @@ export default function UI({ showAlert }) {
         >
           Return to Game
         </Button>
-        <Button variant="outlined" id="logIn" onClick={handleLogin}>
+        <ToggleLoginScreen></ToggleLoginScreen>
+        {/* <Button variant="outlined" id="logIn" onClick={handleLogin}>
           Log In
-        </Button>
+        </Button> */}
         {loginClicked && <DisplayComponent />}
         <Button variant="outlined" id="logIn" onClick={handleSignup}>
           Sign Up

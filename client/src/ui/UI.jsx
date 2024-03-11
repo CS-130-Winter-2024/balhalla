@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react'
 import './ui.css'
 import crosshair from './crosshair.svg'
 import Button from '@mui/material/Button'
-import Box from "@mui/material/Box";
-import TextField from "@mui/material/TextField";
+import Box from '@mui/material/Box'
+import TextField from '@mui/material/TextField'
 import Store from '../menus/Store'
 import PropTypes from 'prop-types'
 import { BUYABLE_MODELS } from '../constants'
@@ -35,7 +35,6 @@ async function handleSignup() {
     })
     .then(data => console.log('signup data:', data))
 
-
   await fetch('/login', {
     method: 'POST',
     headers: {
@@ -46,10 +45,9 @@ async function handleSignup() {
       password: pw,
     }),
   })
-
-    .then((response) => response.json())
-    .then((data) => console.log("login token:", data.token));
-  localStorage.setItem("token", data.token);
+    .then(response => response.json())
+    .then(data => console.log('login token:', data.token))
+  localStorage.setItem('token', data.token)
 }
 
 function DisplayComponent() {
@@ -61,15 +59,13 @@ function DisplayComponent() {
   )
 }
 
-
-
 function ToggleLoginScreen() {
-  const [showLogin, setShowLogin] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [showLogin, setShowLogin] = useState(false)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
 
   function handleToggleLogin() {
-    setShowLogin(!showLogin);
+    setShowLogin(!showLogin)
   }
 
   // function handleLogin() {
@@ -79,7 +75,7 @@ function ToggleLoginScreen() {
   return (
     <Box position="relative">
       <Button id="logIn" variant="outlined" onClick={handleToggleLogin}>
-        {showLogin ? "Hide Login" : "Login"}
+        {showLogin ? 'Hide Login' : 'Login'}
       </Button>
       {showLogin && (
         <Box
@@ -101,7 +97,7 @@ function ToggleLoginScreen() {
             style={{ padding: 10 }}
             label="Email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={e => setEmail(e.target.value)}
           />
           <br />
           <TextField
@@ -110,14 +106,14 @@ function ToggleLoginScreen() {
             type="password"
             style={{ padding: 10 }}
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={e => setPassword(e.target.value)}
           />
           <br />
           <Button onClick={handleLogin}>Submit</Button>
         </Box>
       )}
     </Box>
-  );
+  )
   // return (
   //   <div style={{ position: "relative" }}>
   //     <Button id="logIn" onClick={handleToggleLogin}>
@@ -156,12 +152,12 @@ function ToggleLoginScreen() {
   // );
 }
 function ToggleSignUpScreen() {
-  const [showLogin, setShowLogin] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [showLogin, setShowLogin] = useState(false)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
 
   function handleToggleLogin() {
-    setShowLogin(!showLogin);
+    setShowLogin(!showLogin)
   }
 
   // function handleLogin() {
@@ -171,7 +167,7 @@ function ToggleSignUpScreen() {
   return (
     <Box position="relative">
       <Button id="logIn" variant="outlined" onClick={handleToggleLogin}>
-        {showLogin ? "Hide Login" : "Login"}
+        {showLogin ? 'Hide Login' : 'Login'}
       </Button>
       {showLogin && (
         <Box
@@ -193,7 +189,7 @@ function ToggleSignUpScreen() {
             style={{ padding: 10 }}
             label="Email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={e => setEmail(e.target.value)}
           />
           <br />
           <TextField
@@ -202,14 +198,14 @@ function ToggleSignUpScreen() {
             type="password"
             style={{ padding: 10 }}
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={e => setPassword(e.target.value)}
           />
           <br />
           <Button onClick={handleLogin}>Submit</Button>
         </Box>
       )}
     </Box>
-  );
+  )
   // return (
   //   <div style={{ position: "relative" }}>
   //     <Button id="logIn" onClick={handleToggleLogin}>
@@ -271,7 +267,7 @@ export default function UI({ showAlert }) {
   const [ownedItems, setOwnedItems] = useState([])
   const [coins, setCoins] = useState(1000) // default 1000 coins
 
-  // TIE HERE 
+  // TIE HERE
   useEffect(() => {
     setAllItems(deepCopy(BUYABLE_MODELS))
     setOwnedItems([])

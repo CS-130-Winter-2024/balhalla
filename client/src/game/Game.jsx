@@ -134,25 +134,37 @@ export default function main() {
   controls.connect();
   //Add camera locking
   var locked = false;
-  controls.addEventListener("lock", () => {
-    document.dispatchEvent(new CustomEvent("lock"));
+  document.addEventListener("lock", () => {
+    //document.dispatchEvent(new CustomEvent("lock"));
+    controls.lock();
+    locked = true;
   });
   controls.addEventListener("unlock", () => {
     document.dispatchEvent(new CustomEvent("unlock"));
+    locked = false;
+    console.log('escaped!')
   });
+  // document.addEventListener("keydown", (ev) => {
+  //   if (ev.key == " " || ev.key == "Enter") {
+  //     // if (locked) {
+        
+  //     // } else {
+        
+  //     // }
+  //   }
+  // });
+
+  // 
+
+  // event for when space bar is pressed, it will trigger the ingame menu IF x condition is met
   document.addEventListener("keydown", (ev) => {
-    if (ev.key == " " || ev.key == "Enter") {
-      if (locked) {
-        controls.lock();
-        locked = false;
-      } else {
-        controls.unlock();
-        locked = true;
-      }
-    } else if (ev.key == "T") {
-      Player.setSpectate(false);
-    }
+    if (ev.key === " ") {
+      console.log("space bar pressed")
+      document.dispatchEvent(new CustomEvent("spaceBarPressed"));
+    } 
   });
+
+
 
   //setup websockets
   constants.add_listener("LOADED",()=>{

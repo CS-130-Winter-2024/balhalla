@@ -23,15 +23,9 @@ import goku from '../../assets/images/goku_pfp.jpg'
 
 // Sample image options (you can replace these with your image URLs)
 
-const imageOptions = [
-  gojo,
-  aot,
-  sukuna,
-  thorfinn,
-  goku,
-]
+const imageOptions = [gojo, aot, sukuna, thorfinn, goku]
 
-const descriptionMap = ['Gojo', 'You', 'Kevin Nguyen', "No Enemies", "Goku"]
+const descriptionMap = ['Gojo', 'You', 'Kevin Nguyen', 'No Enemies', 'Goku']
 
 const styles = {
   avatarButton: {

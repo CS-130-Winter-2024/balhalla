@@ -62,8 +62,6 @@ Store.propTypes = {
   setCoins: PropTypes.func.isRequired,
 }
 
-
-
 // make copy of object
 function deepCopy(obj) {
   return JSON.parse(JSON.stringify(obj))
@@ -254,9 +252,9 @@ function Store({
                           </Typography>
                           <Typography variant="caption" color={primaryColor}>
                             {' '}
-
-                            
-                            {item.type === 'accessory' ? 'pet' : `${item.type}`}{' '}
+                            {item.type === 'accessory'
+                              ? 'pet'
+                              : `${item.type}`}{' '}
                           </Typography>
                           {ownedItems.some(
                             ownedItem => ownedItem.id === item.id,

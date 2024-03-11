@@ -1,11 +1,28 @@
 
 #UI {
   width:300px;
-  height:50%;
-  background-color:red;
+  height:100%;
+  background-color:rgb(211, 211, 211);
   position:absolute;
 }
 
+#box{
+  color:#1977d3;
+}
+#field{
+  padding:10px;
+}
+#logIn{
+  width:250px;
+  /* position:absolute; */
+  margin:25px;
+  margin-top:0px;
+  
+}
+
+#logo{
+  margin:25px;
+}
 #crosshair {
   position:absolute;
   width:10px;

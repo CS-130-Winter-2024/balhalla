@@ -10,6 +10,14 @@ import pig from "../assets/models/pets/Pig.glb"
 import duck from "../assets/models/pets/Duck.glb"
 import vikingghost from "../assets/models/VikingGhost.glb"
 
+import axePng from "../assets/images/axe.png"
+import hammerPng from "../assets/images/hammer.png"
+import tridentPng from "../assets/images/trident.png"
+import treePng from "../assets/images/tree.png"
+import turtlePng from "../assets/images/turtle.png"
+import pigPng from "../assets/images/pig.png"
+import duckPng from "../assets/images/duck.png"
+
 //GAME
 export const SPEED = 5;
 export const ALIVE_Y = 1.25;
@@ -92,6 +100,8 @@ export function message_parse(msg) {
 //THREE.JS
 export const DODGE_BALL_SIDES = 28;
 
+
+// uncomment this out when we merge it into the main branch
 export const MODEL_IDS = {
     "0": viking,
     "1": vikingboat,
@@ -118,6 +128,58 @@ export const BALL_ANIMATIONS = {
         model.rotation.z = 0.5 * Math.PI
     },
 }
+
+export const BUYABLE_MODELS = [
+    {
+        id: 2, 
+        type: "weapon",
+        cost: 45,
+        name: "Axe",
+        image: axePng,
+    },
+    {
+        id: 3,
+        type: "weapon",
+        cost: 60,
+        name: "Mjolnir",
+        image: hammerPng,
+    },
+    {
+        id: 4,
+        type: "weapon",
+        cost: 75,
+        name: "Trident",
+        image: tridentPng,
+    },
+    {
+        id: 5,
+        type: "accessory",
+        cost: 100,
+        name: "Tree",
+        image: treePng,
+    },
+    {
+        id: 6,
+        type: "accessory",
+        cost: 125,
+        name: "Turtle",
+        image: turtlePng,
+    },
+    {
+        id: 7,
+        type: "accessory",
+        cost: 150,
+        name: "Pig",
+        image: pigPng,
+    },
+    {
+        id: 8,
+        type: "accessory",
+        cost: 175,
+        name: "Duck",
+        image: duckPng,
+    },
+]
 
 // color constants themes
 export const colors = {

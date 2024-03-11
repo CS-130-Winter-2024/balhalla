@@ -42,8 +42,10 @@ function websocketSetup() {
     for (let player in data.playerData) {
       if (player == constants.get_global("CLIENT_ID")) {
         // updates client based on server's info about that client (alive status, client's points in-game, position, etc.)
-        Player.updatePlayer(data.playerData[constants.get_global("CLIENT_ID")]);
+        let playerData = data.playerData[constants.get_global("CLIENT_ID")];
+        Player.updatePlayer(playerData, true);
         Player.setSpectate(false);
+        Player.getCamera().lookAt(playerData.x,constants.ALIVE_Y,-playerData.z);
         continue
       }
       Others.addPlayer(player, data.playerData[player], data.metaData[player]);

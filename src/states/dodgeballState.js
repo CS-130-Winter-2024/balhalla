@@ -13,13 +13,22 @@ var onFinish = (newValue, data)=>{} //dont change this
 export function startState(data) {
   let sockets = getConnections();
   //teams
-  let teams = constants.assign_random(data.count);
+  let assignments = constants.assign_random(data.count);
+  let teams = assignments[0]
+  let tiebreaker = assignments[1]
   //add all the readied players to the game
   let current = 0;
   for (const id in data.players) {
+    let zVal = (teams[current]*2*constants.WORLD_HALF_WIDTH - constants.WORLD_HALF_WIDTH);
+    zVal += Math.random()*3*(1-2*teams[current]);
+    let teamSize = (teams[current] == tiebreaker && Math.floor(teams.length/2)) || Math.ceil(teams.length/2)
+    let currentPlayer = Math.floor(current/2) + 1;
+    let xVal = (2*constants.WORLD_HALF_LENGTH/(teamSize+1))*currentPlayer - constants.WORLD_HALF_LENGTH;
     //get base player
     players[id] = {
       ...constants.BASE_PLAYER,
+      x:xVal,
+      z:zVal,
     };
 
     playersMetadata[id] = {
@@ -117,6 +126,7 @@ export function deletePlayer(id) {
     delete playersMetadata[id];
 
     for (let otherID in sockets) {
+        if (otherID == id) continue;
         sockets[otherID].send(JSON.stringify([constants.MESSAGES.playerLeave, id]));
     }
   } 
@@ -136,37 +146,6 @@ export function processMessage(id, message) {
     case constants.MESSAGES.sendMovement:
       //store player keys
       players[id].direction = data.direction;
-      break;
-    case constants.MESSAGES.playerJoin:
-      break; //DO NOTHING ON PLAYER JOIN
-      //add player to players list
-      players[id] = {
-        ...constants.BASE_PLAYER,
-      };
-      playersMetadata[id] = {
-        username: data.username,
-        body: 0,
-        ball: constants.TEMP_DEFAULT_BALL_MODEL_UNTIL_SELECT_BALL_IS_DONE,
-      };
-
-      //send list of players to newly joined players
-      sockets[id].send(
-        JSON.stringify([constants.MESSAGES.playerList, id, players, playersMetadata]),
-      );
-
-      //send new join to all other players
-      for (let otherID in players) {
-        if (id == otherID) continue;
-
-        sockets[otherID].send(
-          JSON.stringify([
-            constants.MESSAGES.playerJoin,
-            id,
-            players[id],
-            playersMetadata[id],
-          ]),
-        );
-      }
       break;
     case constants.MESSAGES.throwBall:
       if (players[id].hasBall) {
@@ -312,6 +291,7 @@ export function doTick() {
   
               // informs all players of this player knockout
               for (let otherID in players) {
+                if (!(otherID in sockets)) continue;
                 sockets[otherID].send(
                   JSON.stringify([constants.MESSAGES.playerKnockout, playerID, ball.throwerID]),
                 );

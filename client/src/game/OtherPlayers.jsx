@@ -24,9 +24,11 @@ class PlayerModel {
   }
 
   dispose() {
+    console.log(this.tag,"Tag");
     this.tag.dispose();
-    this.group.remove(tag);
-    this.group.remove(body);
+    this.body.remove(this.body.children[0]);
+    this.group.remove(this.tag);
+    this.group.remove(this.body);
   }
 
   update(camera) {
@@ -56,8 +58,8 @@ export function addPlayer(playerID, data, metadata) {
 }
 
 export function removePlayer(playerID) {
-  otherPlayerGroup.remove(playersModels[playerID].group);
   playersModels[playerID].dispose();
+  otherPlayerGroup.remove(playersModels[playerID].group);
   delete playersModels[playerID];
   delete players[playerID];
   delete playersMetadata[playerID];
@@ -66,6 +68,7 @@ export function removePlayer(playerID) {
 export function clearPlayers() {
   for (const playerID in players) {
     if (playerID == get_global("CLIENT_ID")) continue;
+    console.log("Removing",playerID,"from",players);
     removePlayer(playerID);
   }
 }

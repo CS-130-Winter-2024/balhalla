@@ -201,11 +201,14 @@ export function getCamera() {
   return camera;
 }
 
-export function updatePlayer(data) {
+export function updatePlayer(data, force=false) {
   properties = {
     ...properties,
     ...data,
   };
+  if (force) {
+    camera.position.set(properties.x,properties.y,properties.z);
+  }
 }
 
 function updateSpectateCamera() {
@@ -217,21 +220,19 @@ export function update() {
     updateSpectateCamera();
     return;
   }
-  if (locked) {
-    //if dotproduct between camera and previous camera vector < 0.9
-    if (movementVector.length() > 0.5) {
-      camera.getWorldDirection(intermediateVector);
-      let dot = prevCamVector.dot(intermediateVector);
-      if (dot < 0.95 && dot > 0.05) {
-        //send update to server
-        calculateDirection();
-        sendMovement();
-      }
+  //if dotproduct between camera and previous camera vector < 0.9
+  if (movementVector.length() > 0.5) {
+    camera.getWorldDirection(intermediateVector);
+    let dot = prevCamVector.dot(intermediateVector);
+    if (dot < 0.95 && dot > 0.05) {
+      //send update to server
+      calculateDirection();
+      sendMovement();
     }
-
-    intermediateVector.set(properties.x, properties.y, properties.z);
-    camera.position.lerp(intermediateVector, 0.2);
   }
+
+  intermediateVector.set(properties.x, properties.y, properties.z);
+  camera.position.lerp(intermediateVector, 0.2);
 }
 
 export function setMetadata(data){

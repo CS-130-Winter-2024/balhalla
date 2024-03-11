@@ -8,6 +8,12 @@ var onFinish = ()=>{}
 
 export function startState() {
     gameStartTimer = Date.now() + constants.LOBBY_LENGTH;
+    let sockets = getConnections();
+    for (const ID in playerQueue) {
+        if (!(ID in sockets)) {
+            delete playerQueue[ID];
+        }
+    }
 }
 
 export function addPlayer(id) {
@@ -54,7 +60,7 @@ export function processMessage(id, message) {
 
 var prev = -1;
 export function doTick() {
-    if (playerQueue < constants.MINIMUM_PLAYERS) {
+    if (Object.keys(playerQueue).length < constants.MINIMUM_PLAYERS) {
         gameStartTimer = Date.now() + constants.LOBBY_LENGTH;
         return;
     }

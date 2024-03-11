@@ -15,8 +15,9 @@ export const BALL_GRAVITY = 9.8;
 export const SPEED_DT = PLAYER_SPEED * TICK_DT;
 
 //sizing
-export const WORLD_HALF_WIDTH = 14.5;
+export const WORLD_HALF_WIDTH = 14.5; //POSITIVE X is RED TEAM, NEGATIVE X is BLUE TEAM
 export const WORLD_HALF_LENGTH = 10.5;
+export const SPAWN_DISTANCE = 3; //maximum spawn distance from the edge
 export const BALL_RADIUS = 0.25;
 export const PLAYER_RADIUS = 0.5;
 export const COLLISION_R2 = 0.5625;
@@ -94,5 +95,5 @@ export function assign_random(count) {
         }
         assignments.push(choice)
     }
-    return assignments;
+    return [assignments, tiebreaker];
 }

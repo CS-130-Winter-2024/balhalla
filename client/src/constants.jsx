@@ -115,7 +115,19 @@ export const MODEL_IDS = {
     "9": vikingghost
 }
 
-
+export const BALL_ANIMATIONS = {
+    // applies animations to a model based on its corresponding model ID
+    "2": function(model) {
+        model.rotation.x += 0.1
+    },
+    "3": function(model) {
+        model.rotation.x += 0.03
+    },
+    "4": function(model) {
+        model.rotation.y += 0.5 * Math.PI
+        model.rotation.z = 0.5 * Math.PI
+    },
+}
 
 export const BUYABLE_MODELS = [
     {

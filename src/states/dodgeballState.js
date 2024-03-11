@@ -142,7 +142,8 @@ export function processMessage(id, message) {
       };
       playersMetadata[id] = {
         username: data.username,
-        body: 0
+        body: 0,
+        ball: constants.TEMP_DEFAULT_BALL_MODEL_UNTIL_SELECT_BALL_IS_DONE,
       };
 
       //send list of players to newly joined players
@@ -207,6 +208,7 @@ export function doTick() {
       let ball = balls[ballID];
   
       if (!ball.isGrounded) {
+        ball.spin += 1;
         ball.velocity[1] -= constants.TICK_DT * constants.BALL_GRAVITY;
   
         ball.x += ball.velocity[0] * constants.TICK_DT;

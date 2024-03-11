@@ -87,6 +87,11 @@ export function update() {
     playersModels[playerID].update(getCamera());
     reusableVector.set(players[playerID].x, 0.5, players[playerID].z); // reusableVector holds actual position in server
     playersModels[playerID].group.position.lerp(reusableVector, 0.1); // gives smoother transition from current position to target position
+    
+    let rotation = Math.atan2(players[playerID].direction[0], players[playerID].direction[1]);
+    if(players[playerID].direction[0] != 0 || players[playerID].direction[1] != 0){
+      playersModels[playerID].body.rotation.y = rotation  + Math.PI;
+    }
   }
 }
 
@@ -94,4 +99,3 @@ export function update() {
 export function getPlayerModelGroup() {
   return otherPlayerGroup;
 }
-

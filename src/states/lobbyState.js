@@ -38,6 +38,7 @@ export function processMessage(id, message) {
             playerQueue[id] = {
                 username: data.username,
                 body: 0,
+                ball: constants.TEMP_DEFAULT_BALL_MODEL_UNTIL_SELECT_BALL_IS_DONE,
                 ...message.metaData
             };
             return;
@@ -45,6 +46,7 @@ export function processMessage(id, message) {
         playerQueue[id] = {
             username: data.username,
             body: 0,
+            ball: constants.TEMP_DEFAULT_BALL_MODEL_UNTIL_SELECT_BALL_IS_DONE,
         };
         break
     }

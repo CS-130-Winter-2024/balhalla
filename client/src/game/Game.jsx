@@ -37,7 +37,8 @@ function websocketSetup() {
   });
 
   setHandler(constants.MESSAGES.gameStart, (socket, data) => {
-    constants.set_global("GAME_STATE",1);
+    constants.set_global("GAME_STATE", 1);
+    Player.setMetadata(data.metaData[constants.get_global("CLIENT_ID")]);
     for (let player in data.playerData) {
       if (player == constants.get_global("CLIENT_ID")) {
         Player.updatePlayer(data.playerData[constants.get_global("CLIENT_ID")]);

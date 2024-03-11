@@ -108,13 +108,14 @@ export const MODEL_IDS = {
 export const BALL_ANIMATIONS = {
     // applies animations to a model based on its corresponding model ID
     "2": function(model) {
-        model.rotation.y += 0.1
-    },
-    "3": function(model) {
         model.rotation.x += 0.1
     },
+    "3": function(model) {
+        model.rotation.x += 0.03
+    },
     "4": function(model) {
-        // don't think a trident needs animating
+        model.rotation.y += 0.5 * Math.PI
+        model.rotation.z = 0.5 * Math.PI
     },
 }
 

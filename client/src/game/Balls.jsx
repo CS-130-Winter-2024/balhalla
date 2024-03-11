@@ -1,5 +1,5 @@
 import * as three from "three";
-import { DODGE_BALL_SIDES } from "../constants";
+import { BALL_ANIMATIONS, DODGE_BALL_SIDES } from "../constants";
 
 import { getModelInstance } from "./Models";
 import { getMetadata } from "./Player";
@@ -38,6 +38,7 @@ export function addBall(id, data) {
   let model = createBall(getMetadata().ball);
 
   ballsModels[id] = model;
+  ballsModels[id].rotation.order = 'YXZ';
   ballGroup.add(model);
   model.position.set(data.x, data.y, data.z);
 }
@@ -64,6 +65,10 @@ export function update() {
   for (const index in balls) {
     intermediateVector.set(balls[index].x, balls[index].y, balls[index].z);
     ballsModels[index].position.lerp(intermediateVector, 0.2);
+    if(balls[index].velocity[1] != 0){
+      ballsModels[index].rotation.y = Math.atan2(balls[index].velocity[0], balls[index].velocity[2]);
+      BALL_ANIMATIONS[getMetadata().ball](ballsModels[index]);
+    }
   }
 }
 

@@ -87,18 +87,11 @@ export function update() {
     playersModels[playerID].update(getCamera());
     reusableVector.set(players[playerID].x, 0.5, players[playerID].z); // reusableVector holds actual position in server
     playersModels[playerID].group.position.lerp(reusableVector, 0.1); // gives smoother transition from current position to target position
-
-    // let moveDirection = new three.Vector3(reusableVector.x - playersModels[playerID].group.position.x, 0, reusableVector.z - playersModels[playerID].group.position.z);
-    // moveDirection.subVector(reusableVector, playersModels[playerID].group.position);
-    // console.error(players[playerID].direction);
     
     let rotation = Math.atan2(players[playerID].direction[0], players[playerID].direction[1]);
-    // FIX LATER TO KEEP FACING DIRECTION WHEN NOT MOVING
-    // if(players[playerID].direction[0] != 0 && players[playerID].direction[1] != 0){
-    //   playersModels[playerID].body.rotation.y = rotation;
-    // }
-
-    playersModels[playerID].body.rotation.y = rotation + Math.PI;
+    if(players[playerID].direction[0] != 0 || players[playerID].direction[1] != 0){
+      playersModels[playerID].body.rotation.y = rotation  + Math.PI;
+    }
   }
 }
 

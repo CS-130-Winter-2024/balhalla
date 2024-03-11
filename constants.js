@@ -23,7 +23,7 @@ export const COLLISION_R2 = 0.5625;
 export const PLAYER_HEIGHT = 2;
 
 //TEMPORARY, VINH
-export const TEMP_DEFAULT_BALL_MODEL_UNTIL_SELECT_BALL_IS_DONE = 3;
+export const TEMP_DEFAULT_BALL_MODEL_UNTIL_SELECT_BALL_IS_DONE = 2;
 
 export const BASE_PLAYER = {
     direction: [0, 0], //x,z

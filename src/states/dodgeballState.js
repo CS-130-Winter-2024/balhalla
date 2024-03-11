@@ -208,6 +208,7 @@ export function doTick() {
       let ball = balls[ballID];
   
       if (!ball.isGrounded) {
+        ball.spin += 1;
         ball.velocity[1] -= constants.TICK_DT * constants.BALL_GRAVITY;
   
         ball.x += ball.velocity[0] * constants.TICK_DT;

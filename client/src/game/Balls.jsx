@@ -37,7 +37,7 @@ export function updateBalls(ballData, playerData) {
 // adds ball in scene
 //   ball is in scene if thrown in air or sitting on floor
 export function addBall(id, data) {
-  let model = createBall(getMetadata().ball); // ball's model is based on thrower's metadata for selected model
+  let model = createBall(getMetadata().ball || 2);
 
   ballsModels[id] = model;
   ballsModels[id].rotation.order = 'YXZ'; // Rotation order allows orienting objects for animations
@@ -65,8 +65,13 @@ export function clearBalls() {
 //   model based on association with player who threw/holds it
 export function update() {
   for (const index in balls) {
-    intermediateVector.set(balls[index].x, balls[index].y, balls[index].z); // balls actual position in server
-    ballsModels[index].position.lerp(intermediateVector, 0.2); // linear interpolation between ball's actual position and rendered position for client
+    if (!(index in balls && index in ballsModels)) {
+      console.log("[PROBLEM] Ball ID: ",index," | ",balls[index]," | ballsModels:",ballsModels[index])
+      alert("PROBLEM DETECTED!");
+      continue;
+    }
+    intermediateVector.set(balls[index].x, balls[index].y, balls[index].z);
+    ballsModels[index].position.lerp(intermediateVector, 0.2);
     if(balls[index].velocity[1] != 0){
       // if ball is still in air, apply animation and "gravity"
       ballsModels[index].rotation.y = Math.atan2(balls[index].velocity[0], balls[index].velocity[2]);

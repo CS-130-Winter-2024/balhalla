@@ -246,6 +246,10 @@ export function doTick() {
     }
     //Update Player movements
     for (const playerID in players) {
+      if (!(playerID in players)) {
+        //i do not know why i have to add this
+        continue;
+      }
       let player = players[playerID];
 
 

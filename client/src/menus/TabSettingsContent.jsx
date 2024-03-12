@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { Button, Box, Typography } from '@mui/material'
 import PropTypes from 'prop-types'
+import { set_global } from "../constants"
 
 const forbiddenKeys = [
   ' ',
@@ -9,14 +10,9 @@ const forbiddenKeys = [
   'ENTER',
   'TAB',
   'CAPSLOCK',
-  'SHIFT',
   'CONTROL',
   'ALT',
   'META',
-  'ARROWUP',
-  'ARROWDOWN',
-  'ARROWLEFT',
-  'ARROWRIGHT',
 ]
 
 function textStyle(size = 3, bolded = false, color = 'black') {
@@ -25,7 +21,6 @@ function textStyle(size = 3, bolded = false, color = 'black') {
     return
   }
   const fontSizeMapping = [
-    '12px',
     '14px',
     '16px',
     '18px',
@@ -33,11 +28,12 @@ function textStyle(size = 3, bolded = false, color = 'black') {
     '24px',
     '32px',
     '40px',
+    '48px',
   ]
 
   return {
     color: color,
-    fontFamily: 'Roboto, Helvetica, Arial',
+    fontFamily: 'Jorvik',
     textAlign: 'center',
     fontSize: fontSizeMapping[size],
     fontWeight: bolded ? 'bold' : 'normal',
@@ -55,52 +51,56 @@ SettingsTabContent.propTypes = {
   showAlert: PropTypes.func.isRequired,
 }
 
-function deepCopy(obj) {
-  return JSON.parse(JSON.stringify(obj))
+
+let testKeybinds = {
+  "Forward":"w",
+  "Left":"a",
+  "Backward":"s",
+  "Right":"d",
+  "Throw":"f",
+  "Dash":"Shift"
 }
 
 function SettingsTabContent({
-  initialKeybinds = [
-    { key: 'W', description: 'Up' },
-    { key: 'A', description: 'Left' },
-    { key: 'S', description: 'Down' },
-    { key: 'D', description: 'Right' },
-    { key: 'SPACE', description: 'Throw' },
-  ],
   showAlert,
 }) {
-  const [keybinds, setKeybinds] = useState(deepCopy(initialKeybinds))
-  const [newKeybinds, setNewKeybinds] = useState(deepCopy(initialKeybinds))
+  const [keybinds, setKeybinds] = useState(testKeybinds)
+  const [newKeybinds, setNewKeybinds] = useState(testKeybinds)
   const [isSaveVisible, setSaveVisible] = useState(false)
 
   const handleSave = () => {
-    // save keys to local storage
     localStorage.setItem('keybinds', JSON.stringify(newKeybinds))
-    setKeybinds(deepCopy(newKeybinds))
+    set_global("KEYBINDS",newKeybinds);
+    setKeybinds(newKeybinds)
     setSaveVisible(false)
   }
 
+  const handleUndo = () => {
+    setNewKeybinds(keybinds);
+  }
+
   useEffect(() => {
-    const isDifferent = JSON.stringify(keybinds) !== JSON.stringify(newKeybinds)
-    setSaveVisible(isDifferent)
-  }, [keybinds, newKeybinds])
+    setSaveVisible(keybinds !== newKeybinds)
+  }, [newKeybinds])
 
   const handleKeybindChange = (index, value) => {
     // checking if the key is already assigned
-    const keyExists = newKeybinds.some(
-      (keybind, i) => i !== index && keybind.key === value,
-    )
-    if (keyExists) {
-      showAlert(`Key ${value} is already assigned.`, 'error')
-      return
+    for (const keyID in keybinds) {
+      if (keyID != index && keybinds[keyID] == value) {
+        showAlert(`Key ${value} is already assigned.`, 'error')
+        return
+      } else if (keyID == index && keybinds[keyID] == value) {
+        return
+      }
     }
-    const updatedKeybinds = [...newKeybinds]
-    updatedKeybinds[index].key = value
-    setNewKeybinds(deepCopy(updatedKeybinds))
+
+    const updatedKeybinds = {...newKeybinds}
+    updatedKeybinds[index] = value
+    setNewKeybinds(updatedKeybinds)
   }
 
   const handleKeyDown = index => event => {
-    const pressedKey = event.key.toUpperCase()
+    const pressedKey = event.key
     if (forbiddenKeys.includes(pressedKey)) {
       showAlert(`You cannot assign ${pressedKey} to a keybind.`, 'error')
       return
@@ -113,129 +113,109 @@ function SettingsTabContent({
       <Typography
         variant="h5"
         gutterBottom
-        style={{ ...textStyle(3, true), ...styles.settingHeader }}
+        style={{ ...textStyle(4, true), ...styles.settingHeader }}
       >
         Settings
       </Typography>
 
-      <Box style={styles.keybindBody}>
-        <Box style={styles.leftSide}>
-          {newKeybinds.map(({ key }, index) => (
-            <Button
-              key={key}
-              variant="outlined"
-              style={styles.keybindButton}
-              onKeyDown={handleKeyDown(index)}
-              onClick={() => showAlert('Click a key to assign.', 'info')}
-            >
-              {key}
-            </Button>
-          ))}
-        </Box>
-
-        <Box style={styles.rightSide}>
-          {keybinds.map(({ key, description }) => (
-            <Box key={key} style={styles.keybindDescription}>
-              <Typography
-                variant="body2"
-                style={textStyle(3, false, '#1976d2')}
-              >
-                {description}
+      <Box style={styles.keybinds}>
+          {Object.keys(newKeybinds).map((keyID) => (
+            <Box style={styles.keybind} key={keyID}>
+              <Typography style={styles.keybindDescription}>
+                {keyID}
               </Typography>
               <Button
                 variant="outlined"
-                style={styles.transparentButton}
-              ></Button>
+                style={styles.keybindButton}
+                onKeyDown={handleKeyDown(keyID)}
+                onClick={() => showAlert('Press a key to assign.', 'info')}
+              >
+                {newKeybinds[keyID]}
+              </Button>
             </Box>
           ))}
-        </Box>
       </Box>
 
-      <Button
-        variant="contained"
-        onClick={handleSave}
-        style={styles.saveButton}
-        disabled={!isSaveVisible}
-      >
-        Save
-      </Button>
+      <Box style={styles.saveTools}>
+        <Button
+          variant="contained"
+          onClick={handleUndo}
+          style={{...styles.saveButton, backgroundColor:isSaveVisible && "#880000"}}
+          disabled={!isSaveVisible}
+        >
+          Undo
+        </Button>
+        <Button
+          variant="contained"
+          onClick={handleSave}
+          style={{...styles.saveButton, backgroundColor:isSaveVisible && "#eeeeee", color:isSaveVisible && "black"}}
+          disabled={!isSaveVisible}
+        >
+          Save
+        </Button>
+      </Box>
+      
     </Box>
   )
 }
 
 const styles = {
   container: {
-    height: '100%',
-    width: '100%',
-    // backgroundColor: 'maroon', // CHANGE
     display: 'flex',
+    flex:1,
     flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: '20px',
+    justifyContent: 'space-around',
+    alignItems: 'stretch',
+    margin:"0px 10px 0 10px"
   },
   settingHeader: {
-    borderBottom: '2px solid #1976D2',
-    width: '27%',
+    borderBottom: '2px solid black',
     marginHorizontal: 'auto',
-    marginBottom: '20px',
+    flex:1,
+    display:"flex",
+    justifyContent:"center"
   },
-  keybindBody: {
+  keybinds: {
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'stretch',
+    flex:3,
+  },
+  keybind: {
     display: 'flex',
     flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'flex-start',
-    width: '100%',
-    height: '100%',
-    // backgroundColor: 'lightblue', // CHANGE
-  },
-  leftSide: {
-    height: '100%',
-    display: 'flex',
-    width: '100%',
-    flexDirection: 'column',
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-    // backgroundColor: 'pink', // CHANGE
-    marginBottom: '20px',
-  },
-  rightSide: {
-    height: '100%',
-    display: 'flex',
-    width: '100%',
-    flexDirection: 'column',
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-    // backgroundColor: 'orange', // CHANGE
+    justifyContent: 'space-around',
+    alignItems: 'stretch',
+    flex:1,
   },
   keybindButton: {
     fontWeight: 'bold',
-    width: '30px',
-    height: '30px',
     borderRadius: '5px',
-    fontSize: '16px',
-    marginBottom: '7px',
+    fontFamily:"Jorvik",
+    fontSize: '18px',
+    flex:1,
+    padding:0,
+    borderColor:"black",
+    color:"black"
   },
   keybindDescription: {
-    // backgroundColor: 'lightgrey', // CHANGE
-    marginLeft: '20px',
     display: 'flex',
-    flexDirection: 'row',
-    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection:"column",
+    flex:1,
+    fontFamily:"Jorvik",
+    fontSize:"22px"
   },
-  transparentButton: {
-    backgroundColor: 'transparent',
-    borderColor: 'transparent',
-    width: '30px',
-    height: '30px',
-    borderRadius: '5px',
-    fontSize: '16px',
-    marginBottom: '7px',
+  saveTools:{
+    display:"flex",
+    flex:1,
+    flexDirection:"row",
+    justifyContent:"space-around",
+    alignItems:"stretch"
   },
   saveButton: {
     marginTop: '20px',
-    width: '150px',
-    padding: '10px',
     zIndex: 1,
   },
 }

@@ -7,14 +7,23 @@ import {
   Typography,
   BottomNavigation,
   BottomNavigationAction,
+  Button,
 } from '@mui/material'
 import PropTypes from 'prop-types'
 import SettingsIcon from '@mui/icons-material/Settings'
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline'
 
 import TabCarousel from './TabCarousel'
+import TabInstructionsContent from './TabInstructionsContent'
+import TabSettingsContent from './TabSettingsContent'
 import AvatarSelector from './AvatarSelector'
 import PlayerStats from './PlayerStats'
+
+import backgroundImage from "../../assets/textures/Background.png"
+import parchment from "../../assets/textures/Parchment.png"
+
+const bgUrl = "url("+backgroundImage+")"
+const parchUrl = "url("+parchment+")"
 
 // modal constants
 const WIDTH_PERCENT = '50%'
@@ -42,8 +51,8 @@ function textStyle(size = 3, bolded = false) {
   ]
 
   return {
-    color: 'black',
-    fontFamily: 'Roboto, Helvetica, Arial',
+    color: 'white',
+    fontFamily: 'Jorvik',
     textAlign: 'center',
     fontSize: fontSizeMapping[size],
     fontWeight: bolded ? 'bold' : 'normal',
@@ -57,7 +66,7 @@ InGameMenu.propTypes = {
   showAlert: PropTypes.func.isRequired,
 }
 
-function InGameMenu({ handleClose, inGame, showAlert }) {
+function InGameMenu({ handleClose,  showAlert }) {
   // conditions and states
   const [open, setOpen] = useState(false)
   const [carouselIndex, setCarouselIndex] = useState(0)
@@ -65,13 +74,13 @@ function InGameMenu({ handleClose, inGame, showAlert }) {
 
   // info states
   const [avatarName, setAvatarName] = useState('You')
-  const [username, setUsername] = useState('Giang_Pappi')
+  const [username, setUsername] = useState('GiangPappi')
   const [stats, setStats] = useState([])
 
   // useEffect to set default values based on endpoint
   useEffect(() => {
     setAvatarName('You')
-    setUsername('Giang_Pappi')
+    setUsername('GiangPappi')
     setStats([
       { key: 'Wins', value: '10' },
       { key: 'Losses', value: '90' },
@@ -82,20 +91,12 @@ function InGameMenu({ handleClose, inGame, showAlert }) {
     ])
   }, [])
 
-  // if spacebar pressed, toggle the open state
+  // if spacebar pressed, toggle the open state REMOVETHIS
   document.addEventListener('spaceBarPressed', () => {
     setOpen(!open)
     setMenuHeight(window.innerHeight)
     console.log('menuHeight: ', menuHeight)
   })
-
-  // if resized, we close the menu because
-  addEventListener('resize', () => {
-    setOpen(false)
-    console.log('resized')
-  })
-
-  if (!inGame) return null
 
   return (
     <>
@@ -104,7 +105,7 @@ function InGameMenu({ handleClose, inGame, showAlert }) {
           <Paper style={styles.customModal}>
             {/* Modal Header */}
             <Box style={styles.modalHeader}>
-              <Typography style={textStyle(5, true)}>Menu</Typography>
+              <Typography style={textStyle(6, true)}>Menu</Typography>
             </Box>
 
             {/* Modal Body */}
@@ -129,25 +130,19 @@ function InGameMenu({ handleClose, inGame, showAlert }) {
 
               {/* Right Body */}
               <Box style={styles.rightBody}>
-                {/* Don't question it, if it works it works */}
-                <TabCarousel
-                  index={carouselIndex}
-                  menuHeight={menuHeight}
-                  showAlert={showAlert}
-                />
-                <BottomNavigation
-                  value={carouselIndex}
-                  onChange={(event, newValue) => setCarouselIndex(newValue)}
-                  showLabels
-                  style={styles.bottomNavigation}
-                >
-                  <BottomNavigationAction
-                    icon={<SettingsIcon style={{ fontSize: '42px' }} />}
-                  />
-                  <BottomNavigationAction
-                    icon={<HelpOutlineIcon style={{ fontSize: '42px' }} />}
-                  />
-                </BottomNavigation>
+
+                <Box style={styles.carousel}>
+                  {carouselIndex == 0 && <TabSettingsContent showAlert={showAlert} /> || <TabInstructionsContent />}
+                </Box>
+                <Box style={styles.navigation}>
+                  <Button style={styles.navigationButton} onClick={()=>{setCarouselIndex(0)}}>
+                    <SettingsIcon style={{ fontSize: '42px', color:carouselIndex == 0 && "black" || "darkgray" }} />
+                  </Button>
+                  <Button style={styles.navigationButton} onClick={()=>{setCarouselIndex(1)}}>
+                    <HelpOutlineIcon style={{ fontSize: '42px', color:carouselIndex == 1 && "black" || "darkgray"}} />
+                  </Button>
+                </Box>
+
               </Box>
             </Box>
           </Paper>
@@ -167,7 +162,10 @@ const styles = {
     minHeight: MIN_HEIGHT,
     width: WIDTH_PERCENT,
     height: HEIGHT_PERCENT,
-    // backgroundColor: 'blue', // CHANGE
+    backgroundImage:bgUrl,
+    backgroundRepeat:"no-repeat",
+    backgroundSize:"cover",
+    outline: 0,
     padding: '20px',
     display: 'flex',
     borderRadius: '20px',
@@ -178,42 +176,31 @@ const styles = {
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    height: '10%',
-    width: '100%',
-    // backgroundColor: 'red', // CHANGE
-    minHeight: '50px',
-    borderTop: `3px solid ${FIRST_BLUE}`,
-    borderRight: `3px solid ${FIRST_BLUE}`,
-    borderLeft: `3px solid ${FIRST_BLUE}`,
-    borderRadius: '10px 10px 0 0',
+    flex: 1,
+    borderBottom: "1px solid white",
   },
   modalBody: {
     display: 'flex',
     justifyContent: 'center',
-    alignItems: 'center',
-    height: '90%',
-    width: '100%',
-    // backgroundColor: 'green', // CHANGE
-    borderBottom: `3px solid ${FIRST_BLUE}`,
-    borderRight: `3px solid ${FIRST_BLUE}`,
-    borderLeft: `3px solid ${FIRST_BLUE}`,
-    borderTop: `3px solid ${SECOND_BLUE}`,
-    borderRadius: '0 0 10px 10px',
+    alignItems: 'stretch',
+    flexDirection: 'row',
+    flex:9,
     zIndex: 1,
   },
   leftBody: {
-    width: '50%',
-    height: '100%',
-    // backgroundColor: 'yellow', // CHANGE
-    borderRight: `3px solid ${SECOND_BLUE}`,
+    display: 'flex',
+    flex:1,
+    flexDirection:'column',
   },
 
   rightBody: {
-    width: '50%',
-    height: '100%',
-    // backgroundColor: 'purple', // CHANGE
     display: 'flex',
     flexDirection: 'column',
+    flex:1,
+    backgroundImage:parchUrl,
+    backgroundRepeat:'no-repeat',
+    backgroundSize:'100% 100%',
+    backgroundPosition: 'center',
   },
   leftTop: {
     display: 'flex',
@@ -226,18 +213,32 @@ const styles = {
     marginBottom: '-3px', // this is account for the divider
   },
   leftBottom: {
-    width: '100%',
-    height: '50%',
-    // backgroundColor: 'pink', // CHANGE
     alignItems: 'center',
     justifyContent: 'center',
     display: 'flex',
+    flex:1,
+  },
+  carousel: {
+    display: 'flex',
+    flex: 4,
+    padding:10,
+    margin:"25px 15px 0 15px"
+  },
+  navigation: {
+    display: 'flex',
+    flex:1,
+    margin:"0 15px 15px 15px",
+    flexDirection:"row",
+    justifyContent:"space-around"
+  },
+  navigationButton : {
+    borderRadius:"60px", 
+    outline:"none",
   },
   bottomNavigation: {
     flex: 1,
     width: '100%',
     justifyContent: 'center',
-    // backgroundColor: 'orange', // CHANGE
     maxHeight: '75px',
   },
   divider: {

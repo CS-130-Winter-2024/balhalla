@@ -6,7 +6,16 @@ TabInstructionsContent.propTypes = {
   height: PropTypes.number.isRequired,
 }
 
-function TabInstructionsContent({ text, height }) {
+const INSTRUCTIONS = `
+  Welcome to the game! Here are the instructions:\n
+  1. Use the arrow keys to move the character\n
+  2. Collect the coins to earn points\n
+  3. Avoid the balls\n
+  4. Throw your balls\n
+  5. Make sure you hit your ops with your balls\n
+  6. Buy skins so we can make money\n`
+
+function TabInstructionsContent({height }) {
   const styles = {
     container: {
       display: 'flex',
@@ -34,7 +43,7 @@ function TabInstructionsContent({ text, height }) {
   }
 
   const renderTextWithBold = () => {
-    const parts = text.split(/(\{[^}]*\})/)
+    const parts = INSTRUCTIONS.split(/(\{[^}]*\})/)
     return parts.map((part, index) => {
       if (index % 2 === 0) {
         // Regular text

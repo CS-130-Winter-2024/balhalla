@@ -102,11 +102,23 @@ export function endState() {
   } else {
     winner = 2 // TIE
   }
+  // if neither condition passes, winner is set to tie by default
+  // else {
+  //   winner = 2
+  // }
 
 
   //credit points to players
-
-  //TODO - VINH
+  let points = {};
+  for (const id in playersMetadata){
+    points[id] = playersMetadata[id].hits * 10;
+    if (playersMetadata[id].team == winner){
+      points[id] += 50;
+    }
+    if (id == winner){
+      points[id] += 10;
+    }
+  }
 
   //wipe everything
   players = {};
@@ -115,8 +127,9 @@ export function endState() {
 
   let sockets = getConnections();
   let newTime = Date.now() + constants.LOBBY_LENGTH + 250
-  const broadcast = JSON.stringify([constants.MESSAGES.gameEnd, winner, mvp, points, newTime])
+  
   for (const id in sockets) {
+    const broadcast = JSON.stringify([constants.MESSAGES.gameEnd, winner, mvp, points[id], newTime])
     sockets[id].send(broadcast);
   }
 

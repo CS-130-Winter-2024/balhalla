@@ -17,6 +17,7 @@ function setState(nextState, data) {
   state = nextState;
 }
 
+// automatically starts next state when a state finishes
 for (let st of states) {
   st.setFinishCallback(setState);
 }

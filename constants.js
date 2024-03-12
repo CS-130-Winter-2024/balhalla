@@ -22,10 +22,12 @@ export const PLAYER_RADIUS = 0.5;
 export const COLLISION_R2 = 0.5625;
 export const PLAYER_HEIGHT = 2;
 
-//TEMPORARY, VINH
+//TEMPORARY, UNTIL DATABASE/ITEM SELECTION DONE
 export const TEMP_DEFAULT_BALL_MODEL_UNTIL_SELECT_BALL_IS_DONE = 2;
 export const TEMP_DEFAULT_BALL_MODEL_UNTIL_SELECT_BODY_IS_DONE = 1;
 
+// default data/format for the in-game player
+//   all player data persistent between games is kept in metadata
 export const BASE_PLAYER = {
     direction: [0, 0], //x,z
     x: 0,

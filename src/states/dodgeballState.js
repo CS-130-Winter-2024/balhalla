@@ -275,10 +275,18 @@ export function doTick() {
   
       //move player according to their velocity
       player.z += player.direction[1] * constants.SPEED_DT;
-      player.z = Math.min(
-        Math.max(player.z, playersMetadata[playerID].team == 0 && -constants.WORLD_HALF_WIDTH || 0),
-        playersMetadata[playerID].team * constants.WORLD_HALF_WIDTH,
-      ); //clamp to team's side
+      if (player.alive){ // clamp to team's side if alive
+        player.z = Math.min(
+          Math.max(player.z, playersMetadata[playerID].team == 0 && -constants.WORLD_HALF_WIDTH || 0),
+          playersMetadata[playerID].team * constants.WORLD_HALF_WIDTH,
+        );
+      } else { // if dead can move wherever
+        player.z = Math.min(
+          Math.max(player.z, -constants.WORLD_HALF_WIDTH),
+          constants.WORLD_HALF_WIDTH,
+        );
+      }
+      
   
       let possibleCollisons = { // dividing arena in sections to avoid unnecessary hit detection calculations
         ...sections[Math.floor(player.x - constants.PLAYER_RADIUS)],

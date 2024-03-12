@@ -18,45 +18,48 @@ import sampleData from "./sample-data.json";
 // if so, start as logged in, otherwise logged out
 var token_to_username = {};
 
-const SharedBooleanContext = createContext();
+// const SharedBooleanContext = createContext();
 
-const SharedBooleanProvider = ({ children }) => {
-  const [sharedBoolean, setSharedBoolean] = useState(false);
+// const SharedBooleanProvider = ({ children }) => {
+//   const [sharedBoolean, setSharedBoolean] = useState(false);
 
-  const setSharedBooleanValue = (value) => {
-    setSharedBoolean(value);
-  };
+//   const setSharedBooleanValue = (value) => {
+//     setSharedBoolean(value);
+//   };
 
-  const getSharedBooleanValue = () => {
-    return sharedBoolean;
-  };
+//   const getSharedBooleanValue = () => {
+//     return sharedBoolean;
+//   };
 
-  return (
-    <SharedBooleanContext.Provider
-      value={{ sharedBoolean, setSharedBooleanValue, getSharedBooleanValue }}
-    >
-      {children}
-    </SharedBooleanContext.Provider>
-  );
-};
+//   return (
+//     <SharedBooleanContext.Provider
+//       value={{ sharedBoolean, setSharedBooleanValue, getSharedBooleanValue }}
+//     >
+//       {children}
+//     </SharedBooleanContext.Provider>
+//   );
+// };
 
-const setSharedBoolean = (value) => {
-  const { setSharedBooleanValue } = useContext(SharedBooleanContext);
-  setSharedBooleanValue(value);
-};
+// const setSharedBoolean = (value) => {
+//   const { setSharedBooleanValue } = useContext(SharedBooleanContext);
+//   setSharedBooleanValue(value);
+// };
 
-// Function to get the shared boolean value
-const getSharedBoolean = () => {
-  const { getSharedBooleanValue } = useContext(SharedBooleanContext);
-  return getSharedBooleanValue();
-};
+// // Function to get the shared boolean value
+// const getSharedBoolean = () => {
+//   const { getSharedBooleanValue } = useContext(SharedBooleanContext);
+//   return getSharedBooleanValue();
+// };
 
+// const handleOpenModal = () => {
+//   console.log(users);
+//   console.log("inside handleOpenModal");
+//   setOpenModal(true);
+// };
 
-  // const handleOpenModal = () => {
-  //   console.log(users);
-  //   console.log("inside handleOpenModal");
-  //   setOpenModal(true);
-  // };
+// const [sharedBool, setSharedBool] = useState(false);
+
+var tester = true;
 async function handleSignup(username, pw, conf_pw) {
   // check if pw is same as conf_pw
   if (pw !== conf_pw) {
@@ -86,6 +89,8 @@ async function handleSignup(username, pw, conf_pw) {
       console.log("signup data:", data);
       localStorage.setItem("token", data.token);
       token_to_username[data.token] = username;
+      // setSharedBoolean(true);
+      // setSharedBool(true);
     });
 }
 
@@ -110,6 +115,7 @@ async function handleLogin(username, pw) {
         console.log(data.error);
         alert(data.error);
       }
+      // setSharedBool(true);
       console.log("login token:", data.token);
       localStorage.setItem("token", data.token);
       token_to_username[data.token] = username;
@@ -136,17 +142,20 @@ function Leaderboard() {
     console.log("official users");
 
     fetch("/get_leaderboard", {
-      method: "POST",
+      method: "GET",
       headers: {
         "Content-Type": "application/json",
       },
     })
-    .then((response) => response.json())
-    .then((data) => {
-      console.log(data)
-      setUsers(data)
-    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("leaderboard data:", data);
+        console.log("type of data:", typeof data);
 
+        setUsers(JSON.parse(data));
+        console.log("leaderboard data:", users);
+        console.log("type of data:", typeof users);
+      });
   }, []);
 
   // useEffect(() => {
@@ -217,28 +226,16 @@ function Leaderboard() {
               </thead>
               <tbody>
                 {users
-                  .slice(indexOfFirstUser, indexOfLastUser)
+                  // .slice(indexOfFirstUser, indexOfLastUser)
                   .map((user, index) => (
-                    <tr
-                      key={user.id}
-                      style={{
-                        backgroundColor:
-                          index % 2 === 0 ? "#f9f9f9" : "#ffffff",
-                        color: "black",
-                      }}
-                    >
-                      <td>{indexOfFirstUser + index + 1}</td>{" "}
-                      {/* Display rank based on overall position */}
-                      <td>{index + 1}</td>
+                    <tr key={user.username}>
+                      <td>{indexOfFirstUser + index + 1}</td>
                       <td>{user.username}</td>
-                      <td>{user.wins} wins</td>
-                      <td>{user.losses} losses</td>
-                      <td>{user.hits} hits</td>
+                      <td>{user.wins}</td>
+                      <td>{user.losses}</td>
+                      <td>{user.hits}</td>
                     </tr>
                   ))}
-                {/* {currentUsers.map((user, index) => (
-                  
-                ))} */}
               </tbody>
             </table>
             <TablePagination
@@ -264,6 +261,7 @@ function ToggleLoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  // const { sharedBoolean } = getSharedBoolean();
   function handleToggleLogin() {
     setShowLogin(!showLogin);
   }
@@ -497,16 +495,11 @@ export default function UI({}) {
           Return to Game
         </Button>
         {!loggedIn && <ToggleLoginScreen></ToggleLoginScreen>}
-        {/* <Button variant="outlined" id="logIn" onClick={handleLogin}>
-          Log In
-        </Button> */}
-        {/* {loginClicked && <DisplayComponent />}
-        <Button variant="outlined" id="logIn" onClick={handleSignup}>
-          Sign Up
-        </Button> */}
+        
         {!loggedIn && <ToggleSignUpScreen id="logIn"></ToggleSignUpScreen>}
         {/* <ToggleSignUpScreen id="logIn"></ToggleSignUpScreen> */}
         <Leaderboard></Leaderboard>
+        {/* {sharedBool && <title>Shared Works</title>} */}
       </div>
       <div
         id="crosshair"

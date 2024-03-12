@@ -128,6 +128,44 @@ async function updateHits(user, hitChange) {
     console.error(err);
   })
 }
+
+async function purchaseItem(user, itemID, itemCost) {
+  // knex('accounts')
+  //   .select('points')
+  //   .where('username', user)
+  //   .then(data => {
+  //     // curPoints = data[0].points;
+  //     console.log('curppoints:', data)
+  //   })
+  
+  
+  // return knex('items')
+  //   .select()
+  //   .where('item_id', itemID
+  //   .then(rows => {
+  //     if (rows.length == 0 || curPoints - itemCost < 0) {
+  //       return false; // Value alr in column, return false
+  //     }
+  //     else {
+  //       knex('accounts')
+  //       .where('username', user)
+  //       .decrement('points', itemCost)
+  //       .catch(err => {
+  //         console.error(err);
+  //       })
+        
+  //       knex('items').insert({
+  //         username: user,
+  //         item_id: itemID,
+  //       });
+  //       return true; // Value is in the column
+  //     }
+  //   })
+  //   .catch(err => {
+  //     console.error(err);
+  //     // return false; // Error occurred
+  //   });
+}
  
 module.exports = {
   signup,
@@ -136,7 +174,8 @@ module.exports = {
   updatePoints,
   updateWin,
   updateLoss,
-  updateHits
+  updateHits,
+  purchaseItem
 };
 
 (async () => {
@@ -149,7 +188,6 @@ module.exports = {
     if (!exists) {
       return knex.schema.createTable('accounts', function(table) {
         table.string('username').unique().primary();
-        table.string('password');
         table.integer('points').defaultTo(0);
         table.check('?? >= ??', ['points', 0]);
         table.integer('wins').defaultTo(0);
@@ -160,6 +198,7 @@ module.exports = {
         //pet - charm that gets added to player as a customization
         table.integer('pet');
         table.integer('icon');
+        table.string('password');
       });
     }
   });
@@ -179,13 +218,16 @@ module.exports = {
   await knex('accounts').insert({
     username: 'admin',
     password: testpw,
-    points: 0,
+    points: 5,
+    hits: 2
   });
 
   await knex('accounts').insert({
     username: 'admin2',
     password: testpw,
-    points: 0,
+    points: 5,
+    hits: 1,
+    losses: 2
   });
 
   await knex('items').insert({

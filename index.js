@@ -9,7 +9,7 @@ const __dirname = url.fileURLToPath(new URL(".", import.meta.url));
 const app = express();
 
 import pkg from "./db/database.cjs";
-const { signup, login, getLeaderboardList, updatePoints } = pkg;
+const { signup, login, getLeaderboardList, updatePoints, purchaseItem } = pkg;
 
 //Client Page Server
 app.use(express.static(path.join(__dirname, "public")));
@@ -38,8 +38,7 @@ app.get("/get_leaderboard", (request, response) => {
   getLeaderboardList(request, response);
 });
 app.get("/test", (req, res) => {
-  updatePoints("admin", 10);
-  updatePoints("admin", -1);
+  purchaseItem('admin', 21, 1)
 });
 
 var connections = {};

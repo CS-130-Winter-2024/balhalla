@@ -277,10 +277,18 @@ export function doTick() {
   
       //move player according to their velocity
       player.z += player.direction[1] * constants.SPEED_DT;
-      player.z = Math.min(
-        Math.max(player.z, playersMetadata[playerID].team == 0 && -constants.WORLD_HALF_WIDTH || 0),
-        playersMetadata[playerID].team * constants.WORLD_HALF_WIDTH,
-      ); //clamp to team's side
+      if (player.alive){ // clamp to team's side if alive
+        player.z = Math.min(
+          Math.max(player.z, playersMetadata[playerID].team == 0 && -constants.WORLD_HALF_WIDTH || 0),
+          playersMetadata[playerID].team * constants.WORLD_HALF_WIDTH,
+        );
+      } else { // if dead can move wherever
+        player.z = Math.min(
+          Math.max(player.z, -constants.WORLD_HALF_WIDTH),
+          constants.WORLD_HALF_WIDTH,
+        );
+      }
+      
   
       let possibleCollisons = { // dividing arena in sections to avoid unnecessary hit detection calculations
         ...sections[Math.floor(player.x - constants.PLAYER_RADIUS)],
@@ -299,22 +307,29 @@ export function doTick() {
             (player.z - ball.z) * (player.z - ball.z);
           if (dist <= constants.COLLISION_R2) {
             // When player and a ball collide
-            if (ball.isGrounded && !player.hasBall && player.alive) {
-              // When ball is on ground and player has no ball, player picks up ball
-              player.hasBall = true;
-              delete balls[ballID];
-              balls.didChange = true
+            if (ball.isGrounded) {
+              if (player.alive  && !player.hasBall){
+                // When ball is on ground and living player has no ball, player picks up ball
+                player.hasBall = true;
+                delete balls[ballID];
+                balls.didChange = true
               // places the lower and upper edge of ball each into the arena divisions
-              let lower = Math.floor(player.x - constants.PLAYER_RADIUS);
-              let upper = Math.floor(player.x + constants.PLAYER_RADIUS);
+                let lower = Math.floor(player.x - constants.PLAYER_RADIUS);
+                let upper = Math.floor(player.x + constants.PLAYER_RADIUS);
 
-              // removes ball from ball hit-detection search
-              if (lower in sections && ballID in sections[lower]) {
-                delete sections[lower][ballID];
+                // removes ball from ball hit-detection search
+                if (lower in sections && ballID in sections[lower]) {
+                  delete sections[lower][ballID];
+                }
+                if (upper in sections && ballID in sections[upper]) {
+                  delete sections[upper][ballID];
+                }
+              } else {
+                // When ball is on ground and dead player touches it, player pushes ball in direction they are moving
+                ball.x += player.direction[0] * constants.TICK_DT * constants.BALL_SHOVE_SPEED;
+                ball.z += player.direction[1] * constants.TICK_DT * constants.BALL_SHOVE_SPEED;
               }
-              if (upper in sections && ballID in sections[upper]) {
-                delete sections[upper][ballID];
-              }
+
             } else if (!ball.isGrounded && player.alive && ball.y <= constants.PLAYER_HEIGHT + constants.BALL_RADIUS && ball.throwerID != playerID && playersMetadata[ball.throwerID].team != playersMetadata[playerID].team) {
               // When mid-air ball hits another player
               console.log("[HIT] Ball from ",ball.throwerID, " killed ", playerID);

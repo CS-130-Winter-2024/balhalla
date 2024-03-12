@@ -37,7 +37,7 @@ export function processMessage(id, message) {
         if (message.metaData != undefined) {
             playerQueue[id] = {
                 username: data.username,
-                body: 0,
+                body: constants.TEMP_DEFAULT_BALL_MODEL_UNTIL_SELECT_BODY_IS_DONE,
                 ball: constants.TEMP_DEFAULT_BALL_MODEL_UNTIL_SELECT_BALL_IS_DONE,
                 ...message.metaData
             };
@@ -45,7 +45,7 @@ export function processMessage(id, message) {
         }
         playerQueue[id] = {
             username: data.username,
-            body: 0,
+            body: constants.TEMP_DEFAULT_BALL_MODEL_UNTIL_SELECT_BODY_IS_DONE,
             ball: constants.TEMP_DEFAULT_BALL_MODEL_UNTIL_SELECT_BALL_IS_DONE,
         };
         break

@@ -20,7 +20,7 @@ import duckPng from "../assets/images/duck.png"
 
 //GAME
 export const SPEED = 5;
-export const ALIVE_Y = 1.25;
+export const ALIVE_Y = 2;
 export const DEAD_Y = 5;
 
 export const THROW_KEY = "f"

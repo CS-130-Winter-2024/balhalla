@@ -77,7 +77,7 @@ async function login(request, response, next) {
     })
 }
 
-async function getLeaderboardList(request, response) {
+function getLeaderboardList(request, response) {
   let jsonData = {}
   console.log('leaderboard:')
   knex.select('username', 'wins', 'losses', 'hits')
@@ -85,15 +85,15 @@ async function getLeaderboardList(request, response) {
   .orderBy('wins')
   .orderBy('hits')
   .then(rows => {
-      jsonData = { data: rows };
-      console.log(JSON.stringify(jsonData, null, 2));
-      response.status(200).json(jsonData)
+      // jsonData = {  };
+      console.log(JSON.stringify(rows));
+      response.status(200).json(JSON.stringify(rows))
   })
   .catch(err => {
       console.error(err);
   })
 
-  return jsonData;
+  // return jsonData;
 }
 
 async function updatePoints(user, pointChange) {

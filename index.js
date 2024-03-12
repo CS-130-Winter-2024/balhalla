@@ -34,7 +34,7 @@ app.post("/signup", (request, response, next) => {
 app.post("/login", (request, response, next) => {
   login(request, response, next);
 });
-app.post("/get_leaderboard", (request, response) => {
+app.get("/get_leaderboard", (request, response) => {
   getLeaderboardList(request, response);
 });
 app.get("/test", (req, res) => {

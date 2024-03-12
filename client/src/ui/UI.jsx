@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, createContext, useContext } from "react";
 import "./ui.css";
 import crosshair from "./crosshair.svg";
 // import ErrorModal from "./ErrorModal";
@@ -8,13 +8,55 @@ import Modal from "@mui/material/Modal";
 import TextField from "@mui/material/TextField";
 import { TablePagination } from "@mui/material";
 import backgroundImage from "../../assets/textures/Background.png";
-// import axios from "axios";
+
+// import pkg from "../../../db/database.cjs";
+// const { getLeaderboardList } = pkg;
 
 import sampleData from "./sample-data.json";
 
 // TODO: when page is loaded, check token in cookies against server
 // if so, start as logged in, otherwise logged out
+var token_to_username = {};
 
+const SharedBooleanContext = createContext();
+
+const SharedBooleanProvider = ({ children }) => {
+  const [sharedBoolean, setSharedBoolean] = useState(false);
+
+  const setSharedBooleanValue = (value) => {
+    setSharedBoolean(value);
+  };
+
+  const getSharedBooleanValue = () => {
+    return sharedBoolean;
+  };
+
+  return (
+    <SharedBooleanContext.Provider
+      value={{ sharedBoolean, setSharedBooleanValue, getSharedBooleanValue }}
+    >
+      {children}
+    </SharedBooleanContext.Provider>
+  );
+};
+
+const setSharedBoolean = (value) => {
+  const { setSharedBooleanValue } = useContext(SharedBooleanContext);
+  setSharedBooleanValue(value);
+};
+
+// Function to get the shared boolean value
+const getSharedBoolean = () => {
+  const { getSharedBooleanValue } = useContext(SharedBooleanContext);
+  return getSharedBooleanValue();
+};
+
+
+  // const handleOpenModal = () => {
+  //   console.log(users);
+  //   console.log("inside handleOpenModal");
+  //   setOpenModal(true);
+  // };
 async function handleSignup(username, pw, conf_pw) {
   // check if pw is same as conf_pw
   if (pw !== conf_pw) {
@@ -34,15 +76,17 @@ async function handleSignup(username, pw, conf_pw) {
       password: pw,
     }),
   })
-  .then((response) => response.json())
-  .then((data) => {
-    console.log(data);
-    if (data.error) {
-      console.log(data.error);
-      alert(data.error);
-    }
-    console.log("signup data:", data);
-  });
+    .then((response) => response.json())
+    .then((data) => {
+      console.log(data);
+      if (data.error) {
+        console.log(data.error);
+        alert(data.error);
+      }
+      console.log("signup data:", data);
+      localStorage.setItem("token", data.token);
+      token_to_username[data.token] = username;
+    });
 }
 
 async function handleLogin(username, pw) {
@@ -59,16 +103,20 @@ async function handleLogin(username, pw) {
       password: pw,
     }),
   })
-  .then((response) => response.json())
-  .then((data) => {
-    console.log(data);
-    if (data.error) {
-      console.log(data.error);
-      alert(data.error);
-    }
-    console.log("login token:", data.token);
-    localStorage.setItem("token", data.token);
-  });
+    .then((response) => response.json())
+    .then((data) => {
+      console.log(data);
+      if (data.error) {
+        console.log(data.error);
+        alert(data.error);
+      }
+      console.log("login token:", data.token);
+      localStorage.setItem("token", data.token);
+      token_to_username[data.token] = username;
+      for (var key in token_to_username) {
+        console.log(key + " : " + token_to_username[key]);
+      }
+    });
 }
 
 function Leaderboard() {
@@ -85,7 +133,20 @@ function Leaderboard() {
   const testUsers = sampleData.users;
 
   useEffect(() => {
-    setUsers(testUsers);
+    console.log("official users");
+
+    fetch("/get_leaderboard", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+    .then((response) => response.json())
+    .then((data) => {
+      console.log(data)
+      setUsers(data)
+    })
+
   }, []);
 
   // useEffect(() => {
@@ -101,11 +162,13 @@ function Leaderboard() {
 
   const handleOpenModal = () => {
     console.log(users);
+    console.log("inside handleOpenModal");
     setOpenModal(true);
   };
 
   const handleCloseModal = () => {
     setOpenModal(false);
+    console.log("inside handleClose");
   };
 
   const indexOfFirstUser = page * rowsPerPage;
@@ -132,7 +195,7 @@ function Leaderboard() {
             backgroundColor: "#fff",
             padding: "20px",
             height: "550px",
-            width: "250px",
+            width: "400px",
           }}
         >
           <h1 style={{ color: "black" }}>Leaderboard</h1>
@@ -167,8 +230,9 @@ function Leaderboard() {
                       <td>{indexOfFirstUser + index + 1}</td>{" "}
                       {/* Display rank based on overall position */}
                       <td>{index + 1}</td>
-                      <td>{user.name}</td>
-                      <td>{user.points} points</td>
+                      <td>{user.username}</td>
+                      <td>{user.wins} wins</td>
+                      <td>{user.losses} losses</td>
                       <td>{user.hits} hits</td>
                     </tr>
                   ))}
@@ -398,6 +462,12 @@ export default function UI({}) {
   const [username, setUsername] = useState("Hello World");
   const [loginClicked, setLoginClicked] = useState(false);
   const [loggedIn, setLoggedIn] = useState(false);
+
+  if (localStorage.getItem("token") in token_to_username) {
+    // TODO: toggle to logged in screen with user token_to_username[localStorage.getItem("token")]
+  } else {
+    // TODO: toggle to logged out screen
+  }
 
   useEffect(() => {
     document.addEventListener("lock", () => {

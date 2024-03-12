@@ -9,7 +9,7 @@ const __dirname = url.fileURLToPath(new URL(".", import.meta.url));
 const app = express();
 
 import pkg from "./db/database.cjs";
-const { signup, login } = pkg;
+const { signup, login, getLeaderboardList, updatePoints } = pkg;
 
 //Client Page Server
 app.use(express.static(path.join(__dirname, "public")));
@@ -29,12 +29,18 @@ const httpServer = app.listen(PORT, () => {
 // Database Commands
 app.use(express.json());
 app.post("/signup", (request, response, next) => {
-  signup(request, response, next)
+  signup(request, response, next);
 });
 app.post("/login", (request, response, next) => {
   login(request, response, next);
 });
-
+app.post("/get_leaderboard", (request, response) => {
+  getLeaderboardList(request, response);
+});
+app.get("/test", (req, res) => {
+  updatePoints("admin", 10);
+  updatePoints("admin", -1);
+});
 
 var connections = {};
 //Websocket Server

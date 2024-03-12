@@ -77,9 +77,54 @@ async function login(request, response, next) {
     })
 }
 
+async function getLeaderboardList(request, response) {
+  let jsonData = {}
+  console.log('leaderboard:')
+  knex.select('username', 'wins', 'losses', 'hits')
+  .from('accounts')
+  .orderBy('wins')
+  .orderBy('hits')
+  .then(rows => {
+      jsonData = { data: rows };
+      console.log(JSON.stringify(jsonData, null, 2));
+      response.status(200).json(jsonData)
+  })
+  .catch(err => {
+      console.error(err);
+  })
+
+  return jsonData;
+}
+
+async function updatePoints(user, pointChange) {
+  knex('accounts')
+  .where('username', user)
+  .increment('points', pointChange)
+  .then(() => {
+    console.log('Points updated successfully');
+  })
+  .catch(err => {
+    console.error(err);
+  })
+}
+
+async function updateWins(username, points) {
+
+}
+
+async function updateLossses(username, points) {
+
+}
+
+async function updateHits(username, hits) {
+  
+}
+ 
 module.exports = {
   signup,
-  login
+  login,
+  getLeaderboardList,
+  updatePoints
 };
 
 (async () => {
@@ -93,11 +138,11 @@ module.exports = {
       return knex.schema.createTable('accounts', function(table) {
         table.string('username').unique().primary();
         table.string('password');
-        table.integer('points');
+        table.integer('points').defaultTo(0);
         table.check('?? >= ??', ['points', 0]);
-        table.integer('wins');
-        table.integer('losses');
-        table.integer('hits');
+        table.integer('wins').defaultTo(0);
+        table.integer('losses').defaultTo(0);
+        table.integer('hits').defaultTo(0);
         //ball
         table.integer('ball');
         //pet - charm that gets added to player as a customization

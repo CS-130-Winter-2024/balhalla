@@ -27,10 +27,10 @@ function websocketSetup() {
   setHandler(constants.MESSAGES.playerList, (socket, data) => {
     constants.set_global("CLIENT_ID",data.id);
     constants.set_global("GAME_STATE",data.gameState);
-    if (data.gameState == 1) { //do nothing if lobby state
+    if (data.gameState == 1) { //do nothing if in lobby state
       for (let player in data.playerData) {
         if (player == data.id) continue;
-        Others.addPlayer(player, data.playerData[player], data.metaData[player]);
+        Others.addPlayer(player, data.playerData[player], data.metaData[player]); // adds other players to the scene
       }
     }
     Player.setSpectate(true);
@@ -41,6 +41,7 @@ function websocketSetup() {
     Player.setMetadata(data.metaData[constants.get_global("CLIENT_ID")]);
     for (let player in data.playerData) {
       if (player == constants.get_global("CLIENT_ID")) {
+        // updates client based on server's info about that client (alive status, client's points in-game, position, etc.)
         Player.updatePlayer(data.playerData[constants.get_global("CLIENT_ID")]);
         Player.setSpectate(false);
         continue
@@ -155,8 +156,6 @@ export default function main() {
   //   }
   // });
 
-  // 
-
   // event for when space bar is pressed, it will trigger the ingame menu IF x condition is met
   document.addEventListener("keydown", (ev) => {
     if (ev.key === " ") {
@@ -164,7 +163,6 @@ export default function main() {
       document.dispatchEvent(new CustomEvent("spaceBarPressed"));
     } 
   });
-
 
 
   //setup websockets

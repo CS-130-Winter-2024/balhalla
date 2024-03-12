@@ -24,6 +24,7 @@ export const PLAYER_HEIGHT = 2;
 
 //TEMPORARY, VINH
 export const TEMP_DEFAULT_BALL_MODEL_UNTIL_SELECT_BALL_IS_DONE = 2;
+export const TEMP_DEFAULT_BALL_MODEL_UNTIL_SELECT_BODY_IS_DONE = 1;
 
 export const BASE_PLAYER = {
     direction: [0, 0], //x,z

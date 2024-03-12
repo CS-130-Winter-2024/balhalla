@@ -276,9 +276,9 @@ export function doTick() {
             (player.x - ball.x) * (player.x - ball.x) +
             (player.z - ball.z) * (player.z - ball.z);
           if (dist <= constants.COLLISION_R2) {
-            //player and ball collide
+            // When player and a ball collide
             if (ball.isGrounded && !player.hasBall && player.alive) {
-              // pick up ball
+              // When ball is on ground and player has no ball, player picks up ball
               player.hasBall = true;
               delete balls[ballID];
               let lower = Math.floor(player.x - constants.PLAYER_RADIUS);

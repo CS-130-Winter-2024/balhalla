@@ -57,15 +57,18 @@ function isWinner() {
 
 export function endState() {
   let winner = 2; //0=team 1, 1=team2, 2=tie
-  let mvp = -1;
+  let mvp = -1; // ID of the current mvp player
   let teamOneAdvantage = 0;
 
-  let mvpMax = 0;
+  let mvpMax = 0; // current max number of hits in the current game
   for (const id in players) {
     if (players[id].alive) {
+      // Only counts living players
+      // Sums players' team score
       teamOneAdvantage += (1 - (playersMetadata[id].team * 2))
     }
 
+    // whoever has the most hits is mvp, tiebreaker is who reached that number first
     if (playersMetadata[id].hits > mvpMax) {
       mvp = id;
       mvpMax = playersMetadata[id].hits;
@@ -74,17 +77,17 @@ export function endState() {
 
   //calculate winner
   if (teamOneAdvantage > 0) {
-    winner = 0
+    winner = 0 // TEAM 1
   } else if (teamOneAdvantage < 0) {
-    winner = 1
+    winner = 1 // TEAM 2
   } else {
-    winner = 2
+    winner = 2 // TIE
   }
 
 
   //credit points to players
 
-  //TODO
+  //TODO - VINH
 
   //wipe everything
   players = {};
@@ -100,7 +103,7 @@ export function endState() {
   onFinish(0,null)
 }
 
-//called when player joins. do nothing here (since they should only spectate)
+//called when player joins. do nothing here (since they should only spectate if joining mid-game)
 export function addPlayer(id) {
   let sockets = getConnections();
   let list = JSON.stringify([constants.MESSAGES.playerList, 1, id, players, playersMetadata, gameStartTimer, gameEndTimer]);
@@ -167,7 +170,7 @@ export function processMessage(id, message) {
       break;
     case constants.MESSAGES.throwBall:
       if (players[id].hasBall) {
-        //generate ball id
+        //generate random ball id
         let ballID = Math.floor(Math.random() * 100000);
         while (ballID in balls) {
           ballID = Math.floor(Math.random() * 100000);
@@ -207,14 +210,16 @@ export function doTick() {
     for (const ballID in balls) {
       let ball = balls[ballID];
   
-      if (!ball.isGrounded) {
+      if (!ball.isGrounded) { // only mid-air balls should be moving
         ball.spin += 1;
-        ball.velocity[1] -= constants.TICK_DT * constants.BALL_GRAVITY;
+        ball.velocity[1] -= constants.TICK_DT * constants.BALL_GRAVITY; // acceleration due to gravity
   
+        // moves ball along its trajectory
         ball.x += ball.velocity[0] * constants.TICK_DT;
         ball.y += ball.velocity[1] * constants.TICK_DT;
         ball.z += ball.velocity[2] * constants.TICK_DT;
   
+        // if ball hits the ground, it stops moving and can now be picked up
         if (ball.y <= constants.BALL_RADIUS) {
           ball.velocity = [0, 0, 0];
           ball.y = constants.BALL_RADIUS;
@@ -229,6 +234,7 @@ export function doTick() {
           ball.z > constants.WORLD_HALF_WIDTH
         ) {
           //BALL BEHAVIOR OUT OF BOUNDS
+          // resets ball to center of the arena for now
           ball.velocity = [0, 0, 0];
           ball.x = 0;
           ball.z = 0;
@@ -263,12 +269,12 @@ export function doTick() {
         constants.WORLD_HALF_WIDTH,
       ); //clamp to world border
   
-      let possibleCollisons = {
+      let possibleCollisons = { // dividing arena in sections to avoid unnecessary hit detection calculations
         ...sections[Math.floor(player.x - constants.PLAYER_RADIUS)],
         ...sections[Math.floor(player.x + constants.PLAYER_RADIUS)],
       };
       for (const ballID in possibleCollisons) {
-        //check z and y axis of player and ball
+        //check z and x axis of player and ball
         if (!(ballID in balls)) continue;
         let ball = balls[ballID];
         if (Math.abs(player.z - ball.z) <= constants.BALL_RADIUS + constants.PLAYER_RADIUS) {
@@ -281,8 +287,11 @@ export function doTick() {
               // When ball is on ground and player has no ball, player picks up ball
               player.hasBall = true;
               delete balls[ballID];
+              // places the lower and upper edge of ball each into the arena divisions
               let lower = Math.floor(player.x - constants.PLAYER_RADIUS);
               let upper = Math.floor(player.x + constants.PLAYER_RADIUS);
+
+              // removes ball from ball hit-detection search
               if (lower in sections && ballID in sections[lower]) {
                 delete sections[lower][ballID];
               }
@@ -290,15 +299,18 @@ export function doTick() {
                 delete sections[upper][ballID];
               }
             } else if (!ball.isGrounded && player.alive && ball.y <= constants.PLAYER_HEIGHT + constants.BALL_RADIUS && ball.throwerID != playerID && playersMetadata[ball.throwerID].team != playersMetadata[playerID].team) {
+              // When mid-air ball hits another player
               console.log("[HIT] Ball from ",ball.throwerID, " killed ", playerID);
               players[playerID].alive = false;
               players[playerID].hasBall = false;
               // LATER: if have ball, return ball to game
   
+              // puts the ball that hit the player back into the center of arena
               ball.isGrounded = false;
               ball.velocity = [0, 0, 0];
               ball.y = constants.BALL_RADIUS;
   
+              // informs all players of this player knockout
               for (let otherID in players) {
                 sockets[otherID].send(
                   JSON.stringify([constants.MESSAGES.playerKnockout, playerID, ball.throwerID]),

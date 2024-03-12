@@ -3,7 +3,7 @@ import { getConnections } from "../connection.js";
 
 var players = {}; //playerid associated
 var playersMetadata = {}; //playerid associated
-var balls = {};
+var balls = {didChange:false};
 
 var gameStartTimer;
 var gameEndTimer;
@@ -139,7 +139,7 @@ export function endState() {
 //called when player joins. do nothing here (since they should only spectate if joining mid-game)
 export function addPlayer(id) {
   let sockets = getConnections();
-  let list = JSON.stringify([constants.MESSAGES.playerList, 1, id, players, playersMetadata, gameStartTimer, gameEndTimer]);
+  let list = JSON.stringify([constants.MESSAGES.playerList, 1, id, players, playersMetadata, gameStartTimer, gameEndTimer, balls]);
   sockets[id].send(list);
 }
 
@@ -188,6 +188,7 @@ export function processMessage(id, message) {
           throwerID: id,
           isGrounded: false,
         };
+        balls.didChange = true;
       }
       break;
   }
@@ -210,6 +211,7 @@ export function doTick() {
   
     //Update Ball physics
     for (const ballID in balls) {
+      if (ballID == "didChange") continue;
       let ball = balls[ballID];
       
       //If the ball isn't grounded, apply velocity
@@ -301,6 +303,7 @@ export function doTick() {
               // When ball is on ground and player has no ball, player picks up ball
               player.hasBall = true;
               delete balls[ballID];
+              balls.didChange = true
               // places the lower and upper edge of ball each into the arena divisions
               let lower = Math.floor(player.x - constants.PLAYER_RADIUS);
               let upper = Math.floor(player.x + constants.PLAYER_RADIUS);
@@ -351,6 +354,7 @@ export function doTick() {
         JSON.stringify([constants.MESSAGES.serverUpdate, players, balls]),
       );
     }
+    balls.didChange = false;
 }
 
 export function setFinishCallback(val) {

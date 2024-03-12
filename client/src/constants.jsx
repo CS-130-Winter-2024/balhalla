@@ -59,6 +59,8 @@ export function message_parse(msg) {
                 output.metaData = data[4]
                 output.startTime = data[5]
                 output.endTime = data[6]
+                output.ballData = data[7]
+                output.ballData.didChange = true;
             }
             break
         case MESSAGES.gameStart:

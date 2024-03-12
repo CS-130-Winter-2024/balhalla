@@ -34,6 +34,7 @@ function websocketSetup() {
         if (player == data.id) continue;
         Others.addPlayer(player, data.playerData[player], data.metaData[player]); // adds other players to the scene
       }
+      Balls.updateBalls(data.ballData);
       constants.set_global("TIMER_LABEL", "Game ends in")
       constants.set_global("CURRENT_TIMER",data.endTime);
     } else{

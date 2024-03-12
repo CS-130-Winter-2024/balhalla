@@ -2,8 +2,8 @@ import * as three from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 
 import skybox from "../../assets/textures/skybox.png";
-
-import arena from "../../assets/models/Arena.glb";
+import arena from "../../assets/models/SeaArena.glb";
+import vikingboat from "../../assets/models/VikingBoat.glb";
 
 import { colors } from "../constants";
 
@@ -23,12 +23,12 @@ function sampleTestWorld(world) {
   // adding human model
   let humanModel;
   ModelLoader.load(
-    "../../assets/models/Viking.glb",
+    vikingboat,
     (gltf) => {
       humanModel = gltf.scene;
-      humanModel.scale.set(2, 2, 2);
+      // humanModel.scale.set(2, 2, 2);
       humanModel.position.set(2, 0, 4);
-      humanModel.children[0].rotation.set(1.5, 0, 0);
+      // humanModel.children[0].rotation.set(1.5, 0, 0);
       console.log("[MODEL] ", gltf);
       world.add(humanModel);
 

@@ -28,6 +28,9 @@ export function setupConnection() {
 
   socket.addEventListener("message", (event) => {
     let data = constants.message_parse(event.data);
+    if (data.type != constants.MESSAGES.serverUpdate) {
+      console.log("[MESSAGE]",data)
+    }
     if (data.type in handlers) {
       handlers[data.type](socket, data);
     }

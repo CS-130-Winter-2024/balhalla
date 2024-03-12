@@ -8,6 +8,9 @@ import Modal from "@mui/material/Modal";
 import TextField from "@mui/material/TextField";
 import { TablePagination } from "@mui/material";
 import backgroundImage from "../../assets/textures/Background.png";
+import Store from '../menus/Store'
+import PropTypes from 'prop-types'
+import { BUYABLE_MODELS } from '../constants'
 
 // import pkg from "../../../db/database.cjs";
 // const { getLeaderboardList } = pkg;
@@ -68,11 +71,10 @@ async function handleSignup(username, pw, conf_pw) {
 
   // console.log(admin);
   // console.log(pw);
-
   await fetch("/signup", {
     method: "POST",
     headers: {
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
     },
     body: JSON.stringify({
       username: username,
@@ -98,10 +100,10 @@ async function handleLogin(username, pw) {
   console.log(username);
   console.log(pw);
 
-  await fetch("/login", {
-    method: "POST",
+  await fetch('/login', {
+    method: 'POST',
     headers: {
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
     },
     body: JSON.stringify({
       username: username,
@@ -253,23 +255,23 @@ function Leaderboard() {
         </div>
       </Modal>
     </div>
-  );
+  )
 }
 
 function ToggleLoginScreen() {
-  const [showLogin, setShowLogin] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [showLogin, setShowLogin] = useState(false)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
 
   // const { sharedBoolean } = getSharedBoolean();
   function handleToggleLogin() {
-    setShowLogin(!showLogin);
+    setShowLogin(!showLogin)
   }
 
   return (
     <Box position="relative">
       <Button id="logIn" variant="outlined" onClick={handleToggleLogin}>
-        {showLogin ? "Hide Login" : "Login"}
+        {showLogin ? 'Hide Login' : 'Login'}
       </Button>
       {showLogin && (
         <Box
@@ -332,7 +334,7 @@ function ToggleLoginScreen() {
             }}
             style={{ padding: 10 }}
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={e => setPassword(e.target.value)}
           />
           <br />
           <Button
@@ -467,21 +469,90 @@ export default function UI({}) {
     // TODO: toggle to logged out screen
   }
 
+// props validation
+UI.propTypes = {
+  showAlert: PropTypes.func.isRequired,
+}
+
+export default function UI({ showAlert }) {
+  const [showOverlay, setShowOverlay] = useState(false)
+  const [username, setUsername] = useState('Hello World')
+  const [loginClicked, setLoginClicked] = useState(false) // eslint-disable-line
+
+  // START: Giang's stuff
+  function deepCopy(obj) {
+    return JSON.parse(JSON.stringify(obj))
+  }
+
+  const [showStore, setShowStore] = useState(true)
+
+  // array of item objects
+  const [allItems, setAllItems] = useState(deepCopy(BUYABLE_MODELS))
+  const [equippedItems, setEquippedItems] = useState([null, null, null]) // 0 is weapon, 1 is armor, 2 is accessory
+  const [ownedItems, setOwnedItems] = useState([])
+  const [coins, setCoins] = useState(1000) // default 1000 coins
+
+  // TIE HERE
   useEffect(() => {
-    document.addEventListener("lock", () => {
-      setShowOverlay(true);
-    });
-    document.addEventListener("unlock", () => {
-      setShowOverlay(false);
-    });
-    document.addEventListener("setUsername", (e) => {
-      setUsername(e.detail);
-    });
-  }, []);
+    setAllItems(deepCopy(BUYABLE_MODELS))
+    setOwnedItems([])
+    setEquippedItems([null, null, null])
+    setCoins(1000)
+  }, [])
+
+  // update the backend with the new owned items
+  useEffect(() => {}, [ownedItems, equippedItems, coins])
+
+  const handleBuy = item => {
+    console.log(`Buying ${item.name} with id ${item.id}`)
+    const newlyOwnedItems = deepCopy(ownedItems)
+
+    // check if any item with the same id is already owned
+    if (newlyOwnedItems.find(ownedItem => ownedItem.id === item.id)) {
+      console.log('Item already owned')
+      return
+    }
+    newlyOwnedItems.push(item)
+    setOwnedItems(newlyOwnedItems)
+  }
+
+  const handleClose = () => {
+    setShowStore(false)
+  }
+
+  const handleEquip = (weapon, armor, accessory) => {
+    setEquippedItems(deepCopy([weapon, armor, accessory]))
+  }
+  // END Giang's stuff
+  useEffect(() => {
+    document.addEventListener('lock', () => {
+      setShowOverlay(true)
+    })
+    document.addEventListener('unlock', () => {
+      setShowOverlay(false)
+    })
+    document.addEventListener('setUsername', e => {
+      setUsername(e.detail)
+    })
+  }, [])
 
   return (
     <>
-      <div id="UI" style={{ display: (showOverlay && "none") || "block" }}>
+      {/* START: Giang's stuff */}
+      <Store
+        isOpen={showStore}
+        availableItems={allItems}
+        ownedItems={ownedItems}
+        onClose={handleClose}
+        onBuy={handleBuy}
+        equippedItems={equippedItems}
+        handleEquip={handleEquip}
+        showAlert={showAlert}
+        coins={coins}
+        setCoins={setCoins}
+      />
+      {/* END: Giang's stuff */}
+      <div id="UI" style={{ display: (showOverlay && 'none') || 'block' }}>
         <h1 id="logo">Balhalla</h1>
         <h2>{username}</h2>
 
@@ -489,7 +560,7 @@ export default function UI({}) {
           variant="contained"
           id="logIn"
           onClick={() => {
-            document.dispatchEvent(new CustomEvent("lock"));
+            document.dispatchEvent(new CustomEvent('lock'))
           }}
         >
           Return to Game
@@ -503,10 +574,10 @@ export default function UI({}) {
       </div>
       <div
         id="crosshair"
-        style={{ display: (showOverlay && "block") || "none" }}
+        style={{ display: (showOverlay && 'block') || 'none' }}
       >
         <img src={crosshair} width={50} height={50} />
       </div>
     </>
-  );
+  )
 }

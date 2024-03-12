@@ -1,16 +1,11 @@
 import * as three from "three";
 import { DODGE_BALL_SIDES } from "../constants";
 
+import { getModelInstance } from "./Models";
+
 var balls = {}; // associates each ball with game data
 var ballsModels = {}; // associates each ball with 3d model
 var ballGroup = new three.Group();
-
-const ballGeometry = new three.SphereGeometry(
-  0.25,
-  DODGE_BALL_SIDES,
-  DODGE_BALL_SIDES,
-);
-const ballMaterial = new three.MeshLambertMaterial({});
 
 var intermediateVector = new three.Vector3();
 
@@ -53,6 +48,13 @@ export function removeBall(id) {
   delete ballsModels[id];
 }
 
+
+export function clearBalls() {
+  for (const id in ballsModels) {
+    removeBall(id);
+  }
+}
+
 // updates all in-game balls with server information
 //   new positions based on movement/"gravity"
 //   model based on association with player who threw/holds it
@@ -69,7 +71,7 @@ export function getBallGroup() {
 }
 
 export function createBall() {
-  let ball = new three.Mesh(ballGeometry, ballMaterial);
+  let ball = new three.Group()
+  ball.add(getModelInstance(2));
   return ball;
 }
-

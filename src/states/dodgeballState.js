@@ -3,7 +3,7 @@ import { getConnections } from "../connection.js";
 
 var players = {}; //playerid associated
 var playersMetadata = {}; //playerid associated
-var balls = {};
+var balls = {didChange:false};
 
 var gameStartTimer;
 var gameEndTimer;
@@ -13,15 +13,34 @@ var onFinish = (newValue, data)=>{} //dont change this
 export function startState(data) {
   let sockets = getConnections();
   //teams
-  let teams = constants.assign_random(data.count);
+  let assignments = constants.assign_random(data.count);
+  let teams = assignments[0]
+  let tiebreaker = assignments[1]
   //add all the readied players to the game
   let current = 0;
+  let playerCount = [0,0]
   for (const id in data.players) {
-    //get base player
+
+    //pick z coordinate
+    let zVal = (teams[current]*2*constants.WORLD_HALF_WIDTH - constants.WORLD_HALF_WIDTH);
+    zVal += Math.random()*3*(1-2*teams[current]);
+    
+
+    //get player index on team and total size of the team
+    playerCount[teams[current]]++;
+    let teamSize = (teams[current] == tiebreaker && Math.floor(teams.length/2)) || Math.ceil(teams.length/2)
+    let currentPlayer = playerCount[teams[current]];
+    //get X offset
+    let xVal = (2*constants.WORLD_HALF_LENGTH/(teamSize+1))*currentPlayer - constants.WORLD_HALF_LENGTH;
+    
+    //create player object
     players[id] = {
       ...constants.BASE_PLAYER,
+      x:xVal,
+      z:zVal,
     };
 
+    //give player metadata (obtained from client and verified against database)
     playersMetadata[id] = {
       ...data.players[id],
       team: teams[current],
@@ -41,15 +60,15 @@ export function startState(data) {
   }
 }
 
-function isWinner() {
+function isGameOver() {
   let counts = [0,0];
-  for (id in players) {
+  for (const id in players) {
     if (players[id].alive)
       counts[playersMetadata[id].team] += 1;
   }
 
   if (counts[0] == 0 || counts[1] == 0) {
-    return ((counts[1] == 0) && 0) || 1
+    return ((counts[0] == 0) && 1) || 0
   }
 
   return -1;
@@ -83,11 +102,23 @@ export function endState() {
   } else {
     winner = 2 // TIE
   }
+  // if neither condition passes, winner is set to tie by default
+  // else {
+  //   winner = 2
+  // }
 
 
   //credit points to players
-
-  //TODO - VINH
+  let points = {};
+  for (const id in playersMetadata){
+    points[id] = playersMetadata[id].hits * 10;
+    if (playersMetadata[id].team == winner){
+      points[id] += 50;
+    }
+    if (id == winner){
+      points[id] += 10;
+    }
+  }
 
   //wipe everything
   players = {};
@@ -95,18 +126,20 @@ export function endState() {
   balls = {};
 
   let sockets = getConnections();
-  const broadcast = JSON.stringify([constants.MESSAGES.gameEnd, winner, mvp])
+  let newTime = Date.now() + constants.LOBBY_LENGTH + 250
+  
   for (const id in sockets) {
+    const broadcast = JSON.stringify([constants.MESSAGES.gameEnd, winner, mvp, points[id], newTime])
     sockets[id].send(broadcast);
   }
 
-  onFinish(0,null)
+  onFinish(0,newTime);
 }
 
 //called when player joins. do nothing here (since they should only spectate if joining mid-game)
 export function addPlayer(id) {
   let sockets = getConnections();
-  let list = JSON.stringify([constants.MESSAGES.playerList, 1, id, players, playersMetadata, gameStartTimer, gameEndTimer]);
+  let list = JSON.stringify([constants.MESSAGES.playerList, 1, id, players, playersMetadata, gameStartTimer, gameEndTimer, balls]);
   sockets[id].send(list);
 }
 
@@ -117,6 +150,7 @@ export function deletePlayer(id) {
     delete playersMetadata[id];
 
     for (let otherID in sockets) {
+        if (otherID == id) continue;
         sockets[otherID].send(JSON.stringify([constants.MESSAGES.playerLeave, id]));
     }
   } 
@@ -130,43 +164,11 @@ export function processMessage(id, message) {
   if (!(id in players)) {
     return;
   }
-  let sockets = getConnections();
   let data = constants.message_parse(message)
   switch (data.type) {
     case constants.MESSAGES.sendMovement:
       //store player keys
       players[id].direction = data.direction;
-      break;
-    case constants.MESSAGES.playerJoin:
-      break; //DO NOTHING ON PLAYER JOIN
-      //add player to players list
-      players[id] = {
-        ...constants.BASE_PLAYER,
-      };
-      playersMetadata[id] = {
-        username: data.username,
-        body: 0,
-        ball: constants.TEMP_DEFAULT_BALL_MODEL_UNTIL_SELECT_BALL_IS_DONE,
-      };
-
-      //send list of players to newly joined players
-      sockets[id].send(
-        JSON.stringify([constants.MESSAGES.playerList, id, players, playersMetadata]),
-      );
-
-      //send new join to all other players
-      for (let otherID in players) {
-        if (id == otherID) continue;
-
-        sockets[otherID].send(
-          JSON.stringify([
-            constants.MESSAGES.playerJoin,
-            id,
-            players[id],
-            playersMetadata[id],
-          ]),
-        );
-      }
       break;
     case constants.MESSAGES.throwBall:
       if (players[id].hasBall) {
@@ -186,6 +188,7 @@ export function processMessage(id, message) {
           throwerID: id,
           isGrounded: false,
         };
+        balls.didChange = true;
       }
       break;
   }
@@ -208,8 +211,10 @@ export function doTick() {
   
     //Update Ball physics
     for (const ballID in balls) {
+      if (ballID == "didChange") continue;
       let ball = balls[ballID];
-  
+      
+      //If the ball isn't grounded, apply velocity
       if (!ball.isGrounded) { // only mid-air balls should be moving
         ball.spin += 1;
         ball.velocity[1] -= constants.TICK_DT * constants.BALL_GRAVITY; // acceleration due to gravity
@@ -226,7 +231,7 @@ export function doTick() {
           ball.isGrounded = true;
         }
   
-        //check if ball in bounds
+        //Check if ball is in bounds
         if (
           ball.x < -constants.WORLD_HALF_LENGTH ||
           ball.x > constants.WORLD_HALF_LENGTH ||
@@ -237,7 +242,7 @@ export function doTick() {
           // resets ball to center of the arena for now
           ball.velocity = [0, 0, 0];
           ball.x = 0;
-          ball.z = 0;
+          ball.z = playersMetadata[ball.throwerID].team * 6 - 3;
           ball.y = constants.BALL_RADIUS;
           ball.isGrounded = true;
         }
@@ -256,23 +261,42 @@ export function doTick() {
     }
     //Update Player movements
     for (const playerID in players) {
+      if (!(playerID in players)) {
+        //i do not know why i have to add this
+        continue;
+      }
       let player = players[playerID];
+
+
+      //move player according to their velocity
       player.x += player.direction[0] * constants.SPEED_DT;
       player.x = Math.min(
-        Math.max(player.x, -constants.WORLD_HALF_LENGTH),
+        Math.max(player.x, -constants.WORLD_HALF_LENGTH ),
         constants.WORLD_HALF_LENGTH,
-      ); //clamp to world border
+      ); //clamp to world border on X
   
+      //move player according to their velocity
       player.z += player.direction[1] * constants.SPEED_DT;
-      player.z = Math.min(
-        Math.max(player.z, -constants.WORLD_HALF_WIDTH),
-        constants.WORLD_HALF_WIDTH,
-      ); //clamp to world border
+      if (player.alive){ // clamp to team's side if alive
+        player.z = Math.min(
+          Math.max(player.z, playersMetadata[playerID].team == 0 && -constants.WORLD_HALF_WIDTH || 0),
+          playersMetadata[playerID].team * constants.WORLD_HALF_WIDTH,
+        );
+      } else { // if dead can move wherever
+        player.z = Math.min(
+          Math.max(player.z, -constants.WORLD_HALF_WIDTH),
+          constants.WORLD_HALF_WIDTH,
+        );
+      }
+      
   
       let possibleCollisons = { // dividing arena in sections to avoid unnecessary hit detection calculations
         ...sections[Math.floor(player.x - constants.PLAYER_RADIUS)],
         ...sections[Math.floor(player.x + constants.PLAYER_RADIUS)],
       };
+
+      //check every ball in the same x-position slice for a collision
+      //makes the m*n algorithm faster by bounding both m and n
       for (const ballID in possibleCollisons) {
         //check z and x axis of player and ball
         if (!(ballID in balls)) continue;
@@ -283,26 +307,42 @@ export function doTick() {
             (player.z - ball.z) * (player.z - ball.z);
           if (dist <= constants.COLLISION_R2) {
             // When player and a ball collide
-            if (ball.isGrounded && !player.hasBall && player.alive) {
-              // When ball is on ground and player has no ball, player picks up ball
-              player.hasBall = true;
-              delete balls[ballID];
+            if (ball.isGrounded) {
+              if (player.alive  && !player.hasBall){
+                // When ball is on ground and living player has no ball, player picks up ball
+                player.hasBall = true;
+                delete balls[ballID];
+                balls.didChange = true
               // places the lower and upper edge of ball each into the arena divisions
-              let lower = Math.floor(player.x - constants.PLAYER_RADIUS);
-              let upper = Math.floor(player.x + constants.PLAYER_RADIUS);
+                let lower = Math.floor(player.x - constants.PLAYER_RADIUS);
+                let upper = Math.floor(player.x + constants.PLAYER_RADIUS);
 
-              // removes ball from ball hit-detection search
-              if (lower in sections && ballID in sections[lower]) {
-                delete sections[lower][ballID];
+                // removes ball from ball hit-detection search
+                if (lower in sections && ballID in sections[lower]) {
+                  delete sections[lower][ballID];
+                }
+                if (upper in sections && ballID in sections[upper]) {
+                  delete sections[upper][ballID];
+                }
+              } else {
+                // When ball is on ground and dead player touches it, player pushes ball in direction they are moving
+                ball.x += player.direction[0] * constants.TICK_DT * constants.BALL_SHOVE_SPEED;
+                ball.z += player.direction[1] * constants.TICK_DT * constants.BALL_SHOVE_SPEED;
               }
-              if (upper in sections && ballID in sections[upper]) {
-                delete sections[upper][ballID];
-              }
+
             } else if (!ball.isGrounded && player.alive && ball.y <= constants.PLAYER_HEIGHT + constants.BALL_RADIUS && ball.throwerID != playerID && playersMetadata[ball.throwerID].team != playersMetadata[playerID].team) {
               // When mid-air ball hits another player
               console.log("[HIT] Ball from ",ball.throwerID, " killed ", playerID);
               players[playerID].alive = false;
               players[playerID].hasBall = false;
+              playersMetadata[ball.throwerID].hits++;
+
+
+              let winner = isGameOver()
+              if (winner != -1) {
+                endState();
+              }
+
               // LATER: if have ball, return ball to game
   
               // puts the ball that hit the player back into the center of arena
@@ -312,6 +352,7 @@ export function doTick() {
   
               // informs all players of this player knockout
               for (let otherID in players) {
+                if (!(otherID in sockets)) continue;
                 sockets[otherID].send(
                   JSON.stringify([constants.MESSAGES.playerKnockout, playerID, ball.throwerID]),
                 );
@@ -328,6 +369,7 @@ export function doTick() {
         JSON.stringify([constants.MESSAGES.serverUpdate, players, balls]),
       );
     }
+    balls.didChange = false;
 }
 
 export function setFinishCallback(val) {

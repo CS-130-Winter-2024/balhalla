@@ -17,32 +17,6 @@ export function getSkybox() {
   return bg;
 }
 
-// Sample test world for development
-function sampleTestWorld(world) {
-
-  // adding human model
-  let humanModel;
-  ModelLoader.load(
-    vikingboat,
-    (gltf) => {
-      humanModel = gltf.scene;
-      // humanModel.scale.set(2, 2, 2);
-      humanModel.position.set(2, 0, 4);
-      // humanModel.children[0].rotation.set(1.5, 0, 0);
-      console.log("[MODEL] ", gltf);
-      world.add(humanModel);
-
-      //mixer = new three.AnimationMixer(humanModel);
-      //const clip = gltf.animations[0];
-      //const action = mixer.clipAction(clip);
-      //action.play();
-    },
-    undefined,
-    (error) => console.error("Error loading human model", error),
-  );
-
-  return world;
-}
 
 export function createWorld() {
   var world = new three.Group();
@@ -61,7 +35,5 @@ export function createWorld() {
     world.add(arena);
   });
 
-  let testWorld = sampleTestWorld(world);
-
-  return testWorld;
+  return world;
 }

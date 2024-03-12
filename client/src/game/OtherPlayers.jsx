@@ -24,13 +24,20 @@ class PlayerModel {
   }
 
   dispose() {
+    console.log(this.tag,"Tag");
     this.tag.dispose();
-    this.group.remove(tag);
-    this.group.remove(body);
+    this.body.remove(this.body.children[0]);
+    this.group.remove(this.tag);
+    this.group.remove(this.body);
   }
 
   update(camera) {
     this.tag.quaternion.copy(camera.quaternion);
+  }
+
+  switchGhost() { // swaps the vikingboat model with the ghost model
+    this.body.remove(this.body.children[0]);
+    this.body.add(getModelInstance("9")); // 9 is the ID for the ghost model
   }
 }
 
@@ -52,12 +59,14 @@ export function addPlayer(playerID, data, metadata) {
 
   //add 3d model to model group
   playersModels[playerID] = new PlayerModel(metadata);
+  playersModels[playerID].group.position.x = data.x
+  playersModels[playerID].group.position.z = data.z
   otherPlayerGroup.add(playersModels[playerID].group);
 }
 
 export function removePlayer(playerID) {
-  otherPlayerGroup.remove(playersModels[playerID].group);
   playersModels[playerID].dispose();
+  otherPlayerGroup.remove(playersModels[playerID].group);
   delete playersModels[playerID];
   delete players[playerID];
   delete playersMetadata[playerID];
@@ -66,8 +75,13 @@ export function removePlayer(playerID) {
 export function clearPlayers() {
   for (const playerID in players) {
     if (playerID == get_global("CLIENT_ID")) continue;
+    console.log("Removing",playerID,"from",players);
     removePlayer(playerID);
   }
+}
+
+export function playerDeath(playerID) { // function to trigger upon player knockout
+  playersModels[playerID].switchGhost();
 }
 
 // Called on server update message
@@ -90,8 +104,8 @@ export function update() {
     
     // Used to orient the player models in the direction they last moved toward
     let rotation = Math.atan2(players[playerID].direction[0], players[playerID].direction[1]);
-    if(players[playerID].direction[0] != 0 || players[playerID].direction[1] != 0){
-      playersModels[playerID].body.rotation.y = rotation  + Math.PI;
+    if(players[playerID].direction[0]+players[playerID].direction[1] != 0){
+      playersModels[playerID].body.rotation.y = rotation + Math.PI;
     }
   }
 }

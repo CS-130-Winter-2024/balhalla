@@ -14,8 +14,8 @@ export function getConnections() {
     return connections;
 }
 
-export function login(connectionID, token) {
-    tokens[connectionID] = token;
+export function login(connectionID, username) {
+    tokens[connectionID] = username;
 }
 
 export function logout(connectionID) {

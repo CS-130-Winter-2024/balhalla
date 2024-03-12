@@ -6,8 +6,9 @@ var gameStartTimer = Date.now() + constants.LOBBY_LENGTH;
 
 var onFinish = ()=>{}
 
-export function startState() {
-    gameStartTimer = Date.now() + constants.LOBBY_LENGTH;
+export function startState(timer) {
+    playerQueue = {};
+    gameStartTimer = timer;
 }
 
 export function addPlayer(id) {
@@ -37,7 +38,7 @@ export function processMessage(id, message) {
         if (message.metaData != undefined) {
             playerQueue[id] = {
                 username: data.username,
-                body: constants.TEMP_DEFAULT_BALL_MODEL_UNTIL_SELECT_BODY_IS_DONE,
+                body: constants.DEFAULT_BODY,
                 ball: constants.TEMP_DEFAULT_BALL_MODEL_UNTIL_SELECT_BALL_IS_DONE,
                 ...message.metaData
             };
@@ -45,7 +46,7 @@ export function processMessage(id, message) {
         }
         playerQueue[id] = {
             username: data.username,
-            body: constants.TEMP_DEFAULT_BALL_MODEL_UNTIL_SELECT_BODY_IS_DONE,
+            body: constants.DEFAULT_BODY,
             ball: constants.TEMP_DEFAULT_BALL_MODEL_UNTIL_SELECT_BALL_IS_DONE,
         };
         break
@@ -54,7 +55,7 @@ export function processMessage(id, message) {
 
 var prev = -1;
 export function doTick() {
-    if (playerQueue < constants.MINIMUM_PLAYERS) {
+    if (Object.keys(playerQueue).length < constants.MINIMUM_PLAYERS) {
         gameStartTimer = Date.now() + constants.LOBBY_LENGTH;
         return;
     }

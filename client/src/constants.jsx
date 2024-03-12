@@ -23,6 +23,7 @@ export const SPEED = 5; // Player speed
 export const ALIVE_Y = 2; // Camera position when player is alive
 
 export const THROW_KEY = "f"
+export const SHIFT_KEY = "Shift"
 export const MOVEMENT_MAP = { w: 0, a: 1, s: 2, d: 3 };
 
 export const DASH_COOLDOWN = 5000;
@@ -59,6 +60,8 @@ export function message_parse(msg) {
                 output.metaData = data[4]
                 output.startTime = data[5]
                 output.endTime = data[6]
+                output.ballData = data[7]
+                output.ballData.didChange = true;
             }
             break
         case MESSAGES.gameStart:
@@ -72,6 +75,7 @@ export function message_parse(msg) {
             output.winner = data[1]
             output.mvp = data[2]
             output.points = data[3]
+            output.startTime = data[4]
             break
         case MESSAGES.serverUpdate:
             output.playerData = data[1]
@@ -206,7 +210,7 @@ export function add_listener(key,fun, repeat=true) {
     let index = 0;
     if (key in LISTENERS) {
         let last;
-        for (x in LISTENERS[key]) {
+        for (const x in LISTENERS[key]) {
             last = x;
         }
         index = Number(last) + 1;

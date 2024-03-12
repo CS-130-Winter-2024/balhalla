@@ -6,7 +6,7 @@ var camera;
 var spectateCamera;
 
 
-var spectating = false
+var spectating = true
 
 // Properties of the client's player in-game
 var properties = {
@@ -14,12 +14,10 @@ var properties = {
   y: constants.ALIVE_Y,
   z: 0,
   directionHeld: [0, 0, 0, 0],
-  hasBall: false,
+  hasBall: true,
 };
 // Meta data of the client player (player's points, selected ball, selected pet, etc.)
 var myMetadata;
-
-var locked = false; //Locked = First Person Cam; Unlocked = Mouse Movement
 
 var movementVector = new three.Vector3();
 var perpVector = new three.Vector3();
@@ -68,7 +66,7 @@ function sendMovement(override = false) {
 }
 
 function throwBall() {
-  if (locked && properties.hasBall) { // can only throw ball if not in menu and if you are holding ball
+  if (constants.get_global("LOCKED") && properties.hasBall) { // can only throw ball if not in menu and if you are holding ball
     // sends camera direction to server to handle ball velocity
     camera.getWorldDirection(intermediateVector);
     getSocket().send(
@@ -83,7 +81,7 @@ function throwBall() {
 function onKeyDown(e) {
   if (spectating) return;
   // callback is sendMovement(vector) from Connection.jsx
-  if (locked) {
+  if (constants.get_global("LOCKED")) {
     let wasMovement = false;
 
     if (e.key in constants.MOVEMENT_MAP) { // Movement keys: WASD
@@ -92,7 +90,7 @@ function onKeyDown(e) {
       properties.directionHeld[index] = 1;
     }
 
-    if (e.key == "Shift"){ // dash should only trigger on key press, not release
+    if (e.key == constants.SHIFT_KEY){ // dash should only trigger on key press, not release
       if (dashAvailable){
         wasMovement = true;
         dashScalar = constants.DASH_SPEED;
@@ -119,7 +117,7 @@ function onKeyDown(e) {
 function onKeyUp(e) {
   if (spectating) return;
   // callback is sendMovement(vector) from Connection.jsx
-  if (locked) {
+  if (constants.get_global("LOCKED")) {
     let wasMovement = false;
 
     if (e.key in constants.MOVEMENT_MAP) { // Movement keys: WASD
@@ -149,17 +147,14 @@ function onKeyUp(e) {
 export function attachKeybinds() {
   document.addEventListener("keydown", onKeyDown);
   document.addEventListener("keyup", onKeyUp);
-  // document.addEventListener("mousedown", onClick);
-  document.addEventListener("lock", () => {
-    locked = true;
-    properties.directionHeld = [0, 0, 0, 0];
-  });
-  document.addEventListener("unlock", () => {
-    locked = false;
-    properties.directionHeld = [0, 0, 0, 0];
-    calculateDirection();
-    sendMovement(true);
-  });
+
+  constants.add_listener("LOCKED",(isLocked) =>{
+    if (!isLocked) {
+      properties.directionHeld = [0, 0, 0, 0];
+      calculateDirection();
+      sendMovement(true);
+    }
+  })
 }
 
 // default spectating camera for when player is dead or in lobby
@@ -201,11 +196,14 @@ export function getCamera() {
   return camera;
 }
 
-export function updatePlayer(data) {
+export function updatePlayer(data, force=false) {
   properties = {
     ...properties,
     ...data,
   };
+  if (force) {
+    camera.position.set(properties.x,properties.y,properties.z);
+  }
 }
 
 function updateSpectateCamera() {
@@ -217,21 +215,19 @@ export function update() {
     updateSpectateCamera();
     return;
   }
-  if (locked) {
-    //if dotproduct between camera and previous camera vector < 0.9
-    if (movementVector.length() > 0.5) {
-      camera.getWorldDirection(intermediateVector);
-      let dot = prevCamVector.dot(intermediateVector);
-      if (dot < 0.95 && dot > 0.05) {
-        //send update to server
-        calculateDirection();
-        sendMovement();
-      }
+  //if dotproduct between camera and previous camera vector < 0.9
+  if (movementVector.length() > 0.5) {
+    camera.getWorldDirection(intermediateVector);
+    let dot = prevCamVector.dot(intermediateVector);
+    if (dot < 0.95 && dot > 0.05) {
+      //send update to server
+      calculateDirection();
+      sendMovement();
     }
-
-    intermediateVector.set(properties.x, properties.y, properties.z);
-    camera.position.lerp(intermediateVector, 0.2);
   }
+
+  intermediateVector.set(properties.x, properties.y, properties.z);
+  camera.position.lerp(intermediateVector, 0.2);
 }
 
 export function setMetadata(data){

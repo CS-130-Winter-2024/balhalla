@@ -11,6 +11,7 @@ export const TICK_DT = 0.05; //tick rate in seconds
 //speed
 export const PLAYER_SPEED = 5;  //meters/second for players
 export const BALL_SPEED = 20; //INITIAL BALL SPEED
+export const BALL_SHOVE_SPEED = 4; // speed of a ball on the ground a ghost is pushing
 export const BALL_GRAVITY = 9.8;
 export const SPEED_DT = PLAYER_SPEED * TICK_DT;
 

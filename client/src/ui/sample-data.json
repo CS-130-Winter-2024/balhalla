@@ -1,0 +1,116 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "name": "1 Doe",
+      "email": "johndoe@example.com",
+      "points": 100,
+      "hits": 5
+    },
+    {
+      "id": 2,
+      "name": "2 Doe",
+      "email": "janedoe@example.com",
+      "points": 50,
+      "hits": 3
+    },
+    {
+      "id": 3,
+      "name": "3 Smith",
+      "email": "bobsmith@example.com",
+      "points": 75,
+      "hits": 2
+    },
+    {
+      "id": 4,
+      "name": "4 Johnson",
+      "email": "alicejohnson@example.com",
+      "points": 25,
+      "hits": 1
+    },
+    {
+      "id": 5,
+      "name": "5 Brown",
+      "email": "miketbrown@example.com",
+      "points": 10,
+      "hits": 0
+    },
+    {
+      "id": 1,
+      "name": "6 Doe",
+      "email": "johndoe@example.com",
+      "points": 100,
+      "hits": 5
+    },
+    {
+      "id": 2,
+      "name": "7 Doe",
+      "email": "janedoe@example.com",
+      "points": 50,
+      "hits": 3
+    },
+    {
+      "id": 3,
+      "name": "8 Smith",
+      "email": "bobsmith@example.com",
+      "points": 75,
+      "hits": 2
+    },
+    {
+      "id": 4,
+      "name": "9 Johnson",
+      "email": "alicejohnson@example.com",
+      "points": 25,
+      "hits": 1
+    },
+    {
+      "id": 5,
+      "name": "10 Brown",
+      "email": "miketbrown@example.com",
+      "points": 10,
+      "hits": 0
+    },
+    {
+      "id": 5,
+      "name": "11 Brown",
+      "email": "miketbrown@example.com",
+      "points": 10,
+      "hits": 0
+    },
+    {
+      "id": 1,
+      "name": "12 Doe",
+      "email": "johndoe@example.com",
+      "points": 100,
+      "hits": 5
+    },
+    {
+      "id": 2,
+      "name": "13 Doe",
+      "email": "janedoe@example.com",
+      "points": 50,
+      "hits": 3
+    },
+    {
+      "id": 3,
+      "name": "14 Smith",
+      "email": "bobsmith@example.com",
+      "points": 75,
+      "hits": 2
+    },
+    {
+      "id": 4,
+      "name": "15 Johnson",
+      "email": "alicejohnson@example.com",
+      "points": 25,
+      "hits": 1
+    },
+    {
+      "id": 5,
+      "name": "16 Brown",
+      "email": "miketbrown@example.com",
+      "points": 10,
+      "hits": 0
+    }
+  ]
+}

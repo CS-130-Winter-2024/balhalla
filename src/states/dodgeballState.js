@@ -60,15 +60,15 @@ export function startState(data) {
   }
 }
 
-function isWinner() {
+function isGameOver() {
   let counts = [0,0];
-  for (id in players) {
+  for (const id in players) {
     if (players[id].alive)
       counts[playersMetadata[id].team] += 1;
   }
 
   if (counts[0] == 0 || counts[1] == 0) {
-    return ((counts[1] == 0) && 0) || 1
+    return ((counts[0] == 0) && 1) || 0
   }
 
   return -1;
@@ -114,12 +114,13 @@ export function endState() {
   balls = {};
 
   let sockets = getConnections();
-  const broadcast = JSON.stringify([constants.MESSAGES.gameEnd, winner, mvp])
+  let newTime = Date.now() + constants.LOBBY_LENGTH + 250
+  const broadcast = JSON.stringify([constants.MESSAGES.gameEnd, winner, mvp, points, newTime])
   for (const id in sockets) {
     sockets[id].send(broadcast);
   }
 
-  onFinish(0,null)
+  onFinish(0,newTime);
 }
 
 //called when player joins. do nothing here (since they should only spectate if joining mid-game)
@@ -299,6 +300,14 @@ export function doTick() {
               console.log("[HIT] Ball from ",ball.throwerID, " killed ", playerID);
               players[playerID].alive = false;
               players[playerID].hasBall = false;
+              playersMetadata[ball.throwerID].hits++;
+
+
+              let winner = isGameOver()
+              if (winner != -1) {
+                endState();
+              }
+
               // LATER: if have ball, return ball to game
   
               // puts the ball that hit the player back into the center of arena

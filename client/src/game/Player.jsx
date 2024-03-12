@@ -6,7 +6,7 @@ var camera;
 var spectateCamera;
 
 
-var spectating = false
+var spectating = true
 
 // Properties of the client's player in-game
 var properties = {
@@ -14,7 +14,7 @@ var properties = {
   y: constants.ALIVE_Y,
   z: 0,
   directionHeld: [0, 0, 0, 0],
-  hasBall: false,
+  hasBall: true,
 };
 // Meta data of the client player (player's points, selected ball, selected pet, etc.)
 var myMetadata;
@@ -66,7 +66,7 @@ function sendMovement(override = false) {
 }
 
 function throwBall() {
-  if (locked && properties.hasBall) { // can only throw ball if not in menu and if you are holding ball
+  if (constants.get_global("LOCKED") && properties.hasBall) { // can only throw ball if not in menu and if you are holding ball
     // sends camera direction to server to handle ball velocity
     camera.getWorldDirection(intermediateVector);
     getSocket().send(
@@ -147,17 +147,14 @@ function onKeyUp(e) {
 export function attachKeybinds() {
   document.addEventListener("keydown", onKeyDown);
   document.addEventListener("keyup", onKeyUp);
-  // document.addEventListener("mousedown", onClick);
-  document.addEventListener("lock", () => {
-    locked = true;
-    properties.directionHeld = [0, 0, 0, 0];
-  });
-  document.addEventListener("unlock", () => {
-    locked = false;
-    properties.directionHeld = [0, 0, 0, 0];
-    calculateDirection();
-    sendMovement(true);
-  });
+
+  constants.add_listener("LOCKED",(isLocked) =>{
+    if (!isLocked) {
+      properties.directionHeld = [0, 0, 0, 0];
+      calculateDirection();
+      sendMovement(true);
+    }
+  })
 }
 
 // default spectating camera for when player is dead or in lobby

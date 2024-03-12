@@ -2,9 +2,9 @@
 export const MINIMUM_PLAYERS = 1;
 
 //times
-export const LOBBY_LENGTH = 20000;
+export const LOBBY_LENGTH = 10000;
 export const START_COUNTDOWN = 5000;
-export const GAME_LENGTH = 20000; //game length in milliseconds
+export const GAME_LENGTH = 45000; //game length in milliseconds
 export const TICK_RATE = 50; //how often to update server in milliseconds
 export const TICK_DT = 0.05; //tick rate in seconds
 

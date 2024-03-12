@@ -54,6 +54,8 @@ export function addPlayer(playerID, data, metadata) {
 
   //add 3d model to model group
   playersModels[playerID] = new PlayerModel(metadata);
+  playersModels[playerID].group.position.x = data.x
+  playersModels[playerID].group.position.z = data.z
   otherPlayerGroup.add(playersModels[playerID].group);
 }
 
@@ -93,8 +95,8 @@ export function update() {
     
     // Used to orient the player models in the direction they last moved toward
     let rotation = Math.atan2(players[playerID].direction[0], players[playerID].direction[1]);
-    if(players[playerID].direction[0] != 0 || players[playerID].direction[1] != 0){
-      playersModels[playerID].body.rotation.y = rotation  + Math.PI;
+    if(players[playerID].direction[0]+players[playerID].direction[1] != 0){
+      playersModels[playerID].body.rotation.y = rotation + Math.PI;
     }
   }
 }

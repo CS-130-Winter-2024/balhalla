@@ -7,6 +7,7 @@ import TextField from '@mui/material/TextField'
 import Store from '../menus/Store'
 import PropTypes from 'prop-types'
 import { BUYABLE_MODELS, add_listener, set_global } from '../constants'
+import Clock from './components/Clock'
 
 // when page is loaded, check token in cookies against server
 // if so, start as logged in, otherwise logged out
@@ -322,6 +323,7 @@ export default function UI({ showAlert }) {
         setCoins={setCoins}
       />
       {/* END: Giang's stuff */}
+      <Clock />
       <div id="UI" style={{ display: (locked && 'none') || 'block' }}>
         <h1 id="logo">Balhalla</h1>
         <h2>{username}</h2>
@@ -345,10 +347,10 @@ export default function UI({ showAlert }) {
         </Button>
       </div>
       <div
-        id="crosshair"
+        id="overlay"
         style={{ display: (locked && 'block') || 'none' }}
       >
-        <img src={crosshair} width={50} height={50} />
+        <img src={crosshair} style={{position:"absolute",left:"50%",top:"50%",transform:"translate(-50%,-50%)"}} width={50} height={50} />
       </div>
     </>
   )

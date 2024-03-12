@@ -72,6 +72,7 @@ export function message_parse(msg) {
             output.winner = data[1]
             output.mvp = data[2]
             output.points = data[3]
+            output.startTime = data[4]
             break
         case MESSAGES.serverUpdate:
             output.playerData = data[1]

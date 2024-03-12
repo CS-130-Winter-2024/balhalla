@@ -18,9 +18,11 @@ function websocketSetup() {
   //On connect, send username
   setHandler("open", (socket) => {
     let usernm = getUsername();
-    var eventMsg = JSON.stringify([constants.MESSAGES.playerJoin, { username: usernm }]);
-    document.dispatchEvent(new CustomEvent("setUsername", { detail: usernm }));
+    constants.set_global("USERNAME",usernm);
+    var eventMsg = JSON.stringify([constants.MESSAGES.playerJoin, { username: constants.get_global("USERNAME") }]);
     socket.send(eventMsg);
+    document.dispatchEvent(new CustomEvent("setUsername", { detail: usernm }));
+    
   });
 
   //On player list sent, add all players to scene
@@ -32,8 +34,14 @@ function websocketSetup() {
         if (player == data.id) continue;
         Others.addPlayer(player, data.playerData[player], data.metaData[player]); // adds other players to the scene
       }
+      constants.set_global("TIMER_LABEL", "Game ends in")
+      constants.set_global("CURRENT_TIMER",data.endTime);
+    } else{
+      constants.set_global("TIMER_LABEL", "Game starts in")
+      constants.set_global("CURRENT_TIMER",data.startTime);
     }
-    Player.setSpectate(true);
+
+
   });
 
   setHandler(constants.MESSAGES.gameStart, (socket, data) => {
@@ -51,18 +59,26 @@ function websocketSetup() {
       Others.addPlayer(player, data.playerData[player], data.metaData[player]);
     }
 
-    constants.set_global("GAME_START_TIME",data.startTime);
-    constants.set_global("GAME_END_TIME",data.endTime);
-
+    constants.set_global("CURRENT_TIMER",data.startTime);
+    setTimeout(()=>{
+      constants.set_global("TIMER_LABEL", "Game ends in")
+      constants.set_global("CURRENT_TIMER",data.endTime)
+    },data.startTime-Date.now());
+    ;
   })
 
   setHandler(constants.MESSAGES.gameEnd, (socket,data) =>{ 
     constants.set_global("GAME_STATE",0);
-    constants.set_global("PLAYING",false);
     Player.setSpectate(true);
 
     Others.clearPlayers();
     Balls.clearBalls();
+
+    constants.set_global("TIMER_LABEL", "Game starts in")
+    constants.set_global("CURRENT_TIMER",data.startTime);
+
+    var eventMsg = JSON.stringify([constants.MESSAGES.playerJoin, { username: constants.get_global("USERNAME") }]);
+    socket.send(eventMsg);
   })
 
   //On other player connect, add their data to scene

@@ -6,14 +6,9 @@ var gameStartTimer = Date.now() + constants.LOBBY_LENGTH;
 
 var onFinish = ()=>{}
 
-export function startState() {
-    gameStartTimer = Date.now() + constants.LOBBY_LENGTH;
-    let sockets = getConnections();
-    for (const ID in playerQueue) {
-        if (!(ID in sockets)) {
-            delete playerQueue[ID];
-        }
-    }
+export function startState(timer) {
+    playerQueue = {};
+    gameStartTimer = timer;
 }
 
 export function addPlayer(id) {

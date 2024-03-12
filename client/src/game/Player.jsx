@@ -104,11 +104,6 @@ function onKeyDown(e) {
           dashAvailable = true;
         }, constants.DASH_COOLDOWN);
       }
-      else{
-        wasMovement = true;
-        dashScalar = 1;
-      }
-      
     }
 
     // Only calculating and sending movements to server when wasMovement is true.

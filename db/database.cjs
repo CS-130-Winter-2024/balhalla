@@ -78,14 +78,12 @@ async function login(request, response, next) {
 }
 
 function getLeaderboardList(request, response) {
-  let jsonData = {}
   console.log('leaderboard:')
   knex.select('username', 'wins', 'losses', 'hits')
   .from('accounts')
   .orderBy('wins')
   .orderBy('hits')
   .then(rows => {
-      // jsonData = {  };
       console.log(JSON.stringify(rows));
       response.status(200).json(JSON.stringify(rows))
   })
@@ -93,38 +91,52 @@ function getLeaderboardList(request, response) {
       console.error(err);
   })
 
-  // return jsonData;
 }
 
 async function updatePoints(user, pointChange) {
   knex('accounts')
   .where('username', user)
   .increment('points', pointChange)
-  .then(() => {
-    console.log('Points updated successfully');
-  })
   .catch(err => {
     console.error(err);
   })
 }
 
-async function updateWins(username, points) {
-
+async function updateWin(user, winChange) {
+  knex('accounts')
+  .where('username', user)
+  .increment('wins', winChange)
+  .catch(err => {
+    console.error(err);
+  })
 }
 
-async function updateLossses(username, points) {
-
+async function updateLoss(user, lossChange) {
+  knex('accounts')
+  .where('username', user)
+  .increment('losses', lossChange)
+  .catch(err => {
+    console.error(err);
+  })
 }
 
-async function updateHits(username, hits) {
-  
+async function updateHits(user, hitChange) {
+  knex('accounts')
+  .where('username', user)
+  .increment('hits', hitChange)
+  .catch(err => {
+    console.error(err);
+  })
 }
  
 module.exports = {
   signup,
   login,
   getLeaderboardList,
-  updatePoints
+  updatePoints,
+  updateWin,
+  updateLoss,
+  updateHits
 };
 
 (async () => {
@@ -166,6 +178,12 @@ module.exports = {
   
   await knex('accounts').insert({
     username: 'admin',
+    password: testpw,
+    points: 0,
+  });
+
+  await knex('accounts').insert({
+    username: 'admin2',
     password: testpw,
     points: 0,
   });

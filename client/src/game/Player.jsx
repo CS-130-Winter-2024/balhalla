@@ -90,7 +90,7 @@ function onKeyDown(e) {
       properties.directionHeld[index] = 1;
     }
 
-    if (e.key == "Shift"){ // dash should only trigger on key press, not release
+    if (e.key == constants.SHIFT_KEY){ // dash should only trigger on key press, not release
       if (dashAvailable){
         wasMovement = true;
         dashScalar = constants.DASH_SPEED;

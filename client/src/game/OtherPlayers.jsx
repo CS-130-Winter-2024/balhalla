@@ -34,6 +34,11 @@ class PlayerModel {
   update(camera) {
     this.tag.quaternion.copy(camera.quaternion);
   }
+
+  switchGhost() { // swaps the vikingboat model with the ghost model
+    this.body.remove(this.body.children[0]);
+    this.body.add(getModelInstance("9")); // 9 is the ID for the ghost model
+  }
 }
 
 
@@ -73,6 +78,10 @@ export function clearPlayers() {
     console.log("Removing",playerID,"from",players);
     removePlayer(playerID);
   }
+}
+
+export function playerDeath(playerID) { // function to trigger upon player knockout
+  playersModels[playerID].switchGhost();
 }
 
 // Called on server update message

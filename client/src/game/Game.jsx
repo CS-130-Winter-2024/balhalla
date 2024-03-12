@@ -100,9 +100,13 @@ function websocketSetup() {
 
   setHandler(constants.MESSAGES.playerKnockout, (socket,data) => {
     console.log("[HIT]",data);
+
     if (data.target == constants.get_global("CLIENT_ID")) {
-      Player.setSpectate(true) //HANDLE DEATH! DONT DO THIS;
+      // If player is hit, they won't know yet
       console.log("I was hit!");
+    } else {
+      // any hit players should become ghosts
+      Others.playerDeath(data.target);
     }
   })
 

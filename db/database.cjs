@@ -14,29 +14,38 @@ const knex = require("knex")({
 
 });
 
-async function testSignup(request, response, next) {
+async function signup(request, response, next) {
+  // check if username is taken
+  knex("accounts")
+    .where({ username: request.body.username })
+    .first()
+    .then(user => {
+      if (user) {
+        return response.status(401).json({
+          error: "Username already taken"
+        })
+      }
+    })
+  
   await bcrypt.hash(request.body.password, 10)
     .then(hashedPassword => {
-      return knex("accounts").insert({
+      knex("accounts").insert({
         username: request.body.username,
         password: hashedPassword
       })
-        .returning(["username", "password"])
-        .then(users => {
-          response.status(200).json(users[0])
-          console.log("signup worked:", users[0])
+      .returning(["username", "password"])
+      .then(new_user => {
+        console.log('signup user', new_user)
+        return jwt.sign(new_user[0].username, SECRET, (error, token) => {
+          response.status(200).json({ token: token })
+          console.log("signup db token:", token)
         })
-        .catch(error => next(error))
+      })
+      .catch(error => next(error))
     })
 }
-// function printUsers(request, response, next) {
-//    knex("accounts")
-//    .then(users => {
-//      response.status(200).send(JSON.stringify(users[0]))
-//    })
-// }
 
-function login(request, response, next) {
+async function login(request, response, next) {
   console.log(request.body)
   knex("accounts")
     .where({ username: request.body.username })
@@ -57,7 +66,8 @@ function login(request, response, next) {
               })
             }
             else {
-              return jwt.sign(user, SECRET, (error, token) => {
+              console.log('login user', user)
+              return jwt.sign(user.username, SECRET, (error, token) => {
                 response.status(200).json({ token: token })
                 console.log("db token:", token)
               })
@@ -68,13 +78,13 @@ function login(request, response, next) {
 }
 
 module.exports = {
-  testSignup,
+  signup,
   login
 };
 
 (async () => {
 
-  // Only while developing, we will drop  database and re-create it
+  // Only while developing, we will drop database and re-create it
   await knex.schema.dropTableIfExists('accounts')
   await knex.schema.dropTableIfExists('items')
 
@@ -92,7 +102,7 @@ module.exports = {
         table.integer('ball');
         //pet - charm that gets added to player as a customization
         table.integer('pet');
-
+        table.integer('icon');
       });
     }
   });

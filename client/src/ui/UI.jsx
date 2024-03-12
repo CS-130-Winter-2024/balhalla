@@ -12,15 +12,63 @@ import backgroundImage from "../../assets/textures/Background.png";
 
 import sampleData from "./sample-data.json";
 
-// when page is loaded, check token in cookies against server
+// TODO: when page is loaded, check token in cookies against server
 // if so, start as logged in, otherwise logged out
 
 async function handleSignup(username, pw, conf_pw) {
+  // check if pw is same as conf_pw
+  if (pw !== conf_pw) {
+    alert("Passwords do not match. Please try again with matching passwords.");
+  }
 
+  // console.log(admin);
+  // console.log(pw);
+
+  await fetch("/signup", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      username: username,
+      password: pw,
+    }),
+  })
+  .then((response) => response.json())
+  .then((data) => {
+    console.log(data);
+    if (data.error) {
+      console.log(data.error);
+      alert(data.error);
+    }
+    console.log("signup data:", data);
+  });
 }
 
 async function handleLogin(username, pw) {
+  console.log(username);
+  console.log(pw);
 
+  await fetch("/login", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      username: username,
+      password: pw,
+    }),
+  })
+  .then((response) => response.json())
+  .then((data) => {
+    console.log(data);
+    if (data.error) {
+      console.log(data.error);
+      alert(data.error);
+    }
+    console.log("login token:", data.token);
+    localStorage.setItem("token", data.token);
+  });
 }
 
 function Leaderboard() {

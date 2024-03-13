@@ -7,14 +7,20 @@ import game from './game/Game.jsx'
 import InGameMenu from './menus/InGameMenu.jsx'
 import AlertWrapper from './menus/AlertWrapper.jsx'
 import LogWrapper from './menus/LogWrapper.jsx'
+import EndScreen from './menus/EndScreen.jsx'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     {/* set to enableLogging={false} during production */}
     <LogWrapper enableLogging={true}>
       <AlertWrapper>
+
         {showAlert => (
           <>
+            <EndScreen
+              open={true}
+              onClose={() => {}}
+              />
             <UI showAlert={showAlert}/>
 
             <InGameMenu

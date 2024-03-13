@@ -18,6 +18,14 @@ import turtlePng from "../assets/images/turtle.png"
 import pigPng from "../assets/images/pig.png"
 import duckPng from "../assets/images/duck.png"
 
+
+import gojo from '../assets/images/gojo_pfp.jpg'
+import aot from '../assets/images/aot_pfp.jpg'
+import sukuna from '../assets/images/sukuna_pfp.jpg'
+import thorfinn from '../assets/images/thorfinn_pfp.jpg'
+import goku from '../assets/images/goku_pfp.jpg'
+
+
 //GAME
 export const SPEED = 5; // Player speed
 export const ALIVE_Y = 2; // Camera position when player is alive
@@ -99,7 +107,6 @@ export function message_parse(msg) {
 }
 
 
-
 //THREE.JS
 export const DODGE_BALL_SIDES = 28;
 
@@ -121,6 +128,83 @@ export const MODEL_IDS = {
     "9": vikingghost
 }
 
+export const MODEL_PROPERTIES = {
+    "0":{
+        name:"Viking",
+        buyable:false,
+        type:"Body"
+    },
+    "1":{
+        name:"Boat",
+        buyable:false,
+        type:"Body"
+    },
+    "2":{
+        name:"Axe",
+        buyable:true,
+        type:"Weapon",
+        cost:0,
+        image:axePng
+    },
+    "3":{
+        name:"Mjolnir",
+        buyable:true,
+        type:"Weapon",
+        cost:10,
+        image:hammerPng
+    },
+    "4":{
+        name:"Trident",
+        buyable:true,
+        type:"Weapon",
+        cost:10,
+        image:tridentPng
+    },
+    "5":{
+        name:"Tree",
+        buyable:true,
+        type:"Pet",
+        cost:0,
+        image:treePng
+    },
+    "6":{
+        name:"Turtle",
+        buyable:true,
+        type:"Pet",
+        cost:0,
+        image:turtlePng,
+    },
+    "7":{
+        name:"Pig",
+        buyable:true,
+        type:"Pet",
+        cost:0,
+        image:pigPng,
+    },
+    "8":{
+        name:"Duck",
+        buyable:true,
+        type:"Pet",
+        cost:0,
+        image: duckPng,
+    },
+    "9":{
+        name:"Ghost",
+        buyable:false,
+        type:"Body",
+    },
+    "10":{
+        name:"Jordan",
+        buyable:true,
+        type:"Pet",
+        cost:999,
+        image: duckPng,
+    },
+
+}
+
+export const BUYABLE_MODELS = Object.keys(MODEL_PROPERTIES).filter((x)=>{return MODEL_PROPERTIES[x].buyable})
+
 export const BALL_ANIMATIONS = {
     // applies animations to a model based on its corresponding model ID
     "2": function(model) { // axe
@@ -135,57 +219,9 @@ export const BALL_ANIMATIONS = {
     },
 }
 
-export const BUYABLE_MODELS = [
-    {
-        id: 2, 
-        type: "weapon",
-        cost: 45,
-        name: "Axe",
-        image: axePng,
-    },
-    {
-        id: 3,
-        type: "weapon",
-        cost: 60,
-        name: "Mjolnir",
-        image: hammerPng,
-    },
-    {
-        id: 4,
-        type: "weapon",
-        cost: 75,
-        name: "Trident",
-        image: tridentPng,
-    },
-    {
-        id: 5,
-        type: "accessory",
-        cost: 100,
-        name: "Tree",
-        image: treePng,
-    },
-    {
-        id: 6,
-        type: "accessory",
-        cost: 125,
-        name: "Turtle",
-        image: turtlePng,
-    },
-    {
-        id: 7,
-        type: "accessory",
-        cost: 150,
-        name: "Pig",
-        image: pigPng,
-    },
-    {
-        id: 8,
-        type: "accessory",
-        cost: 175,
-        name: "Duck",
-        image: duckPng,
-    },
-]
+export const AVATARS = [gojo, aot, sukuna, thorfinn, goku]
+
+export const AVATAR_NAMES = ['Gojo', 'You', 'Kevin Nguyen', 'No Enemies', 'Goku']
 
 // color constants themes
 export const colors = {

@@ -5,7 +5,7 @@ import * as constants from "../constants"
 var camera;
 var spectateCamera;
 
-
+constants.set_global("SPECTATING",true)
 var spectating = true
 
 // Properties of the client's player in-game
@@ -191,9 +191,13 @@ export function setSpectate(value) {
   spectateCamera.updateProjectionMatrix();
 }
 
-export function getCamera() {
-  if (spectating) return spectateCamera;
+export function getCamera(force=false) {
+  if (spectating && !force) return spectateCamera;
   return camera;
+}
+
+export function getSpectateCamera() {
+  return spectateCamera;
 }
 
 export function updatePlayer(data, force=false) {

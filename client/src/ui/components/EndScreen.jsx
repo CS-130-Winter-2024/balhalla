@@ -8,6 +8,10 @@ import {
 } from '@mui/material'
 import CloseIcon from '@mui/icons-material/Close'
 import PropTypes from 'prop-types'
+import { useEffect, useState } from 'react'
+import { add_listener, remove_listener } from '../../constants'
+import backgroundImage from "../../../assets/textures/Background.png"
+const bgUrl = "url("+backgroundImage+")";
 
 function textStyle(size = 3, bolded = false) {
   if (size < 0 || size > 6) {
@@ -35,11 +39,20 @@ function textStyle(size = 3, bolded = false) {
 
 
 // set onclose to () => setOpen(false) for it close in parent component
-const EndScreen = ({ open, winnerText = 'Blue Team Wins', onClose }) => {
+const EndScreen = ({ winnerText = 'Blue Team Wins', onClose }) => {
+  const [visible, setVisible] = useState(false)
+
+  useEffect(()=>{
+    let listener = add_listener("GAME_OVER",()=>{
+      setVisible(true);
+    })
+    return ()=>{remove_listener("GAME_OVER",listener)};
+  })
+
   return (
     <Dialog
-      open={open}
-      onClose={onClose}
+      open={visible}
+      onClose={()=>{setVisible(false)}}
       maxWidth="md"
       fullWidth
       PaperProps={{
@@ -69,6 +82,7 @@ const EndScreen = ({ open, winnerText = 'Blue Team Wins', onClose }) => {
           alignItems: 'center',
           justifyContent: 'center',
           flexDirection: 'column',
+          backgroundImage: bgUrl,
         }}
       >
         <Typography

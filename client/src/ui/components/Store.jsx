@@ -18,65 +18,23 @@ import {
 } from '@mui/material'
 import PropTypes from 'prop-types'
 
+import bg from "../../../assets/textures/Background.png"
+const bgUrl = "url("+bg+")";
+
+import parchment from "../../../assets/textures/Parchment.png"
+import { BUYABLE_MODELS, MODEL_PROPERTIES, get_global, set_global } from '../../constants';
+const parchUrl = "url("+parchment+")"
+
 // Constants for styling
-const fontFamily = 'Roboto, Helvetica, Arial'
-const primaryColor = '#1976D2' // Replace with your desired primary color
+const fontFamily = 'Jorvik'
+const primaryColor = '#FFFFFF' // Replace with your desired primary color
+
+
 
 // Offset to account for left sidebar
-const OFFSET = '300px'
-
-Store.propTypes = {
-  isOpen: PropTypes.bool.isRequired,
-  availableItems: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.number.isRequired,
-      name: PropTypes.string.isRequired,
-      image: PropTypes.string.isRequired,
-      cost: PropTypes.number.isRequired,
-      type: PropTypes.oneOf(['weapon', 'armor', 'accessory']).isRequired,
-    }),
-  ),
-  ownedItems: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.number.isRequired,
-      name: PropTypes.string.isRequired,
-      image: PropTypes.string.isRequired,
-      cost: PropTypes.number.isRequired,
-      type: PropTypes.oneOf(['weapon', 'armor', 'accessory']).isRequired,
-    }),
-  ).isRequired,
-  onClose: PropTypes.func.isRequired,
-  onBuy: PropTypes.func.isRequired,
-  handleEquip: PropTypes.func.isRequired,
-  equippedItems: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.number.isRequired,
-      name: PropTypes.string.isRequired,
-      image: PropTypes.string.isRequired,
-      cost: PropTypes.number.isRequired,
-      type: PropTypes.oneOf(['weapon', 'armor', 'accessory']).isRequired,
-    }),
-  ).isRequired,
-  showAlert: PropTypes.func.isRequired,
-  coins: PropTypes.number.isRequired,
-  setCoins: PropTypes.func.isRequired,
-}
+const OFFSET = '0px'
 
 // make copy of object
-function deepCopy(obj) {
-  return JSON.parse(JSON.stringify(obj))
-}
-
-BuyConfirmationDialog.propTypes = {
-  isOpen: PropTypes.bool.isRequired,
-  item: PropTypes.shape({
-    name: PropTypes.string.isRequired,
-    cost: PropTypes.number.isRequired,
-  }),
-  remainingBalance: PropTypes.number.isRequired,
-  onClose: PropTypes.func.isRequired,
-  onConfirm: PropTypes.func.isRequired,
-}
 
 function BuyConfirmationDialog({
   isOpen,
@@ -105,91 +63,96 @@ function BuyConfirmationDialog({
 }
 
 function Store({
-  isOpen,
-  availableItems,
-  ownedItems,
+  isOpen,   
   onClose,
-  onBuy,
-  handleEquip,
-  equippedItems,
   showAlert,
-  coins,
-  setCoins,
 }) {
-  const [currWeapon, setCurrWeapon] = useState(deepCopy(equippedItems[0]))
-  const [prevWeapon, setPrevWeapon] = useState(deepCopy(equippedItems[0]))
+  const [currWeapon, setCurrWeapon] = useState(get_global("WEAPON") || 2)
+  const [prevWeapon, setPrevWeapon] = useState(get_global("WEAPON") || 2)
 
-  const [currArmor, setCurrArmor] = useState(deepCopy(equippedItems[1]))
-  const [prevArmor, setPrevArmor] = useState(deepCopy(equippedItems[1]))
+  const [currPet, setCurrPet] = useState(get_global("PET"))
+  const [prevPet, setPrevPet] = useState(get_global("PET"))
 
-  const [currAccessory, setCurrAccessory] = useState(deepCopy(equippedItems[2]))
-  const [prevAccessory, setPrevAccessory] = useState(deepCopy(equippedItems[2]))
+  const [owned, setOwned] = useState(get_global("OWNED") || [2])
+  const [equippedItems, setEquipped] = useState([null,null])
+
+  const [coins, setCoins] = useState(get_global("POINTS") || 0);
 
   const [showConfirmationDialog, setShowConfirmationDialog] = useState(false)
   const [selectedItemForPurchase, setSelectedItemForPurchase] = useState(null)
-  const [remainingBalance, setRemainingBalance] = useState(coins)
+  const [remainingBalance, setRemainingBalance] = useState(get_global("POINTS") || 0)
 
   const handleBuy = item => {
-    if (coins < item.cost) {
-      showAlert('You too broke, sorry', 'error')
+    if (coins < MODEL_PROPERTIES[item].cost) {
+      showAlert('You do not have enough points!', 'error')
     } else {
+      //attempt back end call for purchase
       setSelectedItemForPurchase(item)
-      setRemainingBalance(coins - item.cost)
+      setRemainingBalance(coins - MODEL_PROPERTIES[item].cost)
       setShowConfirmationDialog(true)
     }
   }
 
-  const handleEquipChange = event => {
+  const handleEquipChange = (event,type) => {
     const selectedItemId = event.target.value
-    const selectedOwnedItem = ownedItems.find(
-      item => item.id === selectedItemId,
-    )
-    const itemType = selectedOwnedItem.type
-    if (itemType === 'weapon') {
-      setCurrWeapon(deepCopy(selectedOwnedItem))
-    } else if (itemType === 'armor') {
-      setCurrArmor(deepCopy(selectedOwnedItem))
-    } else if (itemType === 'accessory') {
-      setCurrAccessory(deepCopy(selectedOwnedItem))
+
+    switch (type) {
+      case "Weapon":
+        setCurrWeapon(selectedItemId);
+        break
+      case "Pet":
+        setCurrPet(selectedItemId);
+        break
     }
   }
 
   const canSave = () => {
-    const armorChanged =
-      currArmor && (prevArmor === null || currArmor.id !== prevArmor.id)
-    const weaponChanged =
-      currWeapon && (prevWeapon === null || currWeapon.id !== prevWeapon.id)
-    const accessoryChanged =
-      currAccessory &&
-      (prevAccessory === null || currAccessory.id !== prevAccessory.id)
-    return armorChanged || weaponChanged || accessoryChanged
+    const weaponChanged = currWeapon != prevWeapon
+    const petChanged = currPet != prevPet
+    return weaponChanged || petChanged
   }
 
   const handleSave = () => {
-    handleEquip(currWeapon, currArmor, currAccessory)
-    setPrevWeapon(deepCopy(currWeapon))
-    setPrevArmor(deepCopy(currArmor))
-    setPrevAccessory(deepCopy(currAccessory))
+    set_global("WEAPON",currWeapon);
+    set_global("PET",currPet);
+    //somehow propagate this to the server
+    setPrevWeapon(currWeapon)
+    setPrevPet(currPet)
   }
 
   const handleConfirmBuy = item => {
-    showAlert(`You bought ${item.name} for ${item.cost} coins`, 'success')
+    showAlert(`You bought ${MODEL_PROPERTIES[item].name} for ${MODEL_PROPERTIES[item].cost} coins`, 'success')
     setShowConfirmationDialog(false)
-    setCoins(coins - item.cost)
-    onBuy(item)
+    setCoins(coins - MODEL_PROPERTIES[item].cost)
+    
+    let newOwned = [...owned,item];
+    setOwned(newOwned);
+    set_global("OWNED",newOwned)
   }
 
   const onCloseDialog = item => {
     setShowConfirmationDialog(false)
-    setRemainingBalance(coins + item.cost)
+    setRemainingBalance(coins + MODEL_PROPERTIES[item].cost)
   }
+
+  const ownedPets = owned.filter(e => MODEL_PROPERTIES[e].type === 'Pet').map(item => (
+    <MenuItem key={item} value={item} style={{fontFamily: fontFamily}}>
+      {MODEL_PROPERTIES[item].name}
+    </MenuItem>
+  ))
+
+  const ownedWeapons = owned.filter(e => MODEL_PROPERTIES[e].type === 'Weapon').map(item => (
+    <MenuItem key={item} value={item} style={{fontFamily:fontFamily}}>
+      {MODEL_PROPERTIES[item].name}
+    </MenuItem>
+  ));
 
   return (
     <>
       {showConfirmationDialog && selectedItemForPurchase && (
         <BuyConfirmationDialog
           isOpen={showConfirmationDialog}
-          item={selectedItemForPurchase}
+          item={MODEL_PROPERTIES[selectedItemForPurchase]}
           remainingBalance={remainingBalance}
           onClose={() => onCloseDialog(selectedItemForPurchase)}
           onConfirm={() => handleConfirmBuy(selectedItemForPurchase)}
@@ -210,33 +173,35 @@ function Store({
             textAlign: 'center',
             fontWeight: 'bold',
             fontSize: '32px',
-            textDecoration: 'underline',
+            backgroundImage: bgUrl,
+            backgroundSize:"cover",
           }}
         >
           Shop
         </DialogTitle>
-        <DialogContent>
+        <div style={{borderTop:"3px solid white", width:"100%"}}/>
+        <DialogContent style={{backgroundImage:bgUrl, backgroundSize:"100% 100%"}}>
           <Grid container spacing={2}>
             <Grid item xs={8}>
               {/* Left Side: Display available items for purchase */}
               <Grid container spacing={2}>
-                {availableItems.map((item, index) => (
+                {BUYABLE_MODELS.map((item, index) =>{ 
+                  let itemData = MODEL_PROPERTIES[item]
+                  return (
                   <Grid item key={index} xs={4}>
-                    <Card style={{ width: '90%', height: 300 }}>
+                    <Card style={{ width: '90%', height: "100%", backgroundImage:parchUrl,  backgroundSize:"100% 100%", backgroundColor:"transparent"}}>
                       {/* Adjust width and height as needed */}
                       <CardMedia
                         component="img"
-                        height="140"
-                        width="100%"
-                        image={item.image}
-                        alt={item.name}
+                        image={itemData.image}
+                        alt={itemData.name}
                         style={
-                          ownedItems.some(ownedItem => ownedItem.id === item.id)
+                          owned.some(ownedItem => ownedItem == item)
                             ? { filter: 'grayscale(100%)' }
                             : {}
                         }
                       />
-                      <CardContent style={{ height: '100%' }}>
+                      <CardContent style={{ flex:2 }}>
                         <Box
                           style={{
                             width: '100%',
@@ -247,19 +212,16 @@ function Store({
                             alignItems: 'center',
                           }}
                         >
-                          <Typography variant="subtitle1">
-                            {item.name}
+                          <Typography variant="subtitle1" style={{fontFamily:fontFamily,fontSize:"18px"}}>
+                            {itemData.name}
                           </Typography>
-                          <Typography variant="caption" color={primaryColor}>
-                            {' '}
-                            {item.type === 'accessory'
-                              ? 'pet'
-                              : `${item.type}`}{' '}
+                          <Typography variant="caption" fontFamily={fontFamily} fontSize={"14px"} color={"black"}>
+                            {itemData.type}
                           </Typography>
-                          {ownedItems.some(
-                            ownedItem => ownedItem.id === item.id,
+                          {owned.some(
+                            ownedItem => ownedItem == item,
                           ) ? (
-                            <Typography variant="caption" color="textSecondary">
+                            <Typography variant="caption" fontFamily={fontFamily} fontSize={22} color="textSecondary">
                               OWNED
                             </Typography>
                           ) : (
@@ -276,31 +238,21 @@ function Store({
                               <Button
                                 variant="contained"
                                 color="primary"
-                                disabled={ownedItems.some(
-                                  ownedItem => ownedItem.id === item.id,
+                                disabled={owned.some(
+                                  ownedItem => ownedItem == item,
                                 )}
                                 onClick={() => handleBuy(item)}
-                                style={{ width: '30%', maxHeight: '20%' }}
+                                style={{ width: '30%', maxHeight: '20%', fontFamily:fontFamily, backgroundColor:"black" }}
                               >
-                                Buy
+                                {itemData.cost} P
                               </Button>
-                              <Typography
-                                variant="subtitle2"
-                                style={{
-                                  fontFamily,
-                                  fontWeight: 'bold',
-                                  color: '#C8b273',
-                                }}
-                              >
-                                {item.cost} C
-                              </Typography>
                             </Box>
                           )}
                         </Box>
                       </CardContent>
                     </Card>
                   </Grid>
-                ))}
+                )})}
               </Grid>
             </Grid>
             <Grid item xs={4}>
@@ -319,49 +271,21 @@ function Store({
 
                 {/* Select for Weapon */}
                 <Select
-                  value={currWeapon ? currWeapon.id : ''}
-                  onChange={handleEquipChange}
+                  value={currWeapon || ""}
+                  onChange={(e)=>{handleEquipChange(e,"Weapon")}}
+                  disabled={ownedWeapons.length == 0}
                   style={{
                     height: 40,
                     marginBottom: 10,
+                    backgroundColor:"white",
+                    border:0,
+                    outline:0,
+                    fontFamily:fontFamily,
+                    fontSize:18
                   }}
                 >
-                  {ownedItems
-                    .filter(e => e.type === 'weapon')
-                    .map(item => (
-                      <MenuItem key={item.id} value={item.id}>
-                        {item.name}
-                      </MenuItem>
-                    ))}
+                  {ownedWeapons}
                 </Select>
-                {/* <Typography
-                  variant="h6"
-                  gutterBottom
-                  style={{
-                    fontFamily,
-                    color: primaryColor,
-                  }}
-                >
-                  Equip Armor
-                </Typography> */}
-
-                {/* Select for Armor */}
-                {/* <Select
-                  value={currArmor ? currArmor.id : ''}
-                  onChange={handleEquipChange}
-                  style={{
-                    height: 40,
-                    marginBottom: 10,
-                  }}
-                >
-                  {ownedItems
-                    .filter(e => e.type === 'armor')
-                    .map(item => (
-                      <MenuItem key={item.id} value={item.id}>
-                        {item.name}
-                      </MenuItem>
-                    ))}
-                </Select> */}
                 <Typography
                   variant="h6"
                   gutterBottom
@@ -373,22 +297,25 @@ function Store({
                   Equip Pets
                 </Typography>
 
-                {/* Select for Assessories */}
+                {/* Select for Accessories */}
                 <Select
-                  value={currAccessory ? currAccessory.id : ''}
-                  onChange={handleEquipChange}
+                  value={currPet || ""}
+                  onChange={(e)=>{handleEquipChange(e,"Pet")}}
+                  disabled={ownedPets.length == 0}
                   style={{
                     height: 40,
                     marginBottom: 10,
+                    backgroundColor:"white",
+                    border:0,
+                    outline:0,
+                    fontFamily:fontFamily,
+                    fontSize:18,
                   }}
                 >
-                  {ownedItems
-                    .filter(e => e.type === 'accessory')
-                    .map(item => (
-                      <MenuItem key={item.id} value={item.id}>
-                        {item.name}
-                      </MenuItem>
-                    ))}
+                <MenuItem key={"none"} value={null} style={{fontFamily:fontFamily}}>
+                  None
+                </MenuItem>
+                  {ownedPets}
                 </Select>
 
                 <Button
@@ -435,40 +362,6 @@ function Store({
                   </Box>
                 )}
                 {equippedItems[1] && (
-                  <Box
-                    style={{
-                      marginTop: '16px',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                    }}
-                  >
-                    <Typography
-                      variant="subtitle1"
-                      style={{ marginBottom: '8px' }}
-                    >
-                      Equipped Armor:
-                    </Typography>
-                    <Avatar
-                      style={{
-                        border: `2px solid ${primaryColor}`,
-                        width: '80px',
-                        height: '80px',
-                      }}
-                    >
-                      <img
-                        src={equippedItems[1].image}
-                        alt={equippedItems[1].name}
-                        style={{
-                          width: '100%',
-                          height: '100%',
-                          objectFit: 'cover',
-                        }}
-                      />
-                    </Avatar>
-                  </Box>
-                )}
-                {equippedItems[2] && (
                   <Box
                     style={{
                       marginTop: '16px',

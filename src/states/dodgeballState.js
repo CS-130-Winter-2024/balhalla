@@ -153,6 +153,10 @@ export function deletePlayer(id) {
         if (otherID == id) continue;
         sockets[otherID].send(JSON.stringify([constants.MESSAGES.playerLeave, id]));
     }
+
+    if (isGameOver() != -1) {
+      endState();
+    }
   } 
 }
 //dodgeball logic
@@ -337,9 +341,7 @@ export function doTick() {
               players[playerID].hasBall = false;
               playersMetadata[ball.throwerID].hits++;
 
-
-              let winner = isGameOver()
-              if (winner != -1) {
+              if (isGameOver() != -1) {
                 endState();
               }
 

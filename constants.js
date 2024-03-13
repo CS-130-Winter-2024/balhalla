@@ -2,26 +2,34 @@
 export const MINIMUM_PLAYERS = 1;
 
 //times
-export const LOBBY_LENGTH = 20000;
+export const LOBBY_LENGTH = 10000;
 export const START_COUNTDOWN = 5000;
-export const GAME_LENGTH = 20000; //game length in milliseconds
+export const GAME_LENGTH = 45000; //game length in milliseconds
 export const TICK_RATE = 50; //how often to update server in milliseconds
 export const TICK_DT = 0.05; //tick rate in seconds
 
 //speed
 export const PLAYER_SPEED = 5;  //meters/second for players
-export const BALL_SPEED = 15; //INITIAL BALL SPEED
+export const BALL_SPEED = 20; //INITIAL BALL SPEED
+export const BALL_SHOVE_SPEED = 4; // speed of a ball on the ground a ghost is pushing
 export const BALL_GRAVITY = 9.8;
 export const SPEED_DT = PLAYER_SPEED * TICK_DT;
 
 //sizing
-export const WORLD_HALF_WIDTH = 14.5;
+export const WORLD_HALF_WIDTH = 14.5; //POSITIVE Z is RED TEAM (TEAM 1), NEGATIVE Z is BLUE TEAM (TEAM 0)
 export const WORLD_HALF_LENGTH = 10.5;
+export const SPAWN_DISTANCE = 3; //maximum spawn distance from the edge
 export const BALL_RADIUS = 0.25;
 export const PLAYER_RADIUS = 0.5;
 export const COLLISION_R2 = 0.5625;
 export const PLAYER_HEIGHT = 2;
 
+//TEMPORARY, UNTIL DATABASE/ITEM SELECTION DONE
+export const TEMP_DEFAULT_BALL_MODEL_UNTIL_SELECT_BALL_IS_DONE = 2;
+export const DEFAULT_BODY = 1;
+
+// default data/format for the in-game player
+//   all player data persistent between games is kept in metadata
 export const BASE_PLAYER = {
     direction: [0, 0], //x,z
     x: 0,
@@ -88,5 +96,5 @@ export function assign_random(count) {
         }
         assignments.push(choice)
     }
-    return assignments;
+    return [assignments, tiebreaker];
 }

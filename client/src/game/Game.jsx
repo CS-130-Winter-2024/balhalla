@@ -18,47 +18,68 @@ function websocketSetup() {
   //On connect, send username
   setHandler("open", (socket) => {
     let usernm = getUsername();
-    var eventMsg = JSON.stringify([constants.MESSAGES.playerJoin, { username: usernm }]);
-    document.dispatchEvent(new CustomEvent("setUsername", { detail: usernm }));
+    constants.set_global("USERNAME",usernm);
+    var eventMsg = JSON.stringify([constants.MESSAGES.playerJoin, { username: constants.get_global("USERNAME") }]);
     socket.send(eventMsg);
+    document.dispatchEvent(new CustomEvent("setUsername", { detail: usernm }));
+    
   });
 
   //On player list sent, add all players to scene
   setHandler(constants.MESSAGES.playerList, (socket, data) => {
     constants.set_global("CLIENT_ID",data.id);
     constants.set_global("GAME_STATE",data.gameState);
-    if (data.gameState == 1) { //do nothing if lobby state
+    if (data.gameState == 1) { //do nothing if in lobby state
       for (let player in data.playerData) {
         if (player == data.id) continue;
-        Others.addPlayer(player, data.playerData[player], data.metaData[player]);
+        Others.addPlayer(player, data.playerData[player], data.metaData[player]); // adds other players to the scene
       }
+      Balls.updateBalls(data.ballData);
+      constants.set_global("TIMER_LABEL", "Game ends in")
+      constants.set_global("CURRENT_TIMER",data.endTime);
+    } else{
+      constants.set_global("TIMER_LABEL", "Game starts in")
+      constants.set_global("CURRENT_TIMER",data.startTime);
     }
-    Player.setSpectate(true);
+
+
   });
 
   setHandler(constants.MESSAGES.gameStart, (socket, data) => {
-    constants.set_global("GAME_STATE",1);
+    constants.set_global("GAME_STATE", 1);
+    Player.setMetadata(data.metaData[constants.get_global("CLIENT_ID")]);
     for (let player in data.playerData) {
       if (player == constants.get_global("CLIENT_ID")) {
-        Player.updatePlayer(data.playerData[constants.get_global("CLIENT_ID")]);
+        // updates client based on server's info about that client (alive status, client's points in-game, position, etc.)
+        let playerData = data.playerData[constants.get_global("CLIENT_ID")];
+        Player.updatePlayer(playerData, true);
         Player.setSpectate(false);
+        Player.getCamera().lookAt(playerData.x,constants.ALIVE_Y,-playerData.z);
         continue
       }
       Others.addPlayer(player, data.playerData[player], data.metaData[player]);
     }
 
-    constants.set_global("GAME_START_TIME",data.startTime);
-    constants.set_global("GAME_END_TIME",data.endTime);
-
+    constants.set_global("CURRENT_TIMER",data.startTime);
+    setTimeout(()=>{
+      constants.set_global("TIMER_LABEL", "Game ends in")
+      constants.set_global("CURRENT_TIMER",data.endTime)
+    },data.startTime-Date.now());
+    ;
   })
 
   setHandler(constants.MESSAGES.gameEnd, (socket,data) =>{ 
     constants.set_global("GAME_STATE",0);
-    constants.set_global("PLAYING",false);
     Player.setSpectate(true);
 
     Others.clearPlayers();
     Balls.clearBalls();
+
+    constants.set_global("TIMER_LABEL", "Game starts in")
+    constants.set_global("CURRENT_TIMER",data.startTime);
+
+    var eventMsg = JSON.stringify([constants.MESSAGES.playerJoin, { username: constants.get_global("USERNAME") }]);
+    socket.send(eventMsg);
   })
 
   //On other player connect, add their data to scene
@@ -80,9 +101,13 @@ function websocketSetup() {
 
   setHandler(constants.MESSAGES.playerKnockout, (socket,data) => {
     console.log("[HIT]",data);
+
     if (data.target == constants.get_global("CLIENT_ID")) {
-      Player.setSpectate(true) //HANDLE DEATH! DONT DO THIS;
+      // If player is hit, they won't know yet
       console.log("I was hit!");
+    } else {
+      // any hit players should become ghosts
+      Others.playerDeath(data.target);
     }
   })
 
@@ -132,17 +157,18 @@ export default function main() {
 
   var controls = new PointerLockControls(camera, renderer.domElement);
   controls.connect();
+  constants.set_global("LOCKED",false);
+  document.addEventListener("pointerlockerror",()=>{
+    constants.set_global("LOCKED",false);
+  })
   //Add camera locking
-  var locked = false;
-  document.addEventListener("lock", () => {
-    //document.dispatchEvent(new CustomEvent("lock"));
-    controls.lock();
-    locked = true;
-  });
+  constants.add_listener("LOCKED",(isLocked)=>{
+    if (isLocked) {
+      controls.lock();
+    }
+  })
   controls.addEventListener("unlock", () => {
-    document.dispatchEvent(new CustomEvent("unlock"));
-    locked = false;
-    console.log('escaped!')
+    constants.set_global("LOCKED",false);
   });
   // document.addEventListener("keydown", (ev) => {
   //   if (ev.key == " " || ev.key == "Enter") {
@@ -154,8 +180,6 @@ export default function main() {
   //   }
   // });
 
-  // 
-
   // event for when space bar is pressed, it will trigger the ingame menu IF x condition is met
   document.addEventListener("keydown", (ev) => {
     if (ev.key === " ") {
@@ -163,7 +187,6 @@ export default function main() {
       document.dispatchEvent(new CustomEvent("spaceBarPressed"));
     } 
   });
-
 
 
   //setup websockets

@@ -1,7 +1,6 @@
-import {TICK_RATE, MESSAGES} from "../constants.js";
+import {TICK_RATE} from "../constants.js";
 import * as lobby from "./states/lobbyState.js"
 import * as dodgeball from "./states/dodgeballState.js"
-import { getConnections } from "./connection.js";
 
 
 var state = 0;
@@ -17,6 +16,7 @@ function setState(nextState, data) {
   state = nextState;
 }
 
+// automatically starts next state when a state finishes
 for (let st of states) {
   st.setFinishCallback(setState);
 }

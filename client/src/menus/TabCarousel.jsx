@@ -1,4 +1,3 @@
-import Carousel from 'react-material-ui-carousel'
 import { Paper } from '@mui/material'
 import PropTypes from 'prop-types'
 import SettingsTabContent from './TabSettingsContent'
@@ -33,14 +32,11 @@ function TabCarousel({ index, menuHeight, showAlert }) {
 
   return (
     <Paper style={styles.container}>
-      <Carousel
-        index={index}
-        autoPlay={false}
-        indicatorIconButtonProps={{ style: { display: 'none' } }}
-      >
-        <SettingsTabContent height={menuHeight} showAlert={showAlert} />
-        <TabInstructionsContent height={menuHeight} text={INSTRUCTIONS} />
-      </Carousel>
+    {false && 
+        (<SettingsTabContent height={menuHeight} showAlert={showAlert} />)
+    }
+
+    {false && <TabInstructionsContent height={menuHeight} text={INSTRUCTIONS} />}
     </Paper>
   )
 }

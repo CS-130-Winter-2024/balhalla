@@ -19,18 +19,18 @@ import pigPng from "../assets/images/pig.png"
 import duckPng from "../assets/images/duck.png"
 
 //GAME
-export const SPEED = 5;
-export const ALIVE_Y = 1.25;
-export const DEAD_Y = 5;
+export const SPEED = 5; // Player speed
+export const ALIVE_Y = 2; // Camera position when player is alive
 
 export const THROW_KEY = "f"
+export const SHIFT_KEY = "Shift"
 export const MOVEMENT_MAP = { w: 0, a: 1, s: 2, d: 3 };
 
 export const DASH_COOLDOWN = 5000;
 export const DASH_SPEED = 15;
 
 //WEBSOCKETS ----------------
-export const UPDATE_RATE = 25;
+export const UPDATE_RATE = 25; // milliseconds between when a player can send updates to the server
 export const MESSAGES = {
     sendMovement: "a", //server<-client DONE ON CLIENT
     serverUpdate: "b", //server->client DONE ON CLIENT
@@ -60,6 +60,8 @@ export function message_parse(msg) {
                 output.metaData = data[4]
                 output.startTime = data[5]
                 output.endTime = data[6]
+                output.ballData = data[7]
+                output.ballData.didChange = true;
             }
             break
         case MESSAGES.gameStart:
@@ -73,6 +75,7 @@ export function message_parse(msg) {
             output.winner = data[1]
             output.mvp = data[2]
             output.points = data[3]
+            output.startTime = data[4]
             break
         case MESSAGES.serverUpdate:
             output.playerData = data[1]
@@ -105,17 +108,32 @@ export const DODGE_BALL_SIDES = 28;
 export const MODEL_IDS = {
     "0": viking,
     "1": vikingboat,
+    // throwable objects (balls)
     "2": axe,
     "3": hammer,
     "4": trident,
+    // pet models, to be placed on heads
     "5": tree,
     "6": turtle,
     "7": pig,
     "8": duck,
+    // model for player when dead
     "9": vikingghost
 }
 
-
+export const BALL_ANIMATIONS = {
+    // applies animations to a model based on its corresponding model ID
+    "2": function(model) { // axe
+        model.rotation.x += 0.1
+    },
+    "3": function(model) { // hammer
+        model.rotation.x += 0.03
+    },
+    "4": function(model) { // trident (will not move, but should face the direction thrown)
+        model.rotation.y += 0.5 * Math.PI
+        model.rotation.z = 0.5 * Math.PI
+    },
+}
 
 export const BUYABLE_MODELS = [
     {
@@ -171,7 +189,6 @@ export const BUYABLE_MODELS = [
 
 // color constants themes
 export const colors = {
-
     default: 0xffffff,
     floor: 0x333333,
     red: 0xff0000,
@@ -193,7 +210,7 @@ export function add_listener(key,fun, repeat=true) {
     let index = 0;
     if (key in LISTENERS) {
         let last;
-        for (x in LISTENERS[key]) {
+        for (const x in LISTENERS[key]) {
             last = x;
         }
         index = Number(last) + 1;
@@ -212,6 +229,7 @@ export function remove_listener(key, index) {
     }
 }
 
+// used to retrieve values that client needs access to
 export function get_global(key) {
     if (key in GLOBAL_STORE) {
         return GLOBAL_STORE[key];

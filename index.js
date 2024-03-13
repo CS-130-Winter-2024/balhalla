@@ -30,7 +30,7 @@ const httpServer = app.listen(PORT, () => {
   console.log("Press Ctrl+C to quit.");
 });
 
-// Database Commands
+/* Database Commands
 app.use(express.json());
 app.post("/signup", (request, response, next) => {
   signup(request, response, next);
@@ -45,6 +45,8 @@ app.get("/get_leaderboard", (request, response) => {
 app.get("/test", (req, res) => {
   purchaseItem("admin", 21, 1);
 });
+
+*/
 
 // app.get("/signup", (request, response, next) => {
 //   printUsers(request, response, next);

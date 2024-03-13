@@ -114,3 +114,8 @@ export function update() {
 export function getPlayerModelGroup() {
   return otherPlayerGroup;
 }
+
+
+export function getBallModelByPlayerID(playerID) {
+  return playersMetadata[playerID]["ball"];
+}

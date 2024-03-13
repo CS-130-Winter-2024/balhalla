@@ -33,22 +33,27 @@ async function signup(request, response, next) {
         username: request.body.username,
         password: hashedPassword
       })
-        .returning(["username", "password"])
-        .then(new_user => {
-          console.log('signup user', new_user)
-          return jwt.sign(new_user[0].username, SECRET, (error, token) => {
-            knex.select('username', 'wins', 'losses', 'hits', 'points', 'ball', 'pet', 'icon')
-              .from('accounts')
-              .where('username', request.body.username)
-              .then(rows => {
-                rows[0]['token'] = token
-                rows[0]['item_array'] = []
-                console.log('login rows:', JSON.stringify(rows[0]));
-                response.status(200).json(JSON.stringify(rows[0]))
-              })
-              .catch(err => {
-                console.error(err);
-              })
+      .returning(["username", "password"])
+      .then(new_user => {
+        console.log('signup user', new_user)
+        return jwt.sign(new_user[0].username, SECRET, (error, token) => {
+          knex.select('username', 'wins', 'losses', 'hits', 'points', 'ball', 'pet', 'icon')
+            .from('accounts')
+            .where('username', request.body.username)
+            .then(rows => {
+              rows[0]['token'] = token
+              rows[0]['item_array'] = [2]
+              console.log('login rows:', JSON.stringify(rows[0]));
+              response.status(200).json(JSON.stringify(rows[0]))
+            })
+            .catch(err => {
+              console.error(err);
+            })
+
+          knex('items').insert({
+            username: request.body.username,
+            item_id: 2,
+          });
 
             console.log("signup db token:", token)
           })
@@ -282,11 +287,11 @@ module.exports = {
 
   await knex('items').insert({
     username: 'admin',
-    item_id: 11,
+    item_id: 2,
   });
   await knex('items').insert({
     username: 'admin',
-    item_id: 12,
+    item_id: 3,
   });
 
   const user = await knex('accounts').where('username', 'admin')

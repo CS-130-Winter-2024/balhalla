@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Dialog,
   DialogTitle,
@@ -18,18 +18,23 @@ import {
 } from '@mui/material'
 import PropTypes from 'prop-types'
 
-import bg from "../../../assets/textures/Background.png"
-const bgUrl = "url("+bg+")";
+import bg from '../../../assets/textures/Background.png'
+const bgUrl = 'url(' + bg + ')'
 
-import parchment from "../../../assets/textures/Parchment.png"
-import { BUYABLE_MODELS, MODEL_PROPERTIES, get_global, set_global } from '../../constants';
-const parchUrl = "url("+parchment+")"
+import parchment from '../../../assets/textures/Parchment.png'
+import {
+  BUYABLE_MODELS,
+  MODEL_PROPERTIES,
+  get_global,
+  set_global,
+  add_listener,
+  remove_listener,
+} from '../../constants'
+const parchUrl = 'url(' + parchment + ')'
 
 // Constants for styling
 const fontFamily = 'Jorvik'
 const primaryColor = '#FFFFFF' // Replace with your desired primary color
-
-
 
 // Offset to account for left sidebar
 const OFFSET = '0px'
@@ -62,46 +67,86 @@ function BuyConfirmationDialog({
   )
 }
 
-function Store({
-  isOpen,   
-  onClose,
-  showAlert,
-}) {
-  const [currWeapon, setCurrWeapon] = useState(get_global("WEAPON") || 2)
-  const [prevWeapon, setPrevWeapon] = useState(get_global("WEAPON") || 2)
+function Store({ isOpen, onClose, showAlert }) {
+  const [currWeapon, setCurrWeapon] = useState(get_global('WEAPON') || 2)
+  const [prevWeapon, setPrevWeapon] = useState(get_global('WEAPON') || 2)
 
-  const [currPet, setCurrPet] = useState(get_global("PET"))
-  const [prevPet, setPrevPet] = useState(get_global("PET"))
+  const [currPet, setCurrPet] = useState(get_global('PET'))
+  const [prevPet, setPrevPet] = useState(get_global('PET'))
 
-  const [owned, setOwned] = useState(get_global("OWNED") || [2])
-  const [equippedItems, setEquipped] = useState([null,null])
+  const [owned, setOwned] = useState(get_global('OWNED') || [2])
+  const [equippedItems, setEquipped] = useState([null, null])
 
-  const [coins, setCoins] = useState(get_global("POINTS") || 0);
+  const [coins, setCoins] = useState(get_global('POINTS') || 0)
 
   const [showConfirmationDialog, setShowConfirmationDialog] = useState(false)
   const [selectedItemForPurchase, setSelectedItemForPurchase] = useState(null)
-  const [remainingBalance, setRemainingBalance] = useState(get_global("POINTS") || 0)
+  const [remainingBalance, setRemainingBalance] = useState(
+    get_global('POINTS') || 0,
+  )
+
+  // useEffect to update values
+  useEffect(() => {
+    //let weaponListener = add_listener('WEAPON', setCurrWeapon)
+    //let petListener = add_listener('PET', setCurrPet)
+    let ownedListener = add_listener('OWNED', setOwned)
+    let coinsListener = add_listener('POINTS', setCoins)
+    let lockedListener = add_listener('LOCKED', x => {
+      if (x) onClose()
+    })
+    return () => {
+      //remove_listener('WEAPON', weaponListener)
+      //remove_listener('PET', petListener)
+      remove_listener('OWNED', ownedListener)
+      remove_listener('POINTS', coinsListener)
+    }
+  }, [])
 
   const handleBuy = item => {
-    if (coins < MODEL_PROPERTIES[item].cost) {
-      showAlert('You do not have enough points!', 'error')
-    } else {
-      //attempt back end call for purchase
-      setSelectedItemForPurchase(item)
-      setRemainingBalance(coins - MODEL_PROPERTIES[item].cost)
-      setShowConfirmationDialog(true)
-    }
+    // if (coins < MODEL_PROPERTIES[item].cost) {
+    //   showAlert('You do not have enough points!', 'error')
+    // }
+
+    fetch('/purchase_item', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        username: get_global('USERNAME'),
+        item_id: item,
+        item_cost: MODEL_PROPERTIES[item].cost,
+      }),
+    })
+      .then(response => response.json())
+      .then(data => {
+        if (data) {
+          setSelectedItemForPurchase(item)
+          setRemainingBalance(coins - MODEL_PROPERTIES[item].cost)
+          setShowConfirmationDialog(true)
+        } else {
+          // what to do if item alr bought or not enough coins
+          showAlert('Sorry King, you are broke', 'error')
+        }
+      })
+
+    // if (){
+    //   //attempt back end call for purchase
+    //   setSelectedItemForPurchase(item)
+    //   setRemainingBalance(coins - MODEL_PROPERTIES[item].cost)
+    //   setShowConfirmationDialog(true)
+    // }
   }
 
-  const handleEquipChange = (event,type) => {
+  const handleEquipChange = (event, type) => {
     const selectedItemId = event.target.value
 
     switch (type) {
-      case "Weapon":
-        setCurrWeapon(selectedItemId);
+      case 'Weapon':
+        setCurrWeapon(selectedItemId)
         break
-      case "Pet":
-        setCurrPet(selectedItemId);
+      case 'Pet':
+        setCurrPet(selectedItemId)
         break
     }
   }
@@ -113,21 +158,24 @@ function Store({
   }
 
   const handleSave = () => {
-    set_global("WEAPON",currWeapon);
-    set_global("PET",currPet);
+    set_global('WEAPON', currWeapon)
+    set_global('PET', currPet)
     //somehow propagate this to the server
     setPrevWeapon(currWeapon)
     setPrevPet(currPet)
   }
 
   const handleConfirmBuy = item => {
-    showAlert(`You bought ${MODEL_PROPERTIES[item].name} for ${MODEL_PROPERTIES[item].cost} coins`, 'success')
+    showAlert(
+      `You bought ${MODEL_PROPERTIES[item].name} for ${MODEL_PROPERTIES[item].cost} coins`,
+      'success',
+    )
     setShowConfirmationDialog(false)
     setCoins(coins - MODEL_PROPERTIES[item].cost)
-    
-    let newOwned = [...owned,item];
-    setOwned(newOwned);
-    set_global("OWNED",newOwned)
+
+    let newOwned = [...owned, item]
+    setOwned(newOwned)
+    set_global('OWNED', newOwned)
   }
 
   const onCloseDialog = item => {
@@ -135,17 +183,21 @@ function Store({
     setRemainingBalance(coins + MODEL_PROPERTIES[item].cost)
   }
 
-  const ownedPets = owned.filter(e => MODEL_PROPERTIES[e].type === 'Pet').map(item => (
-    <MenuItem key={item} value={item} style={{fontFamily: fontFamily}}>
-      {MODEL_PROPERTIES[item].name}
-    </MenuItem>
-  ))
+  const ownedPets = owned
+    .filter(e => MODEL_PROPERTIES[e].type === 'Pet')
+    .map(item => (
+      <MenuItem key={item} value={item} style={{ fontFamily: fontFamily }}>
+        {MODEL_PROPERTIES[item].name}
+      </MenuItem>
+    ))
 
-  const ownedWeapons = owned.filter(e => MODEL_PROPERTIES[e].type === 'Weapon').map(item => (
-    <MenuItem key={item} value={item} style={{fontFamily:fontFamily}}>
-      {MODEL_PROPERTIES[item].name}
-    </MenuItem>
-  ));
+  const ownedWeapons = owned
+    .filter(e => MODEL_PROPERTIES[e].type === 'Weapon')
+    .map(item => (
+      <MenuItem key={item} value={item} style={{ fontFamily: fontFamily }}>
+        {MODEL_PROPERTIES[item].name}
+      </MenuItem>
+    ))
 
   return (
     <>
@@ -174,85 +226,115 @@ function Store({
             fontWeight: 'bold',
             fontSize: '32px',
             backgroundImage: bgUrl,
-            backgroundSize:"cover",
+            backgroundSize: 'cover',
           }}
         >
           Shop
         </DialogTitle>
-        <div style={{borderTop:"3px solid white", width:"100%"}}/>
-        <DialogContent style={{backgroundImage:bgUrl, backgroundSize:"100% 100%"}}>
+        <div style={{ borderTop: '3px solid white', width: '100%' }} />
+        <DialogContent
+          style={{ backgroundImage: bgUrl, backgroundSize: '100% 100%' }}
+        >
           <Grid container spacing={2}>
             <Grid item xs={8}>
               {/* Left Side: Display available items for purchase */}
               <Grid container spacing={2}>
-                {BUYABLE_MODELS.map((item, index) =>{ 
+                {BUYABLE_MODELS.map((item, index) => {
                   let itemData = MODEL_PROPERTIES[item]
                   return (
-                  <Grid item key={index} xs={4}>
-                    <Card style={{ width: '90%', height: "100%", backgroundImage:parchUrl,  backgroundSize:"100% 100%", backgroundColor:"transparent"}}>
-                      {/* Adjust width and height as needed */}
-                      <CardMedia
-                        component="img"
-                        image={itemData.image}
-                        alt={itemData.name}
-                        style={
-                          owned.some(ownedItem => ownedItem == item)
-                            ? { filter: 'grayscale(100%)' }
-                            : {}
-                        }
-                      />
-                      <CardContent style={{ flex:2 }}>
-                        <Box
-                          style={{
-                            width: '100%',
-                            height: '80%',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            justifyContent: 'flex-start',
-                            alignItems: 'center',
-                          }}
-                        >
-                          <Typography variant="subtitle1" style={{fontFamily:fontFamily,fontSize:"18px"}}>
-                            {itemData.name}
-                          </Typography>
-                          <Typography variant="caption" fontFamily={fontFamily} fontSize={"14px"} color={"black"}>
-                            {itemData.type}
-                          </Typography>
-                          {owned.some(
-                            ownedItem => ownedItem == item,
-                          ) ? (
-                            <Typography variant="caption" fontFamily={fontFamily} fontSize={22} color="textSecondary">
-                              OWNED
-                            </Typography>
-                          ) : (
-                            <Box
+                    <Grid item key={index} xs={4}>
+                      <Card
+                        style={{
+                          width: '90%',
+                          height: '100%',
+                          backgroundImage: parchUrl,
+                          backgroundSize: '100% 100%',
+                          backgroundColor: 'transparent',
+                        }}
+                      >
+                        {/* Adjust width and height as needed */}
+                        <CardMedia
+                          component="img"
+                          image={itemData.image}
+                          alt={itemData.name}
+                          style={
+                            owned.some(ownedItem => ownedItem == item)
+                              ? { filter: 'grayscale(100%)' }
+                              : {}
+                          }
+                        />
+                        <CardContent style={{ flex: 2 }}>
+                          <Box
+                            style={{
+                              width: '100%',
+                              height: '80%',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              justifyContent: 'flex-start',
+                              alignItems: 'center',
+                            }}
+                          >
+                            <Typography
+                              variant="subtitle1"
                               style={{
-                                display: 'flex',
-                                height: '100%',
-                                width: '100%',
-                                alignItems: 'center',
-                                justifyContent: 'space-around',
-                                marginBottom: 20,
+                                fontFamily: fontFamily,
+                                fontSize: '18px',
                               }}
                             >
-                              <Button
-                                variant="contained"
-                                color="primary"
-                                disabled={owned.some(
-                                  ownedItem => ownedItem == item,
-                                )}
-                                onClick={() => handleBuy(item)}
-                                style={{ width: '30%', maxHeight: '20%', fontFamily:fontFamily, backgroundColor:"black" }}
+                              {itemData.name}
+                            </Typography>
+                            <Typography
+                              variant="caption"
+                              fontFamily={fontFamily}
+                              fontSize={'14px'}
+                              color={'black'}
+                            >
+                              {itemData.type}
+                            </Typography>
+                            {owned.some(ownedItem => ownedItem == item) ? (
+                              <Typography
+                                variant="caption"
+                                fontFamily={fontFamily}
+                                fontSize={22}
+                                color="textSecondary"
                               >
-                                {itemData.cost} P
-                              </Button>
-                            </Box>
-                          )}
-                        </Box>
-                      </CardContent>
-                    </Card>
-                  </Grid>
-                )})}
+                                OWNED
+                              </Typography>
+                            ) : (
+                              <Box
+                                style={{
+                                  display: 'flex',
+                                  height: '100%',
+                                  width: '100%',
+                                  alignItems: 'center',
+                                  justifyContent: 'space-around',
+                                  marginBottom: 20,
+                                }}
+                              >
+                                <Button
+                                  variant="contained"
+                                  color="primary"
+                                  disabled={owned.some(
+                                    ownedItem => ownedItem == item,
+                                  )}
+                                  onClick={() => handleBuy(item)}
+                                  style={{
+                                    width: '30%',
+                                    maxHeight: '20%',
+                                    fontFamily: fontFamily,
+                                    backgroundColor: 'black',
+                                  }}
+                                >
+                                  {itemData.cost} P
+                                </Button>
+                              </Box>
+                            )}
+                          </Box>
+                        </CardContent>
+                      </Card>
+                    </Grid>
+                  )
+                })}
               </Grid>
             </Grid>
             <Grid item xs={4}>
@@ -271,17 +353,19 @@ function Store({
 
                 {/* Select for Weapon */}
                 <Select
-                  value={currWeapon || ""}
-                  onChange={(e)=>{handleEquipChange(e,"Weapon")}}
+                  value={currWeapon || ''}
+                  onChange={e => {
+                    handleEquipChange(e, 'Weapon')
+                  }}
                   disabled={ownedWeapons.length == 0}
                   style={{
                     height: 40,
                     marginBottom: 10,
-                    backgroundColor:"white",
-                    border:0,
-                    outline:0,
-                    fontFamily:fontFamily,
-                    fontSize:18
+                    backgroundColor: 'white',
+                    border: 0,
+                    outline: 0,
+                    fontFamily: fontFamily,
+                    fontSize: 18,
                   }}
                 >
                   {ownedWeapons}
@@ -299,22 +383,28 @@ function Store({
 
                 {/* Select for Accessories */}
                 <Select
-                  value={currPet || ""}
-                  onChange={(e)=>{handleEquipChange(e,"Pet")}}
+                  value={currPet || ''}
+                  onChange={e => {
+                    handleEquipChange(e, 'Pet')
+                  }}
                   disabled={ownedPets.length == 0}
                   style={{
                     height: 40,
                     marginBottom: 10,
-                    backgroundColor:"white",
-                    border:0,
-                    outline:0,
-                    fontFamily:fontFamily,
-                    fontSize:18,
+                    backgroundColor: 'white',
+                    border: 0,
+                    outline: 0,
+                    fontFamily: fontFamily,
+                    fontSize: 18,
                   }}
                 >
-                <MenuItem key={"none"} value={null} style={{fontFamily:fontFamily}}>
-                  None
-                </MenuItem>
+                  <MenuItem
+                    key={'none'}
+                    value={null}
+                    style={{ fontFamily: fontFamily }}
+                  >
+                    None
+                  </MenuItem>
                   {ownedPets}
                 </Select>
 

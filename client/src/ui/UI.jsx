@@ -8,15 +8,12 @@ import Modal from '@mui/material/Modal'
 import TextField from '@mui/material/TextField'
 import { TablePagination } from '@mui/material'
 import backgroundImage from '../../assets/textures/Background.png'
+import vertBackground from '../../assets/textures/BackgroundVertical.png'
 import Store from './components/Store'
 import PropTypes from 'prop-types'
 import * as constants from '../constants'
 import { add_listener, get_global, set_global } from '../constants'
 import Clock from './components/Clock'
-
-
-// import pkg from "../../../db/database.cjs";
-// const { getLeaderboardList } = pkg;
 
 import sampleData from './sample-data.json'
 
@@ -24,47 +21,6 @@ constants.set_global('AUTHENTICATED', false)
 // TODO: when page is loaded, check token in cookies against server
 // if so, start as logged in, otherwise logged out
 var token_to_username = {}
-
-// const SharedBooleanContext = createContext();
-
-// const SharedBooleanProvider = ({ children }) => {
-//   const [sharedBoolean, setSharedBoolean] = useState(false);
-
-//   const setSharedBooleanValue = (value) => {
-//     setSharedBoolean(value);
-//   };
-
-//   const getSharedBooleanValue = () => {
-//     return sharedBoolean;
-//   };
-
-//   return (
-//     <SharedBooleanContext.Provider
-//       value={{ sharedBoolean, setSharedBooleanValue, getSharedBooleanValue }}
-//     >
-//       {children}
-//     </SharedBooleanContext.Provider>
-//   );
-// };
-
-// const setSharedBoolean = (value) => {
-//   const { setSharedBooleanValue } = useContext(SharedBooleanContext);
-//   setSharedBooleanValue(value);
-// };
-
-// // Function to get the shared boolean value
-// const getSharedBoolean = () => {
-//   const { getSharedBooleanValue } = useContext(SharedBooleanContext);
-//   return getSharedBooleanValue();
-// };
-
-// const handleOpenModal = () => {
-//   console.log(users);
-//   console.log("inside handleOpenModal");
-//   setOpenModal(true);
-// };
-
-// const [sharedBool, setSharedBool] = useState(false);
 
 var tester = true
 async function handleSignup(username, pw, conf_pw) {
@@ -87,14 +43,30 @@ async function handleSignup(username, pw, conf_pw) {
   })
     .then(response => response.json())
     .then(data => {
-      console.log(data)
-      if (data.error) {
-        console.log(data.error)
-        alert(data.error)
+      const jsondata = JSON.parse(data)
+      if (jsondata.error) {
+        console.log(jsondata.error)
+        alert(jsondata.error)
       }
-      console.log('signup data:', data)
-      localStorage.setItem('token', data.token)
-      token_to_username[data.token] = username
+      console.log('signup data:', jsondata)
+      localStorage.setItem('token', jsondata.token)
+      token_to_username[jsondata.token] = username
+
+      constants.set_global('WEAPON', jsondata.ball)
+      constants.set_global('PET', jsondata.pet)
+      constants.set_global('POINTS', jsondata.points)
+      constants.set_global('USERNAME', jsondata.username)
+      constants.set_global('ICON', jsondata.icon)
+      constants.set_global('OWNED', jsondata.item_array)
+      const { wins, losses, hits } = jsondata
+      constants.set_global('STATS', {
+        Wins: wins,
+        Losses: losses,
+        Hits: hits,
+        Winrate: parseFloat(((wins / (wins + losses)) * 100).toFixed(2)),
+        Games: wins + losses,
+        Hitrate: parseFloat(((hits / (wins + losses)) * 100).toFixed(2)),
+      })
 
       constants.set_global('AUTHENTICATED', true)
     })
@@ -138,6 +110,17 @@ async function handleLogin(username, pw) {
       constants.set_global('USERNAME', jsondata.username)
       constants.set_global('ICON', jsondata.icon)
       constants.set_global('OWNED', jsondata.item_array)
+      console.log('[TEST]', jsondata.item_array)
+
+      const { wins, losses, hits } = jsondata
+      constants.set_global('STATS', {
+        Wins: wins,
+        Losses: losses,
+        Hits: hits,
+        Winrate: parseFloat(((wins / (wins + losses)) * 100).toFixed(2)),
+        Games: wins + losses,
+        Hitrate: parseFloat(((hits / (wins + losses)) * 100).toFixed(2)),
+      })
     })
 }
 
@@ -206,7 +189,12 @@ function Leaderboard() {
       <Button
         variant="contained"
         onClick={handleOpenModal}
-        style={{ margin: '25px' }}
+        style={{
+          margin: '25px',
+          color: 'black',
+          backgroundColor: 'white',
+          fontFamily: 'Jorvik',
+        }}
         id="logIn"
       >
         Leaderboard
@@ -222,9 +210,12 @@ function Leaderboard() {
             padding: '20px',
             height: '550px',
             width: '400px',
+            color: 'black',
+            fontFamily: 'Jorvik',
+            backgrouundImage: backgroundImage,
           }}
         >
-          <h1 style={{ color: 'black' }}>Leaderboard</h1>
+          <h1 style={{ color: 'white', fontFamily: 'Jorvik' }}>Leaderboard</h1>
           <div style={{ overflowX: 'auto' }}>
             <table
               style={{
@@ -235,10 +226,10 @@ function Leaderboard() {
             >
               <thead>
                 <tr style={{ backgroundColor: '#333', color: 'white' }}>
-                  <th style={{}}>Rank</th>
-                  <th style={{}}>Username</th>
-                  <th style={{}}>Points</th>
-                  <th style={{}}>Hits</th>
+                  <th style={{ fontFamily: 'Jorvik' }}>Rank</th>
+                  <th style={{ fontFamily: 'Jorvik' }}>Username</th>
+                  <th style={{ fontFamily: 'Jorvik' }}>Points</th>
+                  <th style={{ fontFamily: 'Jorvik' }}>Hits</th>
                 </tr>
               </thead>
               <tbody>
@@ -246,11 +237,13 @@ function Leaderboard() {
                   // .slice(indexOfFirstUser, indexOfLastUser)
                   .map((user, index) => (
                     <tr key={user.username}>
-                      <td>{indexOfFirstUser + index + 1}</td>
-                      <td>{user.username}</td>
-                      <td>{user.wins}</td>
-                      <td>{user.losses}</td>
-                      <td>{user.hits}</td>
+                      <td style={{ fontFamily: 'Jorvik' }}>
+                        {indexOfFirstUser + index + 1}
+                      </td>
+                      <td style={{ fontFamily: 'Jorvik' }}>{user.username}</td>
+                      <td style={{ fontFamily: 'Jorvik' }}>{user.wins}</td>
+                      <td style={{ fontFamily: 'Jorvik' }}>{user.losses}</td>
+                      <td style={{ fontFamily: 'Jorvik' }}>{user.hits}</td>
                     </tr>
                   ))}
               </tbody>
@@ -297,7 +290,16 @@ function ToggleLoginScreen() {
   return (
     <Box position="relative">
       {/* {auth && <Button>aaaa</Button>} */}
-      <Button id="logIn" variant="outlined" onClick={handleToggleLogin}>
+      <Button
+        id="logIn"
+        variant="outlined"
+        style={{
+          fontFamily: 'Jorvik',
+          backgroundColor: 'white',
+          color: 'black',
+        }}
+        onClick={handleToggleLogin}
+      >
         {showLogin ? 'Hide Login' : 'Login'}
       </Button>
       {showLogin && (
@@ -388,7 +390,16 @@ function ToggleSignUpScreen() {
 
   return (
     <Box position="relative">
-      <Button id="signUp" variant="outlined" onClick={handleToggleSignUp}>
+      <Button
+        id="signUp"
+        variant="outlined"
+        style={{
+          fontFamily: 'Jorvik',
+          backgroundColor: 'white',
+          color: 'black',
+        }}
+        onClick={handleToggleSignUp}
+      >
         {showSignUp ? 'Hide Sign Up' : 'Sign Up'}
       </Button>
       {showSignUp && (
@@ -484,18 +495,6 @@ function ToggleSignUpScreen() {
   )
 }
 
-// export default function UI({}) {
-//   const [showOverlay, setShowOverlay] = useState(false);
-//   const [username, setUsername] = useState("Hello World");
-//   const [loginClicked, setLoginClicked] = useState(false);
-//   const [loggedIn, setLoggedIn] = useState(false);
-
-//   if (localStorage.getItem("token") in token_to_username) {
-//     // TODO: toggle to logged in screen with user token_to_username[localStorage.getItem("token")]
-//   } else {
-//     // TODO: toggle to logged out screen
-//   }
-
 const renderShopButton = () => {
   const handleShopClick = () => {
     // Add your logic for handling the 'Shop' button click here
@@ -507,7 +506,7 @@ const renderShopButton = () => {
 
 export default function UI({ showAlert }) {
   const [locked, setLocked] = useState(false)
-  const [username, setUsername] = useState('Hello World')
+  const [username, setUsername] = useState('')
   const [loginClicked, setLoginClicked] = useState(false)
   const [loggedIn, setLoggedIn] = useState(false)
 
@@ -525,23 +524,17 @@ export default function UI({ showAlert }) {
   }
   useEffect(() => {
     let listener = constants.add_listener('AUTHENTICATED', setAuth)
-    // return constants.remove_listener('AUTHENTICATED', listener)
+    let listener2 = constants.add_listener('USERNAME', setUsername)
   }, [])
   // START: Giang's stuff
-  function deepCopy(obj) {
-    return JSON.parse(JSON.stringify(obj))
-  }
 
-  const [showStore, setShowStore] = useState(true)
+  const [showStore, setShowStore] = useState(false)
 
   // TIE HERE
-  useEffect(() => {
-
-  }, [])
-
+  useEffect(() => {}, [])
 
   useEffect(() => {
-    add_listener("LOCKED",setLocked);
+    add_listener('LOCKED', setLocked)
     document.addEventListener('setUsername', e => {
       setUsername(e.detail)
     })
@@ -556,22 +549,50 @@ export default function UI({ showAlert }) {
   return (
     <>
       {/* START: Giang's stuff */}
-      <Store
-        isOpen={showStore}
-        onClose={()=>{setShowStore(false)}}
-        showAlert={showAlert}
-      />
+
       {/* END: Giang's stuff */}
       <Clock />
-      <div id="UI" style={{ display: (locked && 'none') || (get_global("SPECTATING") && 'block' || 'none') }}>
-        <h1 id="logo">Balhalla</h1>
-        <h2>{username}</h2>
+      <div
+        id="UI"
+        style={{
+          display:
+            (locked && 'none') ||
+            (get_global('SPECTATING') && 'block') ||
+            'none',
+          backgroundImage: `url(${vertBackground})`,
+          backgroundSize: '100% 100%',
+          border: '2px solid #0',
+        }}
+      >
+        <Store
+          isOpen={showStore}
+          onClose={() => {
+            setShowStore(false)
+          }}
+          showAlert={showAlert}
+        />
+        <h1
+          id="logo"
+          style={{ color: 'white', textAlign: 'center', fontFamily: 'Jorvik' }}
+        >
+          Balhalla
+        </h1>
+        <h2
+          style={{ textAlign: 'center', fontFamily: 'Jorvik', color: 'white' }}
+        >
+          {username}
+        </h2>
 
         <Button
           variant="contained"
           id="logIn"
+          style={{
+            backgroundColor: 'white',
+            color: 'black',
+            fontFamily: 'Jorvik',
+          }}
           onClick={() => {
-            set_global("LOCKED",true)
+            set_global('LOCKED', true)
           }}
         >
           Return to Game
@@ -581,16 +602,34 @@ export default function UI({ showAlert }) {
         {!auth && <ToggleSignUpScreen id="logIn"></ToggleSignUpScreen>}
 
         <Leaderboard></Leaderboard>
-        <Button id="logIn" variant="outlined">
+        <Button
+          id="logIn"
+          style={{
+            backgroundColor: 'white',
+            color: 'black',
+            fontFamily: 'Jorvik',
+          }}
+          onClick={() => {
+            setShowStore(true)
+          }}
+          variant="outlined"
+        >
           Shop
         </Button>
         {/* {sharedBool && <title>Shared Works</title>} */}
       </div>
-      <div
-        id="overlay"
-        style={{ display: (locked && 'block') || 'none' }}
-      >
-        <img src={crosshair} style={{position:"absolute",left:"50%",top:"50%",transform:"translate(-50%,-50%)"}} width={50} height={50} />
+      <div id="overlay" style={{ display: (locked && 'block') || 'none' }}>
+        <img
+          src={crosshair}
+          style={{
+            position: 'absolute',
+            left: '50%',
+            top: '50%',
+            transform: 'translate(-50%,-50%)',
+          }}
+          width={50}
+          height={50}
+        />
       </div>
     </>
   )

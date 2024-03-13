@@ -1,12 +1,5 @@
 import { useState, useEffect } from 'react'
-import {
-  Modal,
-  Fade,
-  Paper,
-  Box,
-  Typography,
-  Button,
-} from '@mui/material'
+import { Modal, Fade, Paper, Box, Typography, Button } from '@mui/material'
 import PropTypes from 'prop-types'
 import SettingsIcon from '@mui/icons-material/Settings'
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline'
@@ -16,12 +9,17 @@ import Settings from './Settings'
 import AvatarSelector from './AvatarSelector'
 import PlayerStats from './PlayerStats'
 
-import backgroundImage from "../../../assets/textures/Background.png"
-import parchment from "../../../assets/textures/Parchment.png"
-import { add_listener, get_global, remove_listener, set_global } from '../../constants'
+import backgroundImage from '../../../assets/textures/Background.png'
+import parchment from '../../../assets/textures/Parchment.png'
+import {
+  add_listener,
+  get_global,
+  remove_listener,
+  set_global,
+} from '../../constants'
 
-const bgUrl = "url("+backgroundImage+")"
-const parchUrl = "url("+parchment+")"
+const bgUrl = 'url(' + backgroundImage + ')'
+const parchUrl = 'url(' + parchment + ')'
 
 // modal constants
 const WIDTH_PERCENT = '50%'
@@ -69,39 +67,48 @@ function InGameMenu({ showAlert }) {
   const [carouselIndex, setCarouselIndex] = useState(0)
 
   // info states
-  const [showStats, setShowStats] = useState(false);
-  const [username, setUsername] = useState(get_global("USERNAME") || "Guest")
-  const [stats, setStats] = useState([])
+  const [showStats, setShowStats] = useState(false)
+  const [username, setUsername] = useState(get_global('USERNAME') || 'Guest')
+
+  const [stats, setStats] = useState()
+
+  function reformatStats() {
+    const statsObject = get_global('STATS') || {}
+    const statsArray = Object.entries(statsObject).map(([key, value]) => ({
+      key,
+      value,
+    }))
+    setStats(statsArray)
+  }
 
   // useEffect to set default values based on endpoint
-  useEffect(() => { 
-    setStats([
-      { key: 'Wins', value: '10' },
-      { key: 'Losses', value: '90' },
-      { key: 'Win Rate', value: '10%' },
-      { key: 'Kills', value: '322' },
-      { key: 'Rank', value: 'Diamond' },
-      { key: 'Creation', value: '2022-03-08' },
-    ])
-
-    let listener = add_listener("LOCKED",(x)=>{
-      setOpen(!x && !get_global("SPECTATING"))
+  useEffect(() => {
+    let listener = add_listener('LOCKED', x => {
+      setOpen(!x && !get_global('SPECTATING'))
     })
 
-    let statsListener = add_listener("AUTHENTICATED",setShowStats);
-    let nameListener = add_listener("USERNAME",setUsername);
+    let statsListener = add_listener('AUTHENTICATED', setShowStats)
+    let nameListener = add_listener('USERNAME', setUsername)
+    let statsContentListener = add_listener('STATS', reformatStats)
 
-    return ()=>{
-      remove_listener("LOCKED",listener)
-      remove_listener("AUTHENTICATED",statsListener);
-      remove_listener("USERNAME",nameListener);
+    reformatStats()
+    return () => {
+      remove_listener('LOCKED', listener)
+      remove_listener('AUTHENTICATED', statsListener)
+      remove_listener('USERNAME', nameListener)
+      remove_listener('STATS', statsContentListener)
     }
   }, [])
 
-
   return (
     <>
-      <Modal open={open} onClose={()=>{set_global("LOCKED",true)}} closeAfterTransition>
+      <Modal
+        open={open}
+        onClose={() => {
+          set_global('LOCKED', true)
+        }}
+        closeAfterTransition
+      >
         <Fade in={open} timeout={{ enter: 500, exit: 300 }}>
           <Paper style={styles.customModal}>
             {/* Modal Header */}
@@ -114,9 +121,7 @@ function InGameMenu({ showAlert }) {
               {/* Left Body */}
               <Box style={styles.leftBody}>
                 <Box style={styles.leftTop}>
-                  <AvatarSelector
-                    showAlert={showAlert}
-                  />
+                  <AvatarSelector showAlert={showAlert} />
                   <Typography style={textStyle(3, true)}>{username}</Typography>
                 </Box>
 
@@ -130,19 +135,39 @@ function InGameMenu({ showAlert }) {
 
               {/* Right Body */}
               <Box style={styles.rightBody}>
-
                 <Box style={styles.carousel}>
-                  {carouselIndex == 0 && <Settings showAlert={showAlert} /> || <Instructions />}
+                  {(carouselIndex == 0 && (
+                    <Settings showAlert={showAlert} />
+                  )) || <Instructions />}
                 </Box>
                 <Box style={styles.navigation}>
-                  <Button style={styles.navigationButton} onClick={()=>{setCarouselIndex(0)}}>
-                    <SettingsIcon style={{ fontSize: '42px', color:carouselIndex == 0 && "black" || "darkgray" }} />
+                  <Button
+                    style={styles.navigationButton}
+                    onClick={() => {
+                      setCarouselIndex(0)
+                    }}
+                  >
+                    <SettingsIcon
+                      style={{
+                        fontSize: '42px',
+                        color: (carouselIndex == 0 && 'black') || 'darkgray',
+                      }}
+                    />
                   </Button>
-                  <Button style={styles.navigationButton} onClick={()=>{setCarouselIndex(1)}}>
-                    <HelpOutlineIcon style={{ fontSize: '42px', color:carouselIndex == 1 && "black" || "darkgray"}} />
+                  <Button
+                    style={styles.navigationButton}
+                    onClick={() => {
+                      setCarouselIndex(1)
+                    }}
+                  >
+                    <HelpOutlineIcon
+                      style={{
+                        fontSize: '42px',
+                        color: (carouselIndex == 1 && 'black') || 'darkgray',
+                      }}
+                    />
                   </Button>
                 </Box>
-
               </Box>
             </Box>
           </Paper>
@@ -162,9 +187,9 @@ const styles = {
     minHeight: MIN_HEIGHT,
     width: WIDTH_PERCENT,
     height: HEIGHT_PERCENT,
-    backgroundImage:bgUrl,
-    backgroundRepeat:"no-repeat",
-    backgroundSize:"cover",
+    backgroundImage: bgUrl,
+    backgroundRepeat: 'no-repeat',
+    backgroundSize: 'cover',
     outline: 0,
     padding: '20px',
     display: 'flex',
@@ -183,22 +208,22 @@ const styles = {
     justifyContent: 'center',
     alignItems: 'stretch',
     flexDirection: 'row',
-    flex:9,
+    flex: 9,
     zIndex: 1,
   },
   leftBody: {
     display: 'flex',
-    flex:1,
-    flexDirection:'column',
+    flex: 1,
+    flexDirection: 'column',
   },
 
   rightBody: {
     display: 'flex',
     flexDirection: 'column',
-    flex:1,
-    backgroundImage:parchUrl,
-    backgroundRepeat:'no-repeat',
-    backgroundSize:'100% 100%',
+    flex: 1,
+    backgroundImage: parchUrl,
+    backgroundRepeat: 'no-repeat',
+    backgroundSize: '100% 100%',
     backgroundPosition: 'center',
   },
   leftTop: {
@@ -215,24 +240,24 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'center',
     display: 'flex',
-    flex:1,
+    flex: 1,
   },
   carousel: {
     display: 'flex',
     flex: 4,
-    padding:10,
-    margin:"25px 15px 0 15px"
+    padding: 10,
+    margin: '25px 15px 0 15px',
   },
   navigation: {
     display: 'flex',
-    flex:1,
-    margin:"0 15px 15px 15px",
-    flexDirection:"row",
-    justifyContent:"space-around"
+    flex: 1,
+    margin: '0 15px 15px 15px',
+    flexDirection: 'row',
+    justifyContent: 'space-around',
   },
-  navigationButton : {
-    borderRadius:"60px", 
-    outline:"none",
+  navigationButton: {
+    borderRadius: '60px',
+    outline: 'none',
   },
   bottomNavigation: {
     flex: 1,

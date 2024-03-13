@@ -102,11 +102,6 @@ export function endState() {
   } else {
     winner = 2 // TIE
   }
-  // if neither condition passes, winner is set to tie by default
-  // else {
-  //   winner = 2
-  // }
-
 
   //credit points to players
   let points = {};
@@ -115,7 +110,7 @@ export function endState() {
     if (playersMetadata[id].team == winner){
       points[id] += 50;
     }
-    if (id == winner){
+    if (id == mvp){
       points[id] += 10;
     }
   }

@@ -9,9 +9,9 @@ import {
 import CloseIcon from '@mui/icons-material/Close'
 import PropTypes from 'prop-types'
 import { useEffect, useState } from 'react'
-import { add_listener, remove_listener } from '../../constants'
-import backgroundImage from "../../../assets/textures/Background.png"
-const bgUrl = "url("+backgroundImage+")";
+import { add_listener, remove_listener, get_global } from '../../constants'
+import backgroundImage from '../../../assets/textures/Background.png'
+const bgUrl = 'url(' + backgroundImage + ')'
 
 function textStyle(size = 3, bolded = false) {
   if (size < 0 || size > 6) {
@@ -30,29 +30,46 @@ function textStyle(size = 3, bolded = false) {
   ]
 
   return {
-    fontFamily: 'Roboto, Helvetica, Arial',
+    fontFamily: 'Jorvik',
     textAlign: 'center',
     fontSize: fontSizeMapping[size],
     fontWeight: bolded ? 'bold' : 'normal',
   }
 }
 
-
 // set onclose to () => setOpen(false) for it close in parent component
-const EndScreen = ({ winnerText = 'Blue Team Wins', onClose }) => {
+const EndScreen = ({ onClose }) => {
   const [visible, setVisible] = useState(false)
 
-  useEffect(()=>{
-    let listener = add_listener("GAME_OVER",()=>{
-      setVisible(true);
+  const [winner, setWinner] = useState('Blue Team Wins')
+  const [points_earned, setPoints] = useState(get_global('POINTS') || 0)
+  const [mvp, setMvp] = useState(get_global('MVP'))
+
+  useEffect(() => {
+    let listener = add_listener('GAME_OVER', x => {
+      if (!x) return
+      setVisible(true)
+      if (get_global('WINNER') == 1) {
+        setWinner('Red Team Wins')
+      } else if (get_global('WINNER') == 2) {
+        setWinner('Tied Match')
+      }
     })
-    return ()=>{remove_listener("GAME_OVER",listener)};
+
+    let close_lisenter = add_listener('SPECTATING', x => {
+      setVisible(false)
+    })
+    return () => {
+      remove_listener('GAME_OVER', listener)
+    }
   })
 
   return (
     <Dialog
       open={visible}
-      onClose={()=>{setVisible(false)}}
+      onClose={() => {
+        setVisible(false)
+      }}
       maxWidth="md"
       fullWidth
       PaperProps={{
@@ -61,21 +78,10 @@ const EndScreen = ({ winnerText = 'Blue Team Wins', onClose }) => {
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
-          width: '100%',
+          width: '60%',
         },
       }}
     >
-      <DialogTitle>
-        <IconButton
-          edge="end"
-          color="inherit"
-          onClick={onClose}
-          aria-label="close"
-          style={{ position: 'absolute', right: 20, top: 5 }}
-        >
-          <CloseIcon />
-        </IconButton>
-      </DialogTitle>
       <DialogContent
         style={{
           display: 'flex',
@@ -83,41 +89,45 @@ const EndScreen = ({ winnerText = 'Blue Team Wins', onClose }) => {
           justifyContent: 'center',
           flexDirection: 'column',
           backgroundImage: bgUrl,
+          backgroundSize: '100% 100%',
         }}
       >
-        <Typography
-          variant="h4"
-          gutterBottom
-          style={{
-            display: 'flex',
-            width: '100%',
-            backgroundColor: 'transparent',
-            color: '#1976d2',
-            justifyContent: 'center',
-            ...textStyle(5, true),
-            textDecoration: 'underline',
-          }}
-        >
-          {winnerText}
-        </Typography>
-        <Box
-          style={{
-            minHeight: '200px',
-            backgroundColor: 'transparent',
-            width: '100%',
-          }}
-        >
-          {/* Add your own content here evan*/}
+        <Box flex={1} flexDirection={'row'}>
+          <Box flex={1}></Box>
+          <Box flex={1} justifyContent={'center'}>
+            <Typography
+              variant="h4"
+              gutterBottom
+              style={{
+                display: 'flex',
+                width: '100%',
+                backgroundColor: 'transparent',
+                color: 'white',
+                justifyContent: 'center',
+                ...textStyle(5, true),
+                textDecoration: 'underline',
+              }}
+            >
+              {winner}
+            </Typography>
+          </Box>
+          <Box flex={1} justifyContent={'center'}>
+            <IconButton
+              edge="end"
+              color="white"
+              onClick={() => {
+                setVisible(false)
+              }}
+              aria-label="close"
+              style={{ position: 'absolute', right: 20, top: 5 }}
+            >
+              <CloseIcon color="white" />
+            </IconButton>
+          </Box>
         </Box>
       </DialogContent>
     </Dialog>
   )
-}
-
-EndScreen.propTypes = {
-  open: PropTypes.bool.isRequired,
-  winnerText: PropTypes.string.isRequired,
-  onClose: PropTypes.func.isRequired,
 }
 
 export default EndScreen

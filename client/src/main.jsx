@@ -7,7 +7,7 @@ import game from './game/Game.jsx'
 import InGameMenu from './ui/components/InGameMenu.jsx'
 import AlertWrapper from './ui/components/AlertWrapper.jsx'
 import LogWrapper from './ui/components/LogWrapper.jsx'
-import EndScreen from './menus/EndScreen.jsx'
+import EndScreen from './ui/components/EndScreen.jsx'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
@@ -17,10 +17,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
 
         {showAlert => (
           <>
-            <EndScreen
-              open={true}
-              onClose={() => {}}
-              />
+            <EndScreen/>
             <UI showAlert={showAlert}/>
 
             <InGameMenu

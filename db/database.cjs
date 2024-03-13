@@ -299,6 +299,4 @@ module.exports = {
   console.log("test2");
   console.log(test2);
 
-  // await knex("accounts").where("username", "admin").delete();
-
 })();

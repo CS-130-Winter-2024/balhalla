@@ -26,22 +26,34 @@ async function signup(request, response, next) {
         })
       }
     })
-  
+
   await bcrypt.hash(request.body.password, 10)
     .then(hashedPassword => {
       knex("accounts").insert({
         username: request.body.username,
         password: hashedPassword
       })
-      .returning(["username", "password"])
-      .then(new_user => {
-        console.log('signup user', new_user)
-        return jwt.sign(new_user[0].username, SECRET, (error, token) => {
-          response.status(200).json({ token: token })
-          console.log("signup db token:", token)
+        .returning(["username", "password"])
+        .then(new_user => {
+          console.log('signup user', new_user)
+          return jwt.sign(new_user[0].username, SECRET, (error, token) => {
+            knex.select('username', 'wins', 'losses', 'hits', 'points', 'ball', 'pet', 'icon')
+              .from('accounts')
+              .where('username', request.body.username)
+              .then(rows => {
+                rows[0]['token'] = token
+                rows[0]['item_array'] = []
+                console.log('login rows:', JSON.stringify(rows[0]));
+                response.status(200).json(JSON.stringify(rows[0]))
+              })
+              .catch(err => {
+                console.error(err);
+              })
+
+            console.log("signup db token:", token)
+          })
         })
-      })
-      .catch(error => next(error))
+        .catch(error => next(error))
     })
 }
 
@@ -67,8 +79,29 @@ async function login(request, response, next) {
             }
             else {
               console.log('login user', user)
+              let item_array
               return jwt.sign(user.username, SECRET, (error, token) => {
-                response.status(200).json({ token: token })
+                knex.select('item_id')
+                  .from('items')
+                  .where('username', user.username)
+                  .then(item_row => {
+                    item_array = item_row.map(row => row.item_id);
+                    console.log('itemarray:', item_array);
+                  })
+
+                knex.select('username', 'wins', 'losses', 'hits', 'points', 'ball', 'pet', 'icon')
+                  .from('accounts')
+                  .where('username', request.body.username)
+                  .then(rows => {
+                    rows[0]['token'] = token
+                    rows[0]['item_array'] = item_array
+                    console.log('login rows:', JSON.stringify(rows[0]));
+                    response.status(200).json(JSON.stringify(rows[0]))
+                  })
+                  .catch(err => {
+                    console.error(err);
+                  })
+
                 console.log("db token:", token)
               })
             }
@@ -80,93 +113,109 @@ async function login(request, response, next) {
 function getLeaderboardList(request, response) {
   console.log('leaderboard:')
   knex.select('username', 'wins', 'losses', 'hits')
-  .from('accounts')
-  .orderBy('wins')
-  .orderBy('hits')
-  .then(rows => {
+    .from('accounts')
+    .orderBy('wins')
+    .orderBy('hits')
+    .then(rows => {
       console.log(JSON.stringify(rows));
       response.status(200).json(JSON.stringify(rows))
-  })
-  .catch(err => {
+    })
+    .catch(err => {
       console.error(err);
-  })
+    })
 
 }
 
 async function updatePoints(user, pointChange) {
-  knex('accounts')
-  .where('username', user)
-  .increment('points', pointChange)
-  .catch(err => {
-    console.error(err);
-  })
+  await knex('accounts')
+    .where('username', user)
+    .increment('points', pointChange)
+    .catch(err => {
+      console.error(err);
+    })
 }
 
 async function updateWin(user, winChange) {
-  knex('accounts')
-  .where('username', user)
-  .increment('wins', winChange)
-  .catch(err => {
-    console.error(err);
-  })
+  await knex('accounts')
+    .where('username', user)
+    .increment('wins', winChange)
+    .catch(err => {
+      console.error(err);
+    })
 }
 
 async function updateLoss(user, lossChange) {
-  knex('accounts')
-  .where('username', user)
-  .increment('losses', lossChange)
-  .catch(err => {
-    console.error(err);
-  })
+  await knex('accounts')
+    .where('username', user)
+    .increment('losses', lossChange)
+    .catch(err => {
+      console.error(err);
+    })
 }
 
 async function updateHits(user, hitChange) {
-  knex('accounts')
-  .where('username', user)
-  .increment('hits', hitChange)
-  .catch(err => {
-    console.error(err);
-  })
+  await knex('accounts')
+    .where('username', user)
+    .increment('hits', hitChange)
+    .catch(err => {
+      console.error(err);
+    })
 }
 
 async function purchaseItem(user, itemID, itemCost) {
-  // knex('accounts')
-  //   .select('points')
-  //   .where('username', user)
-  //   .then(data => {
-  //     // curPoints = data[0].points;
-  //     console.log('curppoints:', data)
-  //   })
+  let curPoints
+  await knex('accounts')
+    .select('points')
+    .where('username', user)
+    .then(data => {
+      curPoints = data[0].points;
+      console.log('curppoints:', curPoints)
+    })
+
+  await knex('items')
+    .select()
+    .where('item_id', itemID)
+    .then(rows => {
+      console.log('item alr purchased?', rows)
+      if (rows.length !== 0 || curPoints - itemCost < 0) {
+        console.log('cannot purchase')
+        return false; // item alr owned or can't afford, return false
+      }
+    })
+   .catch(err => console.error(err))
   
-  
-  // return knex('items')
-  //   .select()
-  //   .where('item_id', itemID
-  //   .then(rows => {
-  //     if (rows.length == 0 || curPoints - itemCost < 0) {
-  //       return false; // Value alr in column, return false
-  //     }
-  //     else {
-  //       knex('accounts')
-  //       .where('username', user)
-  //       .decrement('points', itemCost)
-  //       .catch(err => {
-  //         console.error(err);
-  //       })
-        
-  //       knex('items').insert({
-  //         username: user,
-  //         item_id: itemID,
-  //       });
-  //       return true; // Value is in the column
-  //     }
-  //   })
-  //   .catch(err => {
-  //     console.error(err);
-  //     // return false; // Error occurred
-  //   });
+  await knex('accounts')
+    .where('username', user)
+    .decrement('points', itemCost)
+  .catch(err => console.error(err))
+
+  await knex('items').insert({
+    username: user,
+    item_id: itemID,
+  })
+  .then(() => {
+    console.log(itemID, 'purchased?')
+    return true; // Value is in the column
+  })
+  .catch(err => console.error(err))
+
+      
 }
- 
+
+async function getAllPurchasedItems(username) {
+  knex.select('item_id')
+    .from('items')
+    .where('username', user.username)
+    .then(item_row => {
+      item_array = item_row.map(row => row.item_id);
+      console.log('itemarray:', JSON.stringify(item_array));
+      response.status(200).json(JSON.stringify(rows))
+    })
+    .catch(err => {
+      console.error(err);
+    })
+}
+
 module.exports = {
   signup,
   login,
@@ -175,7 +224,8 @@ module.exports = {
   updateWin,
   updateLoss,
   updateHits,
-  purchaseItem
+  purchaseItem,
+  getAllPurchasedItems
 };
 
 (async () => {
@@ -214,7 +264,7 @@ module.exports = {
   // TEST CASES - Ishaan
 
   const testpw = await bcrypt.hash('1234', 10)
-  
+
   await knex('accounts').insert({
     username: 'admin',
     password: testpw,

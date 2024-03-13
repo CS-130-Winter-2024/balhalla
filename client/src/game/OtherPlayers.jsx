@@ -65,7 +65,7 @@ export function addPlayer(playerID, data, metadata) {
   playersModels[playerID] = new PlayerModel(metadata);
   playersModels[playerID].group.position.x = data.x
   playersModels[playerID].group.position.z = data.z
-  playersModels[playerID].body.rotateY(data.z > 0 ? Math.PI/2 : -Math.PI/2);
+  playersModels[playerID].body.rotateY(data.z < 0 ? Math.PI/2 : -Math.PI/2);
   otherPlayerGroup.add(playersModels[playerID].group);
 }
 

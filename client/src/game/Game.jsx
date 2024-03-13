@@ -55,6 +55,7 @@ function websocketSetup() {
         Player.updatePlayer(playerData, true);
         Player.setSpectate(false);
         Player.getCamera().lookAt(playerData.x,constants.ALIVE_Y,-playerData.z);
+        constants.set_global("LOCKED",true);
         continue
       }
       Others.addPlayer(player, data.playerData[player], data.metaData[player]);
@@ -201,7 +202,9 @@ export default function main() {
   //Update viewport whenever changed
   updateAspect(renderer, Player.getCamera());
   window.addEventListener("resize", () => {
-    updateAspect(renderer, Player.getCamera());
+    //fix both spectate and regular camera
+    updateAspect(renderer, Player.getCamera(true));
+    updateAspect(renderer, Player.getSpectateCamera());
   });
 
   //Render loop

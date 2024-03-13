@@ -13,8 +13,6 @@ PlayerStats.propTypes = {
 function PlayerStats({ stats }) {
   const renderStats = () => {
     const rows = []
-    const numRows = Math.ceil(stats.length / 3)
-    const rowHeight = `calc(100% / ${numRows})`
 
     for (let i = 0; i < stats.length; i += 3) {
       const rowStats = stats.slice(i, i + 3)
@@ -25,8 +23,8 @@ function PlayerStats({ stats }) {
           style={{
             display: 'flex',
             justifyContent: 'space-around',
-            height: rowHeight,
-            width: '100%',
+            flexDirection: "row",
+            flex:1,
           }}
         >
           {rowStats.map(({ key, value }, index) => (
@@ -44,7 +42,7 @@ function PlayerStats({ stats }) {
             >
               <Typography
                 variant="subtitle1"
-                style={{ fontWeight: 'bold', color: 'black' }}
+                style={{ fontWeight: 'bold', color: 'white', fontFamily:"Jorvik", fontSize:"18px" }}
               >
                 {key}
               </Typography>
@@ -52,11 +50,10 @@ function PlayerStats({ stats }) {
                 style={{
                   width: '50%',
                   height: '1px',
-                  backgroundColor: 'black',
-                  margin: '4px 0',
+                  backgroundColor: 'white',
                 }}
               />
-              <Typography variant="subtitle1" style={{ color: '#1976D2' }}>
+              <Typography variant="subtitle1" style={{ color: "white", fontFamily: "Jorvik", fontSize:"18px" }}>
                 {value}
               </Typography>
             </Box>
@@ -73,8 +70,7 @@ function PlayerStats({ stats }) {
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'center',
-          height: '100%',
-          width: '100%',
+          flex:1,
         }}
       >
         {rows}
@@ -82,7 +78,7 @@ function PlayerStats({ stats }) {
     )
   }
 
-  return <Box style={{ width: '100%' }}>{renderStats()}</Box>
+  return <Box style={{ flex:1 }}>{renderStats()}</Box>
 }
 
 export default PlayerStats

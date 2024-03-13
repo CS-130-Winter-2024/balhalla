@@ -5,22 +5,20 @@ import {
   Paper,
   Box,
   Typography,
-  BottomNavigation,
-  BottomNavigationAction,
   Button,
 } from '@mui/material'
 import PropTypes from 'prop-types'
 import SettingsIcon from '@mui/icons-material/Settings'
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline'
 
-import TabCarousel from './TabCarousel'
-import TabInstructionsContent from './TabInstructionsContent'
-import TabSettingsContent from './TabSettingsContent'
+import Instructions from './Instructions'
+import Settings from './Settings'
 import AvatarSelector from './AvatarSelector'
 import PlayerStats from './PlayerStats'
 
-import backgroundImage from "../../assets/textures/Background.png"
-import parchment from "../../assets/textures/Parchment.png"
+import backgroundImage from "../../../assets/textures/Background.png"
+import parchment from "../../../assets/textures/Parchment.png"
+import { add_listener, get_global, remove_listener, set_global } from '../../constants'
 
 const bgUrl = "url("+backgroundImage+")"
 const parchUrl = "url("+parchment+")"
@@ -30,8 +28,7 @@ const WIDTH_PERCENT = '50%'
 const HEIGHT_PERCENT = '65%'
 const MIN_WIDTH = '400px'
 const MIN_HEIGHT = '250px'
-const SECOND_BLUE = 'lightgray' // "#35baf6"
-const FIRST_BLUE = '#1976D2'
+const SECOND_BLUE = 'lightgray'
 
 // functions for Text
 function textStyle(size = 3, bolded = false) {
@@ -66,21 +63,18 @@ InGameMenu.propTypes = {
   showAlert: PropTypes.func.isRequired,
 }
 
-function InGameMenu({ handleClose,  showAlert }) {
+function InGameMenu({ showAlert }) {
   // conditions and states
   const [open, setOpen] = useState(false)
   const [carouselIndex, setCarouselIndex] = useState(0)
-  const [menuHeight, setMenuHeight] = useState(window.innerHeight)
 
   // info states
-  const [avatarName, setAvatarName] = useState('You')
-  const [username, setUsername] = useState('GiangPappi')
+  const [showStats, setShowStats] = useState(false);
+  const [username, setUsername] = useState(get_global("USERNAME") || "Guest")
   const [stats, setStats] = useState([])
 
   // useEffect to set default values based on endpoint
-  useEffect(() => {
-    setAvatarName('You')
-    setUsername('GiangPappi')
+  useEffect(() => { 
     setStats([
       { key: 'Wins', value: '10' },
       { key: 'Losses', value: '90' },
@@ -89,18 +83,25 @@ function InGameMenu({ handleClose,  showAlert }) {
       { key: 'Rank', value: 'Diamond' },
       { key: 'Creation', value: '2022-03-08' },
     ])
+
+    let listener = add_listener("LOCKED",(x)=>{
+      setOpen(!x && !get_global("SPECTATING"))
+    })
+
+    let statsListener = add_listener("AUTHENTICATED",setShowStats);
+    let nameListener = add_listener("USERNAME",setUsername);
+
+    return ()=>{
+      remove_listener("LOCKED",listener)
+      remove_listener("AUTHENTICATED",statsListener);
+      remove_listener("USERNAME",nameListener);
+    }
   }, [])
 
-  // if spacebar pressed, toggle the open state REMOVETHIS
-  document.addEventListener('spaceBarPressed', () => {
-    setOpen(!open)
-    setMenuHeight(window.innerHeight)
-    console.log('menuHeight: ', menuHeight)
-  })
 
   return (
     <>
-      <Modal open={open} onClose={handleClose} closeAfterTransition>
+      <Modal open={open} onClose={()=>{set_global("LOCKED",true)}} closeAfterTransition>
         <Fade in={open} timeout={{ enter: 500, exit: 300 }}>
           <Paper style={styles.customModal}>
             {/* Modal Header */}
@@ -114,7 +115,6 @@ function InGameMenu({ handleClose,  showAlert }) {
               <Box style={styles.leftBody}>
                 <Box style={styles.leftTop}>
                   <AvatarSelector
-                    initImageName={avatarName}
                     showAlert={showAlert}
                   />
                   <Typography style={textStyle(3, true)}>{username}</Typography>
@@ -124,7 +124,7 @@ function InGameMenu({ handleClose,  showAlert }) {
                 <Box style={styles.divider}></Box>
 
                 <Box style={styles.leftBottom}>
-                  <PlayerStats stats={stats} />
+                  {showStats && <PlayerStats stats={stats} />}
                 </Box>
               </Box>
 
@@ -132,7 +132,7 @@ function InGameMenu({ handleClose,  showAlert }) {
               <Box style={styles.rightBody}>
 
                 <Box style={styles.carousel}>
-                  {carouselIndex == 0 && <TabSettingsContent showAlert={showAlert} /> || <TabInstructionsContent />}
+                  {carouselIndex == 0 && <Settings showAlert={showAlert} /> || <Instructions />}
                 </Box>
                 <Box style={styles.navigation}>
                   <Button style={styles.navigationButton} onClick={()=>{setCarouselIndex(0)}}>
@@ -177,7 +177,6 @@ const styles = {
     justifyContent: 'center',
     alignItems: 'center',
     flex: 1,
-    borderBottom: "1px solid white",
   },
   modalBody: {
     display: 'flex',

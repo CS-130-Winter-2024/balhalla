@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import { Button, Box, Typography } from '@mui/material'
 import PropTypes from 'prop-types'
-import { set_global } from "../constants"
+import { set_global } from "../../constants"
 
 const forbiddenKeys = [
   ' ',

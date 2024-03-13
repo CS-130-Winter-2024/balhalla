@@ -1,4 +1,4 @@
-import { Typography, Paper } from '@mui/material'
+import { Typography, Box } from '@mui/material'
 import PropTypes from 'prop-types'
 
 TabInstructionsContent.propTypes = {
@@ -7,36 +7,30 @@ TabInstructionsContent.propTypes = {
 }
 
 const INSTRUCTIONS = `
-  Welcome to the game! Here are the instructions:\n
-  1. Use the arrow keys to move the character\n
-  2. Collect the coins to earn points\n
-  3. Avoid the balls\n
-  4. Throw your balls\n
-  5. Make sure you hit your ops with your balls\n
-  6. Buy skins so we can make money\n`
+  Press the Throw key to throw your weapon\n
+  If you hit a player, you gain points that you can buy skins with\n
+  Pick up weapons on the ground to be able to throw again\n
+  When you are hit, you turn into a ghost that can push weapons around`
 
-function TabInstructionsContent({height }) {
+function TabInstructionsContent({}) {
   const styles = {
     container: {
       display: 'flex',
       flexDirection: 'column',
-      flexGrow: 1,
+
       alignItems: 'center',
-      minHeight: `${height * 0.42}px`, // height: '100%',
-      width: '100%',
-      // backgroundColor: 'lightblue', // CHANGE
       justifyContent: 'flex-start',
     },
     header: {
       ...textStyle(3, true),
-      borderBottom: '2px solid #1976D2',
-      width: '40%',
-      marginHorizontal: 'auto',
-      marginTop: '20px',
+      borderBottom: '2px solid black',
+      display:"flex",
+      flex:1,
     },
     content: {
       ...textStyle(2),
-      marginTop: '10px',
+      display: "flex",
+      flex:9,
       whiteSpace: 'pre-line',
       lineHeight: '1',
     },
@@ -60,14 +54,14 @@ function TabInstructionsContent({height }) {
   }
 
   return (
-    <Paper style={styles.container}>
+    <Box style={styles.container}>
       <Typography variant="h5" style={styles.header}>
         Instructions
       </Typography>
       <Typography variant="body1" style={styles.content}>
-        {renderTextWithBold()}
+        {INSTRUCTIONS}
       </Typography>
-    </Paper>
+    </Box>
   )
 }
 
@@ -77,8 +71,6 @@ function textStyle(size = 3, bolded = false, color = 'black') {
     return
   }
   const fontSizeMapping = [
-    '12px',
-    '14px',
     '16px',
     '18px',
     '20px',
@@ -89,7 +81,7 @@ function textStyle(size = 3, bolded = false, color = 'black') {
 
   return {
     color: color,
-    fontFamily: 'Roboto, Helvetica, Arial',
+    fontFamily: 'Jorvik',
     textAlign: 'center',
     fontSize: fontSizeMapping[size],
     fontWeight: bolded ? 'bold' : 'normal',

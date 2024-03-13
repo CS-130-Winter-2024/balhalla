@@ -1,7 +1,7 @@
 import * as three from 'three'
 import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js'
 import { createWorld, getSkybox } from './World'
-import { setupConnection, setHandler } from './Connection'
+import { setupConnection, setHandler, getSocket } from './Connection'
 import * as constants from '../constants'
 import * as Others from './OtherPlayers'
 import * as Player from './Player'
@@ -21,7 +21,9 @@ function websocketSetup() {
     constants.set_global('USERNAME', usernm)
     var eventMsg = JSON.stringify([
       constants.MESSAGES.playerJoin,
-      { username: constants.get_global('USERNAME') },
+      { username: constants.get_global('USERNAME'),
+        ready: true
+     },
     ])
     socket.send(eventMsg)
     document.dispatchEvent(new CustomEvent('setUsername', { detail: usernm }))
@@ -89,11 +91,14 @@ function websocketSetup() {
     constants.set_global('LOCKED', false)
     constants.set_global('GAME_OVER', true)
 
+    //QUEUE
     var eventMsg = JSON.stringify([
       constants.MESSAGES.playerJoin,
-      { username: constants.get_global('USERNAME') },
+      { username: constants.get_global('USERNAME'),
+        ready:constants.get_global("IN_QUEUE")
+      }
     ])
-    socket.send(eventMsg)
+    socket.send(eventMsg);
   })
 
   //On other player connect, add their data to scene
@@ -125,6 +130,18 @@ function websocketSetup() {
     }
   })
 
+  constants.add_listener("IN_QUEUE",(inQueue)=>{
+    var eventMsg = JSON.stringify([
+      constants.MESSAGES.playerJoin,
+      { username: constants.get_global('USERNAME'),
+        ready: inQueue,
+        ball: constants.get_global("BALL"),
+        pet: constants.get_global("PET"),
+        icon: constants.get_global("ICON"),
+      }
+    ])
+    getSocket().send(eventMsg);
+  })
   setupConnection()
 }
 
@@ -141,6 +158,13 @@ function updateAspect(renderer, camera) {
     camera.aspect = width / height
     camera.updateProjectionMatrix()
   }
+}
+
+function initialize() {
+  //set globals
+  constants.set_global("LOCKED",false);
+  
+  //handle login from here
 }
 
 export default function main() {
@@ -177,30 +201,17 @@ export default function main() {
   //Add camera locking
   constants.add_listener('LOCKED', isLocked => {
     if (isLocked) {
-      controls.lock()
+      try {
+        controls.lock();
+      } catch {
+        constants.set_global("LOCKED",false)
+      }
     } else {
       controls.unlock();
     }
   })
   controls.addEventListener('unlock', () => {
     constants.set_global('LOCKED', false)
-  })
-  // document.addEventListener("keydown", (ev) => {
-  //   if (ev.key == " " || ev.key == "Enter") {
-  //     // if (locked) {
-
-  //     // } else {
-
-  //     // }
-  //   }
-  // });
-
-  // event for when space bar is pressed, it will trigger the ingame menu IF x condition is met
-  document.addEventListener('keydown', ev => {
-    if (ev.key === ' ') {
-      console.log('space bar pressed')
-      document.dispatchEvent(new CustomEvent('spaceBarPressed'))
-    }
   })
 
   //setup websockets
@@ -217,11 +228,11 @@ export default function main() {
   Player.attachKeybinds()
 
   //Update viewport whenever changed
-  updateAspect(renderer, Player.getCamera())
+  updateAspect(renderer, Player.getCamera());
   window.addEventListener('resize', () => {
     //fix both spectate and regular camera
-    updateAspect(renderer, Player.getCamera(true))
-    updateAspect(renderer, Player.getSpectateCamera())
+    updateAspect(renderer, Player.getCamera(true));
+    updateAspect(renderer, Player.getSpectateCamera());
   })
 
   //Render loop

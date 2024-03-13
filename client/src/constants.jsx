@@ -31,7 +31,7 @@ import parchment from "../assets/textures/Parchment.png"
 
 //GAME
 export const SPEED = 5 // Player speed
-export const ALIVE_Y = 2 // Camera position when player is alive
+export const ALIVE_Y = 1.75 // Camera position when player is alive
 
 export const THROW_KEY = 'f'
 export const SHIFT_KEY = 'Shift'
@@ -283,14 +283,23 @@ export function get_global(key) {
   return null
 }
 
-export function set_global(key, value) {
+export function set_global(key, value, trigger=true) {
   GLOBAL_STORE[key] = value
+  if (!trigger) return;
   if (key in LISTENERS) {
     for (const fun in LISTENERS[key]) {
-      LISTENERS[key][fun][0](value)
-      if (!LISTENERS[key][fun][1]) {
-        delete LISTENERS[key][fun]
+      try {
+        LISTENERS[key][fun][0](value)
+        if (!LISTENERS[key][fun][1]) {
+          delete LISTENERS[key][fun]
+        }
+      } catch {
+        console.log("[LISTENER] Error listening on ",key," for ID",fun);
       }
     }
   }
+}
+
+export function print_globals() {
+  console.log(GLOBAL_STORE);
 }

@@ -22,6 +22,15 @@ export function getProgress() {
     return loaded/totalModels;
 }
 
+export function applyTransformations(modelID, scene) {
+    switch (modelID) {
+        case "0":
+            scene.scale.set(2,2.5,2);
+            scene.position.set(0,-0.5,0);
+            break
+    }
+}
+
 export function updateModelList(modelList) {
     for (const model in Object.keys(modelList)) {
         if (!(model in models)) {
@@ -30,6 +39,7 @@ export function updateModelList(modelList) {
             ModelLoader.load(
                 MODEL_IDS[model],
                 (gltf) => {
+                    applyTransformations(model,gltf.scene);
                     models[model].add(gltf.scene);
                     loaded++;
                     if (loaded == totalModels) {

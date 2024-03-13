@@ -11,12 +11,14 @@ class PlayerModel {
     this.body.add(getModelInstance(0));
     this.group = new three.Group();
     this.tag = new Text();
-    this.tag.text = metadata.username + (metadata.team == 0 && " [BLUE]" || " [RED]");
+    this.tag.text = metadata.username;
     this.tag.fontSize = 0.5;
+    this.tag.color = metadata.team == 0 ? "#0000dd" : "#dd0000"
     this.tag.anchorX = "center";
     this.tag.anchory = "center";
     this.tag.position.y = 2.5;
     this.tag.outlineWidth = "10%";
+    this.tag.outlineColor = "#ffffff";
     this.body.rotateY(1.5);
 
     this.group.add(this.tag);
@@ -57,10 +59,13 @@ export function addPlayer(playerID, data, metadata) {
   //Add player metadata
   playersMetadata[playerID] = metadata;
 
+  console.log("[METADATA]",playersMetadata);
+
   //add 3d model to model group
   playersModels[playerID] = new PlayerModel(metadata);
   playersModels[playerID].group.position.x = data.x
   playersModels[playerID].group.position.z = data.z
+  playersModels[playerID].body.rotateY(data.z > 0 ? Math.PI/2 : -Math.PI/2);
   otherPlayerGroup.add(playersModels[playerID].group);
 }
 

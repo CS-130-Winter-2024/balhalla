@@ -1,7 +1,7 @@
 export const MINIMUM_PLAYERS = 1;
 
 //times
-export const LOBBY_LENGTH = 30000;
+export const LOBBY_LENGTH = 10000;
 export const START_COUNTDOWN = 5000;
 export const GAME_LENGTH = 45000; //game length in milliseconds
 export const TICK_RATE = 50; //how often to update server in milliseconds
@@ -62,7 +62,10 @@ export function message_parse(msg) {
       break;
     case MESSAGES.playerJoin:
       output.username = data[1].username;
-      output.ready = data[1].ready;
+      output.ready = data[1].ready ? data[1].ready : false;
+      output.ball = data[1].ball || 2;
+      output.pet = data[1].pet || undefined;
+      output.icon = data[1].icon || 0;
       break;
     case MESSAGES.throwBall:
       output.direction = data[1];

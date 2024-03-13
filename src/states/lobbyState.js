@@ -31,24 +31,19 @@ export function processMessage(id, message) {
     let data = constants.message_parse(message)
     switch (data.type) {
       case constants.MESSAGES.playerJoin:
-        if (message.delete) {
+        if (!data.ready) {
             delete playerQueue[id]
             return
         }
-        if (message.metaData != undefined) {
-            playerQueue[id] = {
-                username: data.username,
-                body: constants.DEFAULT_BODY,
-                ball: constants.TEMP_DEFAULT_BALL_MODEL_UNTIL_SELECT_BALL_IS_DONE,
-                ...message.metaData
-            };
-            return;
-        }
+
         playerQueue[id] = {
             username: data.username,
-            body: constants.DEFAULT_BODY,
-            ball: constants.TEMP_DEFAULT_BALL_MODEL_UNTIL_SELECT_BALL_IS_DONE,
+            ball: data.ball,
+            icon: data.icon,
+            ready: data.ready,
         };
+        if (data.pet) playerQueue[id].pet = data.pet
+
         break
     }
 }
@@ -68,7 +63,7 @@ export function doTick() {
         //check skins against token (DB function)
         let data = {}
         data.players = playerQueue
-        data.count = Object.keys(playerQueue).length
+        data.count = Object.keys(data.players).length
         console.log("[START]",data.players)
         onFinish(1,data)
         return

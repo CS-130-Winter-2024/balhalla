@@ -9,18 +9,16 @@ import TextField from '@mui/material/TextField'
 import { TablePagination } from '@mui/material'
 import backgroundImage from '../../assets/textures/Background.png'
 import Store from './components/Store'
-import PropTypes from 'prop-types'
-import { add_listener, get_global, set_global, TEXTURES } from '../constants'
+import { add_listener, get_global, print_globals, remove_listener, set_global, TEXTURES, MESSAGES } from '../constants'
 import Clock from './components/Clock'
 
 import sampleData from './sample-data.json'
 
-set_global('AUTHENTICATED', false)
+set_global('AUTHENTICATED', false);
 // TODO: when page is loaded, check token in cookies against server
 // if so, start as logged in, otherwise logged out
 var token_to_username = {}
 
-var tester = true
 async function handleSignup(username, pw, conf_pw) {
   // check if pw is same as conf_pw
   if (pw !== conf_pw) {
@@ -495,16 +493,12 @@ function ToggleSignUpScreen() {
 
 export default function UI({ showAlert }) {
   const [locked, setLocked] = useState(false)
-  const [username, setUsername] = useState('')
-  const [loginClicked, setLoginClicked] = useState(false)
-  const [loggedIn, setLoggedIn] = useState(false)
+  const [inQueue, setInQueue] = useState(true);
+  const [spectating, setSpectating] = useState(true);
+  const [username, setUsername] = useState(get_global("USERNAME") || "")
 
   const [auth, setAuth] = useState(false)
 
-  // props validation
-  UI.propTypes = {
-    showAlert: PropTypes.func.isRequired,
-  }
 
   if (localStorage.getItem('token') in token_to_username) {
     // TODO: toggle to logged in screen with user token_to_username[localStorage.getItem("token")]
@@ -512,28 +506,24 @@ export default function UI({ showAlert }) {
     // TODO: toggle to logged out screen
   }
   useEffect(() => {
-    let listener = add_listener('AUTHENTICATED', setAuth)
-    let listener2 = add_listener('USERNAME', setUsername)
+    
   }, [])
-  // START: Giang's stuff
-
   const [showStore, setShowStore] = useState(false)
 
-  // TIE HERE
-  useEffect(() => {}, [])
-
   useEffect(() => {
-    add_listener('LOCKED', setLocked)
-    document.addEventListener('setUsername', e => {
-      setUsername(e.detail)
-    })
-  }, [])
+    set_global("IN_QUEUE",true);
 
-  //Ishaan conditional
-  // useEffect(() => {
-  //   let listener = add_listener('AUTHENTICATED', setAuth)
-  //   // return remove_listener('AUTHENTICATED', listener)
-  // }, [])
+    let listener = add_listener('LOCKED', setLocked);
+    let spectatingListener = add_listener("SPECTATING", setSpectating);
+    let authListener = add_listener('AUTHENTICATED', setAuth);
+    let usernameListener = add_listener('USERNAME', setUsername);
+    return ()=>{
+      remove_listener("LOCKED", listener);
+      remove_listener("AUTHENTICATED",authListener);
+      remove_listener("USERNAME", usernameListener);
+      remove_listener("SPECTATING",spectatingListener);
+    }
+  }, [])
 
   return (
     <>
@@ -543,7 +533,7 @@ export default function UI({ showAlert }) {
         style={{
           display:
             (locked && 'none') ||
-            (get_global('SPECTATING') && 'block') ||
+            (spectating && 'block') ||
             'none',
           backgroundImage: `url(${TEXTURES.stoneVert})`,
           backgroundSize: '100% 100%',
@@ -578,10 +568,12 @@ export default function UI({ showAlert }) {
             fontFamily: 'Jorvik',
           }}
           onClick={() => {
-            set_global('LOCKED', true)
+            print_globals();
+            set_global("IN_QUEUE",!inQueue);
+            setInQueue(!inQueue);
           }}
         >
-          Return to Game
+          {inQueue && "Leave Queue" || "Enter Queue"}
         </Button>
         {!auth && <ToggleLoginScreen></ToggleLoginScreen>}
 
@@ -603,7 +595,7 @@ export default function UI({ showAlert }) {
           Shop
         </Button>
       </div>
-      <div id="overlay" style={{ display: (locked && 'block') || 'none' }}>
+      <div id="overlay" style={{ display: (get_global("LOCKED") && 'block') || 'none' }}>
         <img
           src={crosshair}
           style={{

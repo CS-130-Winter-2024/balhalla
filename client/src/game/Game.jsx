@@ -178,6 +178,8 @@ export default function main() {
   constants.add_listener('LOCKED', isLocked => {
     if (isLocked) {
       controls.lock()
+    } else {
+      controls.unlock();
     }
   })
   controls.addEventListener('unlock', () => {

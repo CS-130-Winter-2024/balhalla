@@ -2,12 +2,38 @@ const bcrypt = require("bcrypt")
 const jwt = require("jsonwebtoken")
 const SECRET = "any_secret_you_want_to_use"
 
+var URL = process.env.DATABASE_URL;
+
+if (URL == null) {
+  try {
+    let DB_URL = require("./keys.cjs");
+    URL = DB_URL
+  } catch {
+    //if we cant connect, dont even try lol
+    module.exports = {
+      signup:()=>{},
+      login:()=>{},
+      getLeaderboardList:()=>{},
+      updatePoints:()=>{},
+      updateWin:()=>{},
+      updateLoss:()=>{},
+      updateHits:()=>{},
+      purchaseItem:()=>{},
+      getAllPurchasedItems:()=>{}
+    }
+    return;
+  }
+}
+
+
+
+
 const knex = require("knex")({
   // We are using PostgreSQL
   client: "postgres",
   // Use the `DATABASE_URL` environment variable we provide to connect to the Database
   // It is included in your Replit environment automatically (no need to set it up)
-  connection: process.env.DATABASE_URL,
+  connection: URL,
 
   // Optionally, you can use connection pools to increase query performance
   pool: { min: 0, max: 80 },

@@ -16,12 +16,8 @@ import {
   Avatar,
   DialogActions,
 } from '@mui/material'
-import PropTypes from 'prop-types'
 
-import bg from '../../../assets/textures/Background.png'
-const bgUrl = 'url(' + bg + ')'
 
-import parchment from '../../../assets/textures/Parchment.png'
 import {
   BUYABLE_MODELS,
   MODEL_PROPERTIES,
@@ -29,8 +25,10 @@ import {
   set_global,
   add_listener,
   remove_listener,
+  TEXTURES
 } from '../../constants'
-const parchUrl = 'url(' + parchment + ')'
+const bgUrl = 'url(' + TEXTURES.stone + ')'
+const parchUrl = 'url(' + TEXTURES.parchment + ')'
 
 // Constants for styling
 const fontFamily = 'Jorvik'

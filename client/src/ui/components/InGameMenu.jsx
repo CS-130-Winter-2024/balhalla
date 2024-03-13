@@ -9,17 +9,16 @@ import Settings from './Settings'
 import AvatarSelector from './AvatarSelector'
 import PlayerStats from './PlayerStats'
 
-import backgroundImage from '../../../assets/textures/Background.png'
-import parchment from '../../../assets/textures/Parchment.png'
 import {
   add_listener,
   get_global,
   remove_listener,
   set_global,
+  TEXTURES
 } from '../../constants'
 
-const bgUrl = 'url(' + backgroundImage + ')'
-const parchUrl = 'url(' + parchment + ')'
+const bgUrl = 'url(' + TEXTURES.stone + ')'
+const parchUrl = 'url(' + TEXTURES.parchment + ')'
 
 // modal constants
 const WIDTH_PERCENT = '50%'

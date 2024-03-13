@@ -166,10 +166,18 @@ export function processMessage(id, message) {
   let data = constants.message_parse(message)
   switch (data.type) {
     case constants.MESSAGES.sendMovement:
+      if (Date.now() < gameStartTimer) {
+        //game has not started yet! Do not process anything!
+        return;
+      }
       //store player keys
       players[id].direction = data.direction;
       break;
     case constants.MESSAGES.throwBall:
+      if (Date.now() < gameStartTimer) {
+        //game has not started yet! Do not process anything!
+        return;
+      }
       if (players[id].hasBall) {
         //generate random ball id
         let ballID = Math.floor(Math.random() * 100000);

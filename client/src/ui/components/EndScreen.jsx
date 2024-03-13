@@ -7,11 +7,9 @@ import {
   Box,
 } from '@mui/material'
 import CloseIcon from '@mui/icons-material/Close'
-import PropTypes from 'prop-types'
 import { useEffect, useState } from 'react'
-import { add_listener, remove_listener, get_global } from '../../constants'
-import backgroundImage from '../../../assets/textures/Background.png'
-const bgUrl = 'url(' + backgroundImage + ')'
+import { add_listener, remove_listener, get_global, TEXTURES } from '../../constants'
+const bgUrl = 'url(' + TEXTURES.stone + ')'
 
 function textStyle(size = 3, bolded = false) {
   if (size < 0 || size > 6) {
@@ -38,7 +36,7 @@ function textStyle(size = 3, bolded = false) {
 }
 
 // set onclose to () => setOpen(false) for it close in parent component
-const EndScreen = ({ onClose }) => {
+const EndScreen = ({}) => {
   const [visible, setVisible] = useState(false)
 
   const [winner, setWinner] = useState('Blue Team Wins')
@@ -56,11 +54,12 @@ const EndScreen = ({ onClose }) => {
       }
     })
 
-    let close_lisenter = add_listener('SPECTATING', x => {
+    let closeListener = add_listener('SPECTATING', x => {
       setVisible(false)
     })
     return () => {
-      remove_listener('GAME_OVER', listener)
+      remove_listener('GAME_OVER', listener);
+      remove_listener("SPECTATING", closeListener);
     }
   })
 
@@ -74,11 +73,11 @@ const EndScreen = ({ onClose }) => {
       fullWidth
       PaperProps={{
         style: {
-          maxHeight: '50%',
+          height: '50%',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
-          width: '60%',
+          width: '30%',
         },
       }}
     >
@@ -114,14 +113,13 @@ const EndScreen = ({ onClose }) => {
           <Box flex={1} justifyContent={'center'}>
             <IconButton
               edge="end"
-              color="white"
               onClick={() => {
                 setVisible(false)
               }}
               aria-label="close"
               style={{ position: 'absolute', right: 20, top: 5 }}
             >
-              <CloseIcon color="white" />
+              <CloseIcon style={{color:"white"}} />
             </IconButton>
           </Box>
         </Box>

@@ -24,6 +24,11 @@ import shaq from '../assets/images/Shaq.png'
 import hamter from '../assets/images/Hamter.jpg'
 import goku from '../assets/images/goku_pfp.jpg'
 
+
+import stone from "../assets/textures/Background.png"
+import stoneVert from "../assets/textures/BackgroundVertical.png"
+import parchment from "../assets/textures/Parchment.png"
+
 //GAME
 export const SPEED = 5 // Player speed
 export const ALIVE_Y = 2 // Camera position when player is alive
@@ -223,6 +228,8 @@ export const BALL_ANIMATIONS = {
 export const AVATARS = [kev, panda, shaq, hamter, goku]
 
 export const AVATAR_NAMES = ['King Kev', 'Panda', 'Shaquille', 'Hamter', 'Goku']
+
+export const TEXTURES = {stone, stoneVert, parchment};
 
 // color constants themes
 export const colors = {

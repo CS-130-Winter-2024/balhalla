@@ -8,16 +8,14 @@ import Modal from '@mui/material/Modal'
 import TextField from '@mui/material/TextField'
 import { TablePagination } from '@mui/material'
 import backgroundImage from '../../assets/textures/Background.png'
-import vertBackground from '../../assets/textures/BackgroundVertical.png'
 import Store from './components/Store'
 import PropTypes from 'prop-types'
-import * as constants from '../constants'
-import { add_listener, get_global, set_global } from '../constants'
+import { add_listener, get_global, set_global, TEXTURES } from '../constants'
 import Clock from './components/Clock'
 
 import sampleData from './sample-data.json'
 
-constants.set_global('AUTHENTICATED', false)
+set_global('AUTHENTICATED', false)
 // TODO: when page is loaded, check token in cookies against server
 // if so, start as logged in, otherwise logged out
 var token_to_username = {}
@@ -52,14 +50,14 @@ async function handleSignup(username, pw, conf_pw) {
       localStorage.setItem('token', jsondata.token)
       token_to_username[jsondata.token] = username
 
-      constants.set_global('WEAPON', jsondata.ball)
-      constants.set_global('PET', jsondata.pet)
-      constants.set_global('POINTS', jsondata.points)
-      constants.set_global('USERNAME', jsondata.username)
-      constants.set_global('ICON', jsondata.icon)
-      constants.set_global('OWNED', jsondata.item_array)
+      set_global('WEAPON', jsondata.ball)
+      set_global('PET', jsondata.pet)
+      set_global('POINTS', jsondata.points)
+      set_global('USERNAME', jsondata.username)
+      set_global('ICON', jsondata.icon)
+      set_global('OWNED', jsondata.item_array)
       const { wins, losses, hits } = jsondata
-      constants.set_global('STATS', {
+      set_global('STATS', {
         Wins: wins,
         Losses: losses,
         Hits: hits,
@@ -68,7 +66,7 @@ async function handleSignup(username, pw, conf_pw) {
         Hitrate: parseFloat(((hits / (wins + losses)) * 100).toFixed(2)),
       })
 
-      constants.set_global('AUTHENTICATED', true)
+      set_global('AUTHENTICATED', true)
     })
 }
 
@@ -97,23 +95,23 @@ async function handleLogin(username, pw) {
       // setSharedBool(true);
       console.log('login token:', jsondata.token)
       localStorage.setItem('token', jsondata.token)
-      constants.set_global('AUTHENTICATED', true)
+      set_global('AUTHENTICATED', true)
 
       token_to_username[data.token] = username
       for (var key in token_to_username) {
         console.log(key + ' : ' + token_to_username[key])
       }
 
-      constants.set_global('WEAPON', jsondata.ball)
-      constants.set_global('PET', jsondata.pet)
-      constants.set_global('POINTS', jsondata.points)
-      constants.set_global('USERNAME', jsondata.username)
-      constants.set_global('ICON', jsondata.icon)
-      constants.set_global('OWNED', jsondata.item_array)
+      set_global('WEAPON', jsondata.ball)
+      set_global('PET', jsondata.pet)
+      set_global('POINTS', jsondata.points)
+      set_global('USERNAME', jsondata.username)
+      set_global('ICON', jsondata.icon)
+      set_global('OWNED', jsondata.item_array)
       console.log('[TEST]', jsondata.item_array)
 
       const { wins, losses, hits } = jsondata
-      constants.set_global('STATS', {
+      set_global('STATS', {
         Wins: wins,
         Losses: losses,
         Hits: hits,
@@ -212,7 +210,7 @@ function Leaderboard() {
             width: '400px',
             color: 'black',
             fontFamily: 'Jorvik',
-            backgrouundImage: backgroundImage,
+            backgroundImage: TEXTURES.stone,
           }}
         >
           <h1 style={{ color: 'white', fontFamily: 'Jorvik' }}>Leaderboard</h1>
@@ -273,7 +271,7 @@ function ToggleLoginScreen() {
 
   const [auth, setAuth] = useState(false)
 
-  // if(constants.get_global('AUTHENTICATED')){
+  // if(get_global('AUTHENTICATED')){
 
   // }
 
@@ -283,8 +281,8 @@ function ToggleLoginScreen() {
   }
 
   // useEffect(() => {
-  //   let listener = constants.add_listener('AUTHENTICATED', setAuth)
-  //   // return constants.remove_listener('AUTHENTICATED', listener)
+  //   let listener = add_listener('AUTHENTICATED', setAuth)
+  //   // return remove_listener('AUTHENTICATED', listener)
   // }, [])
 
   return (
@@ -495,15 +493,6 @@ function ToggleSignUpScreen() {
   )
 }
 
-const renderShopButton = () => {
-  const handleShopClick = () => {
-    // Add your logic for handling the 'Shop' button click here
-    console.log('Shop button clicked')
-  }
-
-  return <button onClick={handleShopClick}>Shop</button>
-}
-
 export default function UI({ showAlert }) {
   const [locked, setLocked] = useState(false)
   const [username, setUsername] = useState('')
@@ -523,8 +512,8 @@ export default function UI({ showAlert }) {
     // TODO: toggle to logged out screen
   }
   useEffect(() => {
-    let listener = constants.add_listener('AUTHENTICATED', setAuth)
-    let listener2 = constants.add_listener('USERNAME', setUsername)
+    let listener = add_listener('AUTHENTICATED', setAuth)
+    let listener2 = add_listener('USERNAME', setUsername)
   }, [])
   // START: Giang's stuff
 
@@ -542,15 +531,12 @@ export default function UI({ showAlert }) {
 
   //Ishaan conditional
   // useEffect(() => {
-  //   let listener = constants.add_listener('AUTHENTICATED', setAuth)
-  //   // return constants.remove_listener('AUTHENTICATED', listener)
+  //   let listener = add_listener('AUTHENTICATED', setAuth)
+  //   // return remove_listener('AUTHENTICATED', listener)
   // }, [])
 
   return (
     <>
-      {/* START: Giang's stuff */}
-
-      {/* END: Giang's stuff */}
       <Clock />
       <div
         id="UI"
@@ -559,7 +545,7 @@ export default function UI({ showAlert }) {
             (locked && 'none') ||
             (get_global('SPECTATING') && 'block') ||
             'none',
-          backgroundImage: `url(${vertBackground})`,
+          backgroundImage: `url(${TEXTURES.stoneVert})`,
           backgroundSize: '100% 100%',
           border: '2px solid #0',
         }}
@@ -616,7 +602,6 @@ export default function UI({ showAlert }) {
         >
           Shop
         </Button>
-        {/* {sharedBool && <title>Shared Works</title>} */}
       </div>
       <div id="overlay" style={{ display: (locked && 'block') || 'none' }}>
         <img

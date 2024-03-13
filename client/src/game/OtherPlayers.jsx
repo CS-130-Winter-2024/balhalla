@@ -8,7 +8,7 @@ import { get_global } from "../constants";
 class PlayerModel {
   constructor(metadata) {
     this.body = new three.Group();
-    this.body.add(getModelInstance(metadata["body"]));
+    this.body.add(getModelInstance(0));
     this.group = new three.Group();
     this.tag = new Text();
     this.tag.text = metadata.username + (metadata.team == 0 && " [BLUE]" || " [RED]");

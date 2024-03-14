@@ -292,14 +292,14 @@ export function doTick() {
 
 
       //move player according to their velocity
-      player.x += player.direction[0] * constants.SPEED_DT;
+      player.x += player.direction[0] * (player.alive ? constants.SPEED_DT : constants.DEAD_SPEED_DT);
       player.x = Math.min(
         Math.max(player.x, -constants.WORLD_HALF_LENGTH ),
         constants.WORLD_HALF_LENGTH,
       ); //clamp to world border on X
   
       //move player according to their velocity
-      player.z += player.direction[1] * constants.SPEED_DT;
+      player.z += player.direction[1] * (player.alive ? constants.SPEED_DT : constants.DEAD_SPEED_DT);
       if (player.alive){ // clamp to team's side if alive
         player.z = Math.min(
           Math.max(player.z, playersMetadata[playerID].team == 0 && -constants.WORLD_HALF_WIDTH || 0),

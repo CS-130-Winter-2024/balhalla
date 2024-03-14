@@ -15,6 +15,7 @@ import EndScreen from './components/EndScreen.jsx'
 import InGameMenu from './components/InGameMenu.jsx'
 
 import sampleData from './sample-data.json'
+import { Announcer } from './components/Announcer.jsx'
 
 set_global('AUTHENTICATED', false);
 // TODO: when page is loaded, check token in cookies against server
@@ -50,7 +51,7 @@ async function handleSignup(username, pw, conf_pw) {
       localStorage.setItem('token', jsondata.token)
       token_to_username[jsondata.token] = username
 
-      set_global('WEAPON', jsondata.ball)
+      set_global('BALL', jsondata.ball)
       set_global('PET', jsondata.pet)
       set_global('POINTS', jsondata.points)
       set_global('USERNAME', jsondata.username)
@@ -102,7 +103,7 @@ async function handleLogin(username, pw) {
         console.log(key + ' : ' + token_to_username[key])
       }
 
-      set_global('WEAPON', jsondata.ball)
+      set_global('BALL', jsondata.ball)
       set_global('PET', jsondata.pet)
       set_global('POINTS', jsondata.points)
       set_global('USERNAME', jsondata.username)
@@ -583,7 +584,7 @@ export default function UI({ showAlert }) {
         {!auth && <ToggleSignUpScreen id="logIn"></ToggleSignUpScreen>}
 
         <Leaderboard></Leaderboard>
-        <Button
+        {auth && <Button
           id="logIn"
           style={{
             backgroundColor: 'white',
@@ -596,10 +597,11 @@ export default function UI({ showAlert }) {
           variant="outlined"
         >
           Shop
-        </Button>
+        </Button>}
       </div>
       <div id="overlay" style={{ display: (locked && 'block') || 'none' }}>
         <InGameMenu showAlert={showAlert}/>
+        <Announcer />
         <img
           src={crosshair}
           style={{

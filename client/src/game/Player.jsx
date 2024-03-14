@@ -14,7 +14,8 @@ var properties = {
   y: constants.ALIVE_Y,
   z: 0,
   directionHeld: [0, 0, 0, 0],
-  hasBall: true,
+  hasBall: false,
+  alive: true
 };
 // Meta data of the client player (player's points, selected ball, selected pet, etc.)
 var myMetadata;
@@ -201,6 +202,9 @@ export function getSpectateCamera() {
 }
 
 export function updatePlayer(data, force=false) {
+  if (data.alive && properties.hasBall == false && data.hasBall && !force) {
+    constants.set_global("ANNOUNCE","You picked up a weapon!");
+  }
   properties = {
     ...properties,
     ...data,

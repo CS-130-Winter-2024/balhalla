@@ -2,12 +2,38 @@ const bcrypt = require("bcrypt")
 const jwt = require("jsonwebtoken")
 const SECRET = "any_secret_you_want_to_use"
 
+var URL = process.env.DATABASE_URL;
+var doTest = false
+if (URL == null) {
+  try {
+    let DB_URL = require("./keys.cjs");
+    URL = DB_URL
+  } catch {
+    //if we cant connect, dont even try lol
+    module.exports = {
+      signup: () => { },
+      login: () => { },
+      getLeaderboardList: () => { },
+      updatePoints: () => { },
+      updateWin: () => { },
+      updateLoss: () => { },
+      updateHits: () => { },
+      purchaseItem: () => { },
+      getAllPurchasedItems: () => { }
+    }
+    return;
+  }
+}
+
+var tokens = {}
+
+
 const knex = require("knex")({
   // We are using PostgreSQL
   client: "postgres",
   // Use the `DATABASE_URL` environment variable we provide to connect to the Database
   // It is included in your Replit environment automatically (no need to set it up)
-  connection: process.env.DATABASE_URL,
+  connection: URL,
 
   // Optionally, you can use connection pools to increase query performance
   pool: { min: 0, max: 80 },
@@ -16,6 +42,11 @@ const knex = require("knex")({
 
 async function signup(request, response, next) {
   // check if username is taken
+  if (request.body.username.slice(0,5) == "Guest") {
+    return response.status(401).json({
+      error: "Username already taken"
+    })
+  }
   knex("accounts")
     .where({ username: request.body.username })
     .first()
@@ -42,13 +73,19 @@ async function signup(request, response, next) {
               .where('username', request.body.username)
               .then(rows => {
                 rows[0]['token'] = token
-                rows[0]['item_array'] = []
+                tokens[token] = request.body.username;
+                rows[0]['item_array'] = [2]
                 console.log('login rows:', JSON.stringify(rows[0]));
-                response.status(200).json(JSON.stringify(rows[0]))
+                response.status(200).json(rows[0])
               })
               .catch(err => {
                 console.error(err);
               })
+
+            knex('items').insert({
+              username: request.body.username,
+              item_id: 2,
+            });
 
             console.log("signup db token:", token)
           })
@@ -87,26 +124,64 @@ async function login(request, response, next) {
                   .then(item_row => {
                     item_array = item_row.map(row => row.item_id);
                     console.log('itemarray:', item_array);
-                  })
+                  }).then(() => {
 
-                knex.select('username', 'wins', 'losses', 'hits', 'points', 'ball', 'pet', 'icon')
-                  .from('accounts')
-                  .where('username', request.body.username)
-                  .then(rows => {
-                    rows[0]['token'] = token
-                    rows[0]['item_array'] = item_array
-                    console.log('login rows:', JSON.stringify(rows[0]));
-                    response.status(200).json(JSON.stringify(rows[0]))
+                    knex.select('username', 'wins', 'losses', 'hits', 'points', 'ball', 'pet', 'icon')
+                      .from('accounts')
+                      .where('username', request.body.username)
+                      .then(rows => {
+                        tokens[token] = request.body.username;
+                        rows[0]['token'] = token
+                        rows[0]['item_array'] = item_array
+                        console.log('login rows:', JSON.stringify(rows[0]));
+                        response.status(200).json(rows[0])
+                      })
                   })
                   .catch(err => {
                     console.error(err);
                   })
+
+                knex.update({ token: token })
+                  .where('username', request.body.username);
 
                 console.log("db token:", token)
               })
             }
           })
       }
+    })
+}
+
+async function tokenLogin(request, response, next) {
+  console.log(request.body)
+  if (!(request.body.token in tokens)) {
+    response.status(401).json({
+      error: "Token invalid"
+    })
+    return;
+  }
+
+  let item_array
+  knex.select('item_id')
+    .from('items')
+    .where('username', tokens[request.body.token])
+    .then(item_row => {
+      item_array = item_row.map(row => row.item_id);
+      console.log('itemarray:', item_array);
+    }).then(() => {
+      knex.select('username', 'wins', 'losses', 'hits', 'points', 'ball', 'pet', 'icon')
+        .from('accounts')
+        .where('username', tokens[request.body.token])
+        .then(rows => {
+          rows[0]['item_array'] = item_array
+          console.log('login rows:', JSON.stringify(rows[0]));
+          response.status(200).json(rows[0])
+        })
+        .catch(err => {
+          console.error(err);
+        })
+    }).catch(err => {
+      console.error(err);
     })
 }
 
@@ -124,6 +199,15 @@ function getLeaderboardList(request, response) {
       console.error(err);
     })
 
+}
+
+async function getPointsByUsernames(usernames) {
+  let points = await knex.select("username","points").from('accounts').whereIn("username",usernames);
+  let output = {}
+  for (const entry of points) {
+    output[entry.username] = entry.points
+  }
+  return output;
 }
 
 async function updatePoints(user, pointChange) {
@@ -162,8 +246,23 @@ async function updateHits(user, hitChange) {
     })
 }
 
-async function purchaseItem(user, itemID, itemCost) {
+async function updateItems(token, ball, pet, icon) {
+  await knex('accounts')
+    .where('username', tokens[token])
+    .update({
+      ball: ball,
+      pet: pet,
+      icon: icon,
+    })
+}
+
+async function purchaseItem(token, itemID, itemCost,response) {
   let curPoints
+  let user = tokens[token];
+  if (!user) { //
+    response.json({success:false,itemArray:null});
+    return false
+  }
   await knex('accounts')
     .select('points')
     .where('username', user)
@@ -171,35 +270,47 @@ async function purchaseItem(user, itemID, itemCost) {
       curPoints = data[0].points;
       console.log('curppoints:', curPoints)
     })
-
-  await knex('items')
+  if (curPoints < itemCost) {
+    response.json({success:false,itemArray:null})
+    return false;
+  }
+  let items;
+  let canPurchase = await knex('items')
     .select()
-    .where('item_id', itemID)
+    .where({"username":user})
     .then(rows => {
       console.log('item alr purchased?', rows)
-      if (rows.length !== 0 || curPoints - itemCost < 0) {
-        console.log('cannot purchase')
-        return false; // item alr owned or can't afford, return false
+      items = rows;
+      for (const row of rows) {
+        if (row.item_id == itemID) {
+          console.log('cannot purchase')
+          response.status(200).json({success:false,itemArray:null})
+          return false;
+        }
       }
+      return true;
     })
-   .catch(err => console.error(err))
+    .catch(err => console.error(err))
+  if (!canPurchase) return;
   
+
   await knex('accounts')
     .where('username', user)
     .decrement('points', itemCost)
-  .catch(err => console.error(err))
+    .catch(err => console.error(err))
 
   await knex('items').insert({
     username: user,
     item_id: itemID,
   })
-  .then(() => {
-    console.log(itemID, 'purchased?')
-    return true; // Value is in the column
-  })
-  .catch(err => console.error(err))
-
-      
+    .then(() => {
+      items = items.map(x=>x.item_id);
+      items.push(Number(itemID));
+      console.log(items)
+      response.status(200).json({success:true,itemArray:items});
+      return;
+    })
+    .catch(err => console.error(err))
 }
 
 async function getAllPurchasedItems(username) {
@@ -219,15 +330,20 @@ async function getAllPurchasedItems(username) {
 module.exports = {
   signup,
   login,
+  tokenLogin,
   getLeaderboardList,
   updatePoints,
   updateWin,
   updateLoss,
   updateHits,
   purchaseItem,
-  getAllPurchasedItems
+  getAllPurchasedItems,
+  updateItems,
+  getPointsByUsernames
 };
+getPointsByUsernames(["bigcheung","admin"]);
 
+if (!doTest) return;
 (async () => {
 
   // Only while developing, we will drop database and re-create it
@@ -243,12 +359,12 @@ module.exports = {
         table.integer('wins').defaultTo(0);
         table.integer('losses').defaultTo(0);
         table.integer('hits').defaultTo(0);
-        //ball
-        table.integer('ball');
+        table.integer('ball').defaultTo(2);
         //pet - charm that gets added to player as a customization
         table.integer('pet');
-        table.integer('icon');
+        table.integer('icon').defaultTo(0);
         table.string('password');
+        table.string('token')
       });
     }
   });
@@ -282,11 +398,11 @@ module.exports = {
 
   await knex('items').insert({
     username: 'admin',
-    item_id: 11,
+    item_id: 2,
   });
   await knex('items').insert({
     username: 'admin',
-    item_id: 12,
+    item_id: 3,
   });
 
   const user = await knex('accounts').where('username', 'admin')

@@ -13,7 +13,7 @@ const __dirname = url.fileURLToPath(new URL(".", import.meta.url));
 const app = express();
 
 import pkg from "./db/database.cjs";
-const { signup, login, getLeaderboardList, updatePoints, purchaseItem } = pkg;
+const { signup, login, tokenLogin, getLeaderboardList, purchaseItem, updateItems } = pkg;
 
 //Client Page Server
 app.use(express.static(path.join(__dirname, "public")));
@@ -30,7 +30,7 @@ const httpServer = app.listen(PORT, () => {
   console.log("Press Ctrl+C to quit.");
 });
 
-/* Database Commands
+// Database Commands
 app.use(express.json());
 app.post("/signup", (request, response, next) => {
   signup(request, response, next);
@@ -38,19 +38,23 @@ app.post("/signup", (request, response, next) => {
 app.post("/login", (request, response, next) => {
   login(request, response, next);
 });
+app.post("/token_login", (request, response, next) => {
+  tokenLogin(request, response, next);
+});
 
 app.get("/get_leaderboard", (request, response) => {
   getLeaderboardList(request, response);
 });
-app.get("/test", (req, res) => {
-  purchaseItem("admin", 21, 1);
-});
-
-*/
-
-// app.get("/signup", (request, response, next) => {
-//   printUsers(request, response, next);
+app.post("/purchase_item", (request, response, next) => {
+  purchaseItem(request.body.token, request.body.item_id, request.body.item_cost, response);
+})
+app.post("/update_items", (request, response, next) => {
+  updateItems(request.body.token, request.body.ball, request.body.pet, request.body.icon, response);
+})
+// app.get("/test", (req, res) => {
+//   purchaseItem("admin", 21, 1);
 // });
+
 
 setHandler("msg", processMessage);
 setHandler("connect", addPlayer);

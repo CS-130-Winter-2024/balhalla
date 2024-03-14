@@ -2,7 +2,7 @@ import * as three from "three";
 import { BALL_ANIMATIONS } from "../constants";
 
 import { getModelInstance } from "./Models";
-import { getMetadata } from "./Player";
+import { getMetadataByPlayerID } from "./OtherPlayers";
 
 var balls = {}; // associates each ball with game data
 var ballsModels = {}; // associates each ball with 3d model
@@ -20,7 +20,6 @@ export function updateBalls(ballData) {
     }
     for (const index in ballData) {
       if (!(index in balls)) {
-        console.log("Added Ball", index);
         addBall(index, ballData[index]);
       }
     }
@@ -32,7 +31,7 @@ export function updateBalls(ballData) {
 // adds ball in scene
 //   ball is in scene if thrown in air or sitting on floor
 export function addBall(id, data) {
-  let model = createBall((getMetadata() && getMetadata().ball) || 2);
+  let model = createBall(data.model);
 
   ballsModels[id] = model;
   ballsModels[id].rotation.order = 'YXZ'; // Rotation order allows orienting objects for animations
@@ -66,15 +65,15 @@ export function update() {
     if (index == "didChange") continue;
     if (!(index in balls && index in ballsModels)) {
       console.log("[PROBLEM] Ball ID: ",index," | ",balls[index]," | ballsModels:",ballsModels[index])
-      alert("PROBLEM DETECTED!");
       continue;
     }
-    intermediateVector.set(balls[index].x, balls[index].y, balls[index].z);
+    let ball = balls[index];
+    intermediateVector.set(ball.x, ball.y, ball.z);
     ballsModels[index].position.lerp(intermediateVector, 0.2);
-    if(balls[index].velocity[1] != 0){
+    if(ball.velocity[1] != 0){
       // if ball is still in air, apply animation and "gravity"
-      ballsModels[index].rotation.y = Math.atan2(balls[index].velocity[0], balls[index].velocity[2]);
-      BALL_ANIMATIONS[getMetadata().ball](ballsModels[index]);
+      ballsModels[index].rotation.y = Math.atan2(ball.velocity[0], ball.velocity[2]);
+      BALL_ANIMATIONS[balls[index].model](ballsModels[index]);
     }
   }
 }
@@ -86,7 +85,5 @@ export function getBallGroup() {
 
 // Creating ball model in three js
 export function createBall(model) {
-  let ball = new three.Group()
-  ball.add(getModelInstance(model));
-  return ball;
+  return getModelInstance(model);
 }

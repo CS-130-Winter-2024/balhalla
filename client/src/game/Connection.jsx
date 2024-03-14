@@ -23,7 +23,7 @@ export function setupConnection() {
 
   socket.addEventListener("close", (event) => {
     console.log("Socket closed!");
-    location.reload();
+    constants.set_global("DISCONNECTED",true)
   });
 
   socket.addEventListener("message", (event) => {

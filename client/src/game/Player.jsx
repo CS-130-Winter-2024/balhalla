@@ -5,6 +5,8 @@ import * as constants from "../constants"
 var camera;
 var spectateCamera;
 
+var spectateAnim = 0
+
 constants.set_global("SPECTATING",true)
 var spectating = true
 
@@ -14,10 +16,9 @@ var properties = {
   y: constants.ALIVE_Y,
   z: 0,
   directionHeld: [0, 0, 0, 0],
-  hasBall: true,
+  hasBall: false,
+  alive: true
 };
-// Meta data of the client player (player's points, selected ball, selected pet, etc.)
-var myMetadata;
 
 var movementVector = new three.Vector3();
 var perpVector = new three.Vector3();
@@ -26,6 +27,22 @@ var prevCamVector = new three.Vector3();
 
 var dashScalar = 1; // always applied to movements, greater than 1 when dash is used
 var dashAvailable = true; // based on dash cooldown, defines when dash can be used
+
+
+let keybinds = {
+  "w":0,
+  "a":1,
+  "s":2,
+  "d":3
+}
+
+constants.add_listener("KEYBINDS",(newBinds)=>{
+  keybinds = {};
+  keybinds[newBinds.Forward] = 0;
+  keybinds[newBinds.Left] = 1;
+  keybinds[newBinds.Backward] = 2;
+  keybinds[newBinds.Right] = 3;
+})
 
 // Uses camera direction and movement key presses to determine player's movement direction
 function calculateDirection() {
@@ -84,13 +101,13 @@ function onKeyDown(e) {
   if (constants.get_global("LOCKED")) {
     let wasMovement = false;
 
-    if (e.key in constants.MOVEMENT_MAP) { // Movement keys: WASD
-      let index = constants.MOVEMENT_MAP[e.key];
+    if (e.key in keybinds) { // Movement keys: WASD
+      let index = keybinds[e.key];
       wasMovement = properties.directionHeld[index] == 0;
       properties.directionHeld[index] = 1;
     }
 
-    if (e.key == constants.SHIFT_KEY){ // dash should only trigger on key press, not release
+    if (e.key == constants.get_global("KEYBINDS").Dash){ // dash should only trigger on key press, not release
       if (dashAvailable){
         wasMovement = true;
         dashScalar = constants.DASH_SPEED;
@@ -120,11 +137,11 @@ function onKeyUp(e) {
   if (constants.get_global("LOCKED")) {
     let wasMovement = false;
 
-    if (e.key in constants.MOVEMENT_MAP) { // Movement keys: WASD
-      let index = constants.MOVEMENT_MAP[e.key];
+    if (e.key in keybinds) { // Movement keys: WASD
+      let index = keybinds[e.key];
       wasMovement = true;
       properties.directionHeld[index] = 0;
-    } else if (e.key == constants.THROW_KEY) {
+    } else if (e.key == constants.get_global("KEYBINDS").Throw) {
       throwBall();
     }
 
@@ -162,7 +179,7 @@ function createSpectateCamera() {
   spectateCamera = new three.PerspectiveCamera(75, 2, 0.1, 1000);
   spectateCamera.position.z = 0;
   spectateCamera.position.y = 10;
-  spectateCamera.position.x = 17;
+  spectateCamera.position.x = 22;
   spectateCamera.zoom = 1;
   spectateCamera.lookAt(0, 0, 0);
   spectateCamera.updateProjectionMatrix();
@@ -201,6 +218,9 @@ export function getSpectateCamera() {
 }
 
 export function updatePlayer(data, force=false) {
+  if (data && data.alive && properties.hasBall == false && data.hasBall && !force) {
+    constants.set_global("ANNOUNCE","You picked up a weapon!");
+  }
   properties = {
     ...properties,
     ...data,
@@ -210,10 +230,20 @@ export function updatePlayer(data, force=false) {
   }
 }
 
-function updateSpectateCamera() {
-  //do nothing for now
+export function isAlive() {
+  return properties.alive;
 }
 
+const twoPI = Math.PI * 2;
+function updateSpectateCamera() {
+  spectateAnim += 0.0025118; //pi/180, comes out to full rotation every 6s
+  if (spectateAnim > twoPI) {
+    spectateAnim = 0;
+  }
+  spectateCamera.position.x = Math.cos(spectateAnim) * 22;
+  spectateCamera.position.z = Math.sin(spectateAnim) * 22;
+  spectateCamera.lookAt(0, 0, 0);
+}
 export function update() {
   if (spectating) {
     updateSpectateCamera();
@@ -232,12 +262,4 @@ export function update() {
 
   intermediateVector.set(properties.x, properties.y, properties.z);
   camera.position.lerp(intermediateVector, 0.2);
-}
-
-export function setMetadata(data){
-  myMetadata = data;
-}
-
-export function getMetadata(){
-  return myMetadata;
 }

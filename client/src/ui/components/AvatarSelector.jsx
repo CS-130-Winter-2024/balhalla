@@ -63,7 +63,7 @@ AvatarSelector.propTypes = {
   showAlert: PropTypes.func.isRequired,
 }
 
-function AvatarSelector({showAlert }) {
+function AvatarSelector({showAlert, canClick }) {
   const [open, setOpen] = useState(false)
   const [selectedAvatar, setSelectedAvatar] = useState(get_global("ICON") || 0)
   const [newAvatar, setNewAvatar] = useState(AVATARS[get_global("ICON") || 0])
@@ -81,6 +81,20 @@ function AvatarSelector({showAlert }) {
     set_global("ICON",newAvatar);
     setOpen(false)
     showAlert('Profile picture saved!', 'success')
+
+    if (!localStorage.getItem("token")) return; //shouldnt happen
+    fetch('/update_items', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        token: localStorage.getItem("token"),
+        ball: get_global("BALL") || 2,
+        pet: get_global("PET"),
+        icon: get_global("ICON")
+      }),
+    })
   }
 
   const handleImageClick = imageUrl => {
@@ -90,7 +104,7 @@ function AvatarSelector({showAlert }) {
   return (
     <Box>
       <Tooltip title="Change Avatar">
-        <IconButton onClick={handleOpen} sx={styles.avatarButton}>
+        <IconButton onClick={handleOpen} disabled={!canClick} sx={styles.avatarButton}>
           <Avatar
             src={AVATARS[selectedAvatar]}
             alt="Profile Avatar"

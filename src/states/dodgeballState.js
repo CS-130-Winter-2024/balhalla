@@ -1,9 +1,16 @@
 import * as constants from "../../constants.js";
 import { getConnections } from "../connection.js";
 
+import pkg from "../../db/database.cjs";
+const { updatePoints, updateHits, updateWin, updateLoss, getPointsByUsernames } = pkg;
+
 var players = {}; //playerid associated
 var playersMetadata = {}; //playerid associated
 var balls = {didChange:false};
+
+
+var playersByName = {}
+var playerPoints;
 
 var gameStartTimer;
 var gameEndTimer;
@@ -19,6 +26,7 @@ export function startState(data) {
   //add all the readied players to the game
   let current = 0;
   let playerCount = [0,0]
+  playersByName = {}
   for (const id in data.players) {
 
     //pick z coordinate
@@ -46,12 +54,16 @@ export function startState(data) {
       team: teams[current],
       hits: 0,
     };
-    
+    playersByName[data.players[id].username] = id
     current++;
   }
 
   gameStartTimer = Date.now() + constants.START_COUNTDOWN;
   gameEndTimer = gameStartTimer + constants.GAME_LENGTH;
+
+  getPointsByUsernames(Object.keys(playersByName)).then(
+    (players)=>{playerPoints = players}
+  )
 
   //propagate the playerlist to everyone
   for (const id in sockets) {
@@ -73,6 +85,7 @@ function isGameOver() {
 
   return -1;
 }
+
 
 export function endState() {
   let winner = 2; //0=team 1, 1=team2, 2=tie
@@ -102,22 +115,34 @@ export function endState() {
   } else {
     winner = 2 // TIE
   }
-  // if neither condition passes, winner is set to tie by default
-  // else {
-  //   winner = 2
-  // }
-
 
   //credit points to players
   let points = {};
+  let totalPoints = {};
   for (const id in playersMetadata){
+    totalPoints[id] = 0;
     points[id] = playersMetadata[id].hits * 10;
-    if (playersMetadata[id].team == winner){
-      points[id] += 50;
-    }
-    if (id == winner){
+    if (id == mvp){
       points[id] += 10;
     }
+    if (playersMetadata[id].team == winner){
+      points[id] += 50;
+      updateWin(playersMetadata[id].username, 1)
+    }
+    else {
+      updateLoss(playersMetadata[id].username, 1)
+    }
+    
+    if (playersMetadata[id].username in playerPoints) {
+      console.log("PLAYER FOUND!");
+      totalPoints[id] = playerPoints[playersMetadata[id].username] + points[id];
+    }
+
+    // update points in database
+    updatePoints(playersMetadata[id].username, points[id])
+    // update hits in database
+    updateHits(playersMetadata[id].username, playersMetadata[id].hits)
+    
   }
 
   //wipe everything
@@ -127,9 +152,9 @@ export function endState() {
 
   let sockets = getConnections();
   let newTime = Date.now() + constants.LOBBY_LENGTH + 250
-  
+  console.log("[PLAYERPOINTS]",playerPoints);
   for (const id in sockets) {
-    const broadcast = JSON.stringify([constants.MESSAGES.gameEnd, winner, mvp, points[id], newTime])
+    const broadcast = JSON.stringify([constants.MESSAGES.gameEnd, winner, mvp, points[id], newTime, totalPoints[id]])
     sockets[id].send(broadcast);
   }
 
@@ -171,10 +196,18 @@ export function processMessage(id, message) {
   let data = constants.message_parse(message)
   switch (data.type) {
     case constants.MESSAGES.sendMovement:
+      if (Date.now() < gameStartTimer) {
+        //game has not started yet! Do not process anything!
+        return;
+      }
       //store player keys
       players[id].direction = data.direction;
       break;
     case constants.MESSAGES.throwBall:
+      if (Date.now() < gameStartTimer) {
+        //game has not started yet! Do not process anything!
+        return;
+      }
       if (players[id].hasBall) {
         //generate random ball id
         let ballID = Math.floor(Math.random() * 100000);
@@ -191,6 +224,7 @@ export function processMessage(id, message) {
           velocity: data.direction.map((x) => x * constants.BALL_SPEED),
           throwerID: id,
           isGrounded: false,
+          model: playersMetadata[id].ball || 2,
         };
         balls.didChange = true;
       }
@@ -273,14 +307,14 @@ export function doTick() {
 
 
       //move player according to their velocity
-      player.x += player.direction[0] * constants.SPEED_DT;
+      player.x += player.direction[0] * (player.alive ? constants.SPEED_DT : constants.DEAD_SPEED_DT);
       player.x = Math.min(
         Math.max(player.x, -constants.WORLD_HALF_LENGTH ),
         constants.WORLD_HALF_LENGTH,
       ); //clamp to world border on X
   
       //move player according to their velocity
-      player.z += player.direction[1] * constants.SPEED_DT;
+      player.z += player.direction[1] * (player.alive ? constants.SPEED_DT : constants.DEAD_SPEED_DT);
       if (player.alive){ // clamp to team's side if alive
         player.z = Math.min(
           Math.max(player.z, playersMetadata[playerID].team == 0 && -constants.WORLD_HALF_WIDTH || 0),
@@ -341,9 +375,7 @@ export function doTick() {
               players[playerID].hasBall = false;
               playersMetadata[ball.throwerID].hits++;
 
-              if (isGameOver() != -1) {
-                endState();
-              }
+              
 
               // LATER: if have ball, return ball to game
   
@@ -358,6 +390,10 @@ export function doTick() {
                 sockets[otherID].send(
                   JSON.stringify([constants.MESSAGES.playerKnockout, playerID, ball.throwerID]),
                 );
+              }
+
+              if (isGameOver() != -1) {
+                endState();
               }
             }
           }

@@ -4,9 +4,9 @@ import clockImage from "../../../assets/images/Clock.png";
 const clockImageUrl = "url("+clockImage+")"
 
 export default function Clock({}) {
-    const [time, setTime] = useState(Date.now()+10000);
+    const [time, setTime] = useState(null);
     const [display, setDisplay] = useState(0);
-    const [text, setText] = useState("Game starts in");
+    const [text, setText] = useState("Waiting for players");
 
     useEffect(()=>{
         let listener = add_listener("CURRENT_TIMER",setTime);
@@ -24,6 +24,11 @@ export default function Clock({}) {
 
         if (get_global("TIMEOUT_ID")) {
             clearTimeout(get_global("TIMEOUT_ID"))
+        }
+        
+        if (time == null) {
+            setDisplay("");
+            return;
         }
 
         setDisplay(Math.ceil(tDiff/1000));
@@ -44,6 +49,7 @@ export default function Clock({}) {
         <div style={{position:"absolute",left:"50%",transform:"translateX(-50%)",height:"100px",width:"300px",backgroundImage:clockImageUrl}}>
             <p style={{width:"100%",lineHeight:"55px",color:"#ffffff",margin:0,textAlign:"center",fontSize:"24px"}}>{text}</p>
             <p style={{width:"100%",lineHeight:"10px",color:"#ffffff",margin:0,textAlign:"center",fontSize:"24px"}}>{
+                display == "" ? "" :
                 ((display-display%60)/60).toString() + " : " + (display%60).toString()
             }</p>
         </div>

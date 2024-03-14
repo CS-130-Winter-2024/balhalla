@@ -9,137 +9,25 @@ import TextField from '@mui/material/TextField'
 import { TablePagination } from '@mui/material'
 import backgroundImage from '../../assets/textures/Background.png'
 import Store from './components/Store'
-import PropTypes from 'prop-types'
-import * as constants from '../constants'
-import { add_listener, get_global, set_global } from '../constants'
+import {
+  add_listener,
+  get_global,
+  print_globals,
+  remove_listener,
+  set_global,
+  TEXTURES,
+} from '../constants'
 import Clock from './components/Clock'
-
-
-// import pkg from "../../../db/database.cjs";
-// const { getLeaderboardList } = pkg;
+import EndScreen from './components/EndScreen.jsx'
+import InGameMenu from './components/InGameMenu.jsx'
 
 import sampleData from './sample-data.json'
+import { Announcer } from './components/Announcer.jsx'
+import { handleLogin, handleSignup } from '../game/Authentication.jsx'
 
-constants.set_global('AUTHENTICATED', false)
+set_global('AUTHENTICATED', false)
 // TODO: when page is loaded, check token in cookies against server
 // if so, start as logged in, otherwise logged out
-var token_to_username = {}
-
-// const SharedBooleanContext = createContext();
-
-// const SharedBooleanProvider = ({ children }) => {
-//   const [sharedBoolean, setSharedBoolean] = useState(false);
-
-//   const setSharedBooleanValue = (value) => {
-//     setSharedBoolean(value);
-//   };
-
-//   const getSharedBooleanValue = () => {
-//     return sharedBoolean;
-//   };
-
-//   return (
-//     <SharedBooleanContext.Provider
-//       value={{ sharedBoolean, setSharedBooleanValue, getSharedBooleanValue }}
-//     >
-//       {children}
-//     </SharedBooleanContext.Provider>
-//   );
-// };
-
-// const setSharedBoolean = (value) => {
-//   const { setSharedBooleanValue } = useContext(SharedBooleanContext);
-//   setSharedBooleanValue(value);
-// };
-
-// // Function to get the shared boolean value
-// const getSharedBoolean = () => {
-//   const { getSharedBooleanValue } = useContext(SharedBooleanContext);
-//   return getSharedBooleanValue();
-// };
-
-// const handleOpenModal = () => {
-//   console.log(users);
-//   console.log("inside handleOpenModal");
-//   setOpenModal(true);
-// };
-
-// const [sharedBool, setSharedBool] = useState(false);
-
-var tester = true
-async function handleSignup(username, pw, conf_pw) {
-  // check if pw is same as conf_pw
-  if (pw !== conf_pw) {
-    alert('Passwords do not match. Please try again with matching passwords.')
-  }
-
-  // console.log(admin);
-  // console.log(pw);
-  await fetch('/signup', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      username: username,
-      password: pw,
-    }),
-  })
-    .then(response => response.json())
-    .then(data => {
-      console.log(data)
-      if (data.error) {
-        console.log(data.error)
-        alert(data.error)
-      }
-      console.log('signup data:', data)
-      localStorage.setItem('token', data.token)
-      token_to_username[data.token] = username
-
-      constants.set_global('AUTHENTICATED', true)
-    })
-}
-
-async function handleLogin(username, pw) {
-  console.log(username)
-  console.log(pw)
-
-  await fetch('/login', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      username: username,
-      password: pw,
-    }),
-  })
-    .then(response => response.json())
-    .then(data => {
-      const jsondata = JSON.parse(data)
-      console.log(jsondata)
-      if (jsondata.error) {
-        console.log(jsondata.error)
-        alert(jsondata.error)
-      }
-      // setSharedBool(true);
-      console.log('login token:', jsondata.token)
-      localStorage.setItem('token', jsondata.token)
-      constants.set_global('AUTHENTICATED', true)
-
-      token_to_username[data.token] = username
-      for (var key in token_to_username) {
-        console.log(key + ' : ' + token_to_username[key])
-      }
-
-      constants.set_global('WEAPON', jsondata.ball)
-      constants.set_global('PET', jsondata.pet)
-      constants.set_global('POINTS', jsondata.points)
-      constants.set_global('USERNAME', jsondata.username)
-      constants.set_global('ICON', jsondata.icon)
-      constants.set_global('OWNED', jsondata.item_array)
-    })
-}
 
 function Leaderboard() {
   const [users, setUsers] = useState([])
@@ -206,7 +94,12 @@ function Leaderboard() {
       <Button
         variant="contained"
         onClick={handleOpenModal}
-        style={{ margin: '25px' }}
+        style={{
+          margin: '25px',
+          color: 'black',
+          backgroundColor: 'white',
+          fontFamily: 'Jorvik',
+        }}
         id="logIn"
       >
         Leaderboard
@@ -221,10 +114,27 @@ function Leaderboard() {
             backgroundColor: '#fff',
             padding: '20px',
             height: '550px',
-            width: '400px',
+            width: '600px',
+            color: 'black',
+            fontFamily: 'Jorvik',
+            backgroundImage: TEXTURES.stone,
+            alignContent: 'center',
+            alignSelf: 'center',
+            backgroundImage: `url(${backgroundImage})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
           }}
         >
-          <h1 style={{ color: 'black' }}>Leaderboard</h1>
+          <h1
+            style={{
+              color: 'white',
+              fontFamily: 'Jorvik',
+              alignContent: 'center',
+              marginTop: '10px',
+            }}
+          >
+            Leaderboard
+          </h1>
           <div style={{ overflowX: 'auto' }}>
             <table
               style={{
@@ -234,23 +144,64 @@ function Leaderboard() {
               }}
             >
               <thead>
-                <tr style={{ backgroundColor: '#333', color: 'white' }}>
-                  <th style={{}}>Rank</th>
-                  <th style={{}}>Username</th>
-                  <th style={{}}>Points</th>
-                  <th style={{}}>Hits</th>
+                <tr style={{ color: 'white' }}>
+                  <th style={{ fontFamily: 'Jorvik' }}>Rank</th>
+                  <th style={{ fontFamily: 'Jorvik' }}>Username</th>
+                  <th style={{ fontFamily: 'Jorvik' }}>Wins</th>
+                  <th style={{ fontFamily: 'Jorvik' }}>Losses</th>
+                  <th style={{ fontFamily: 'Jorvik' }}>Hits</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody style={{ alignItems: 'center', overflow: scroll }}>
                 {users
                   // .slice(indexOfFirstUser, indexOfLastUser)
                   .map((user, index) => (
                     <tr key={user.username}>
-                      <td>{indexOfFirstUser + index + 1}</td>
-                      <td>{user.username}</td>
-                      <td>{user.wins}</td>
-                      <td>{user.losses}</td>
-                      <td>{user.hits}</td>
+                      <td
+                        style={{
+                          fontFamily: 'Jorvik',
+                          color: 'white',
+                          textAlign: 'center',
+                        }}
+                      >
+                        {indexOfFirstUser + index + 1}
+                      </td>
+                      <td
+                        style={{
+                          fontFamily: 'Jorvik',
+                          color: 'white',
+                          textAlign: 'center',
+                        }}
+                      >
+                        {user.username}
+                      </td>
+                      <td
+                        style={{
+                          fontFamily: 'Jorvik',
+                          color: 'white',
+                          textAlign: 'center',
+                        }}
+                      >
+                        {user.wins}
+                      </td>
+                      <td
+                        style={{
+                          fontFamily: 'Jorvik',
+                          color: 'white',
+                          textAlign: 'center',
+                        }}
+                      >
+                        {user.losses}
+                      </td>
+                      <td
+                        style={{
+                          fontFamily: 'Jorvik',
+                          color: 'white',
+                          textAlign: 'center',
+                        }}
+                      >
+                        {user.hits}
+                      </td>
                     </tr>
                   ))}
               </tbody>
@@ -261,10 +212,31 @@ function Leaderboard() {
               page={page}
               onPageChange={handleChangePage}
               rowsPerPage={rowsPerPage}
+              style={{
+                color: 'white',
+                position: 'absolute',
+                bottom: '20px',
+                fontFamily: 'Jorvik',
+                left: '100px',
+                bottom: '10px',
+              }}
+              sx={{
+                fontFamily: 'Jorvik',
+              }}
             />
           </div>
 
-          <Button variant="contained" onClick={handleCloseModal}>
+          <Button
+            variant="contained"
+            onClick={handleCloseModal}
+            style={{
+              color: 'black',
+              backgroundColor: 'white',
+              fontFamily: 'Jorvik',
+              position: 'absolute',
+              bottom: '20px',
+            }}
+          >
             Close
           </Button>
         </div>
@@ -273,14 +245,25 @@ function Leaderboard() {
   )
 }
 
+function Disconnected({}) {
+  const [show, setShow] = useState(false);
+
+  useEffect(()=>{
+    add_listener("DISCONNECTED",setShow);
+  })
+  return (show && <div style={{zIndex:99,backgroundImage:`url(${backgroundImage})`,backgroundSize:"100% 100%", width:"100%", height:"100%", position:"absolute",top:0,left:0}}>
+    <p style={{fontSize:32,textAlign:"center",position:"absolute",top:"40%",width:"100%",fontFamily:"Jorvik", color:"white"}}>
+      You have been disconnected from the server. Please refresh.
+    </p>
+  </div>)
+}
+
 function ToggleLoginScreen() {
   const [showLogin, setShowLogin] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
 
-  const [auth, setAuth] = useState(false)
-
-  // if(constants.get_global('AUTHENTICATED')){
+  // if(get_global('AUTHENTICATED')){
 
   // }
 
@@ -290,14 +273,23 @@ function ToggleLoginScreen() {
   }
 
   // useEffect(() => {
-  //   let listener = constants.add_listener('AUTHENTICATED', setAuth)
-  //   // return constants.remove_listener('AUTHENTICATED', listener)
+  //   let listener = add_listener('AUTHENTICATED', setAuth)
+  //   // return remove_listener('AUTHENTICATED', listener)
   // }, [])
 
   return (
     <Box position="relative">
       {/* {auth && <Button>aaaa</Button>} */}
-      <Button id="logIn" variant="outlined" onClick={handleToggleLogin}>
+      <Button
+        id="logIn"
+        variant="outlined"
+        style={{
+          fontFamily: 'Jorvik',
+          backgroundColor: 'white',
+          color: 'black',
+        }}
+        onClick={handleToggleLogin}
+      >
         {showLogin ? 'Hide Login' : 'Login'}
       </Button>
       {showLogin && (
@@ -327,6 +319,7 @@ function ToggleLoginScreen() {
               paddingLeft: 10,
               paddingTop: -5,
               margin: '5px',
+              fontFamily:"Jorvik"
             }}
           >
             Login
@@ -342,8 +335,9 @@ function ToggleLoginScreen() {
                 color: 'white',
                 backgroundColor: '#65727d',
                 borderRadius: '5px',
+                fontFamily: "Jorvik"
               },
-              label: { color: 'white' },
+              label: { color: 'white', fontFamily:"Jorvik" },
             }}
           />
           <br />
@@ -357,7 +351,7 @@ function ToggleLoginScreen() {
                 backgroundColor: '#65727d',
                 borderRadius: '5px',
               },
-              label: { color: 'white' },
+              label: { color: 'white', fontFamily: "Jorvik" },
             }}
             style={{ padding: 10 }}
             value={password}
@@ -366,7 +360,7 @@ function ToggleLoginScreen() {
           <br />
           <Button
             onClick={() => handleLogin(email, password)}
-            style={{ color: 'white', paddingLeft: 10 }}
+            style={{ color: 'black', backgroundColor:"white", paddingLeft: 10, fontFamily:"Jorvik" }}
           >
             Submit
           </Button>
@@ -388,7 +382,16 @@ function ToggleSignUpScreen() {
 
   return (
     <Box position="relative">
-      <Button id="signUp" variant="outlined" onClick={handleToggleSignUp}>
+      <Button
+        id="signUp"
+        variant="outlined"
+        style={{
+          fontFamily: 'Jorvik',
+          backgroundColor: 'white',
+          color: 'black',
+        }}
+        onClick={handleToggleSignUp}
+      >
         {showSignUp ? 'Hide Sign Up' : 'Sign Up'}
       </Button>
       {showSignUp && (
@@ -418,6 +421,7 @@ function ToggleSignUpScreen() {
               paddingLeft: 10,
               paddingTop: -5,
               margin: '5px',
+              fontFamily: "Jorvik"
             }}
           >
             Sign Up
@@ -433,8 +437,9 @@ function ToggleSignUpScreen() {
                 color: 'white',
                 backgroundColor: '#65727d',
                 borderRadius: '5px',
+                fontFamily:"Jorvik"
               },
-              label: { color: 'white' },
+              label: { color: 'white', fontFamily:"Jorvik" },
             }}
           />
           <br />
@@ -450,8 +455,9 @@ function ToggleSignUpScreen() {
                 color: 'white',
                 backgroundColor: '#65727d',
                 borderRadius: '5px',
+                fontFamily:"Jorvik",
               },
-              label: { color: 'white' },
+              label: { color: 'white', fontFamily:"Jorvik" },
             }}
           />
           <br />
@@ -468,13 +474,13 @@ function ToggleSignUpScreen() {
                 backgroundColor: '#65727d',
                 borderRadius: '5px',
               },
-              label: { color: 'white' },
+              label: { color: 'white', fontFamily:"Jorvik" },
             }}
           />
           <br />
           <Button
             onClick={() => handleSignup(email, password, confirmPassword)}
-            style={{ color: 'white', paddingLeft: 10 }}
+            style={{ color: 'black', backgroundColor:"white", fontFamily:"Jorvik", paddingLeft: 10 }}
           >
             Submit
           </Button>
@@ -484,113 +490,119 @@ function ToggleSignUpScreen() {
   )
 }
 
-// export default function UI({}) {
-//   const [showOverlay, setShowOverlay] = useState(false);
-//   const [username, setUsername] = useState("Hello World");
-//   const [loginClicked, setLoginClicked] = useState(false);
-//   const [loggedIn, setLoggedIn] = useState(false);
-
-//   if (localStorage.getItem("token") in token_to_username) {
-//     // TODO: toggle to logged in screen with user token_to_username[localStorage.getItem("token")]
-//   } else {
-//     // TODO: toggle to logged out screen
-//   }
-
-const renderShopButton = () => {
-  const handleShopClick = () => {
-    // Add your logic for handling the 'Shop' button click here
-    console.log('Shop button clicked')
-  }
-
-  return <button onClick={handleShopClick}>Shop</button>
-}
-
 export default function UI({ showAlert }) {
   const [locked, setLocked] = useState(false)
-  const [username, setUsername] = useState('Hello World')
-  const [loginClicked, setLoginClicked] = useState(false)
-  const [loggedIn, setLoggedIn] = useState(false)
+  const [inQueue, setInQueue] = useState(true)
+  const [spectating, setSpectating] = useState(true)
+  const [username, setUsername] = useState(get_global('USERNAME') || '')
 
   const [auth, setAuth] = useState(false)
 
-  // props validation
-  UI.propTypes = {
-    showAlert: PropTypes.func.isRequired,
-  }
-
-  if (localStorage.getItem('token') in token_to_username) {
-    // TODO: toggle to logged in screen with user token_to_username[localStorage.getItem("token")]
-  } else {
-    // TODO: toggle to logged out screen
-  }
   useEffect(() => {
-    let listener = constants.add_listener('AUTHENTICATED', setAuth)
-    // return constants.remove_listener('AUTHENTICATED', listener)
+    // attempt to login with current token
   }, [])
-  // START: Giang's stuff
-  function deepCopy(obj) {
-    return JSON.parse(JSON.stringify(obj))
-  }
-
-  const [showStore, setShowStore] = useState(true)
-
-  // TIE HERE
-  useEffect(() => {
-
-  }, [])
-
+  const [showStore, setShowStore] = useState(false)
 
   useEffect(() => {
-    add_listener("LOCKED",setLocked);
-    document.addEventListener('setUsername', e => {
-      setUsername(e.detail)
-    })
-  }, [])
+    set_global('IN_QUEUE', true)
 
-  //Ishaan conditional
-  // useEffect(() => {
-  //   let listener = constants.add_listener('AUTHENTICATED', setAuth)
-  //   // return constants.remove_listener('AUTHENTICATED', listener)
-  // }, [])
+    let listener = add_listener('LOCKED', setLocked)
+    let spectatingListener = add_listener('SPECTATING', setSpectating)
+    let authListener = add_listener('AUTHENTICATED', setAuth)
+    let usernameListener = add_listener('USERNAME', setUsername)
+    return () => {
+      remove_listener('LOCKED', listener)
+      remove_listener('AUTHENTICATED', authListener)
+      remove_listener('USERNAME', usernameListener)
+      remove_listener('SPECTATING', spectatingListener)
+    }
+  }, [])
 
   return (
     <>
-      {/* START: Giang's stuff */}
-      <Store
-        isOpen={showStore}
-        onClose={()=>{setShowStore(false)}}
-        showAlert={showAlert}
-      />
-      {/* END: Giang's stuff */}
+      <Disconnected />
+      <EndScreen />
       <Clock />
-      <div id="UI" style={{ display: (locked && 'none') || (get_global("SPECTATING") && 'block' || 'none') }}>
-        <h1 id="logo">Balhalla</h1>
-        <h2>{username}</h2>
+      <div
+        id="UI"
+        style={{
+          display: (locked && 'none') || (spectating && 'block') || 'none',
+          backgroundImage: `url(${TEXTURES.stoneVert})`,
+          backgroundSize: '100% 100%',
+          border: '2px solid #0',
+        }}
+      >
+        <Store
+          isOpen={showStore}
+          onClose={() => {
+            setShowStore(false)
+          }}
+          showAlert={showAlert}
+        />
+        <h1
+          id="logo"
+          style={{ color: 'white', textAlign: 'center', fontFamily: 'Jorvik' }}
+        >
+          Balhalla
+        </h1>
+        <h2
+          style={{ textAlign: 'center', fontFamily: 'Jorvik', color: 'white' }}
+        >
+          {username}
+        </h2>
 
         <Button
           variant="contained"
           id="logIn"
+          style={{
+            backgroundColor: 'white',
+            color: 'black',
+            fontFamily: 'Jorvik',
+          }}
           onClick={() => {
-            set_global("LOCKED",true)
+            print_globals()
+            set_global('IN_QUEUE', !inQueue)
+            setInQueue(!inQueue)
           }}
         >
-          Return to Game
+          {(inQueue && 'Leave Queue') || 'Enter Queue'}
         </Button>
         {!auth && <ToggleLoginScreen></ToggleLoginScreen>}
 
         {!auth && <ToggleSignUpScreen id="logIn"></ToggleSignUpScreen>}
 
         <Leaderboard></Leaderboard>
-        <Button id="logIn" variant="outlined">
-          Shop
-        </Button>
-        {/* {sharedBool && <title>Shared Works</title>} */}
+        {auth && (
+          <Button
+            id="logIn"
+            style={{
+              backgroundColor: 'white',
+              color: 'black',
+              fontFamily: 'Jorvik',
+            }}
+            onClick={() => {
+              setShowStore(true)
+            }}
+            variant="outlined"
+          >
+            Shop
+          </Button>
+        )}
       </div>
-      <div
-        id="overlay"
-        style={{ display: (locked && 'block') || 'none' }}
-      >
-        <img src={crosshair} style={{position:"absolute",left:"50%",top:"50%",transform:"translate(-50%,-50%)"}} width={50} height={50} />
+      <div id="overlay" style={{ display: (locked && 'block') || 'none' }}>
+        <InGameMenu showAlert={showAlert} />
+        <Announcer />
+        <img
+          src={crosshair}
+          style={{
+            position: 'absolute',
+            left: '50%',
+            top: '50%',
+            transform: 'translate(-50%,-50%)',
+          }}
+          width={50}
+          height={50}
+        />
       </div>
     </>
   )

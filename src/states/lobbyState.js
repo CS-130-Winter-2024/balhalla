@@ -3,26 +3,37 @@ import { getConnections } from "../connection.js";
 var playerQueue = {}
 
 var gameStartTimer = Date.now() + constants.LOBBY_LENGTH;
+var sentPause = true;
 
 var onFinish = ()=>{}
 
 export function startState(timer) {
     playerQueue = {};
-    gameStartTimer = timer;
+    gameStartTimer = timer ? timer : Date.now() + constants.LOBBY_LENGTH;
 }
 
 export function addPlayer(id) {
     let sockets = getConnections();
     let list = JSON.stringify([constants.MESSAGES.playerList,0, id, gameStartTimer]);
     sockets[id].send(list)
+    if (Object.keys(playerQueue).length < constants.MINIMUM_PLAYERS) {
+        sockets[id].send(JSON.stringify([constants.MESSAGES.pauseClock, true,null]));
+    }
 }
 
 export function deletePlayer(id) {
     if (id in playerQueue) {
         delete playerQueue[id];
+        if (Object.keys(playerQueue).length < constants.MINIMUM_PLAYERS && !sentPause) {
+            let sockets = getConnections()
+            const broadcast = JSON.stringify([constants.MESSAGES.pauseClock, true,null])
+            for (const socketID in sockets) {
+                sockets[socketID].send(broadcast);
+            }
+            sentPause = true;
+        }
     }
 }
-
 //lobby logic
 //join -> add to ready check
 //join again -> remove from ready check
@@ -31,24 +42,39 @@ export function processMessage(id, message) {
     let data = constants.message_parse(message)
     switch (data.type) {
       case constants.MESSAGES.playerJoin:
-        if (message.delete) {
+        if (!data.ready) {
             delete playerQueue[id]
+            if (Object.keys(playerQueue).length < constants.MINIMUM_PLAYERS && !sentPause) {
+                let sockets = getConnections()
+                const broadcast = JSON.stringify([constants.MESSAGES.pauseClock, true,null])
+                for (const socketID in sockets) {
+                    sockets[socketID].send(broadcast);
+                }
+                sentPause = true;
+            }
             return
         }
-        if (message.metaData != undefined) {
-            playerQueue[id] = {
-                username: data.username,
-                body: constants.DEFAULT_BODY,
-                ball: constants.TEMP_DEFAULT_BALL_MODEL_UNTIL_SELECT_BALL_IS_DONE,
-                ...message.metaData
-            };
-            return;
+
+
+        if (Object.keys(playerQueue).length == (constants.MINIMUM_PLAYERS - 1) && !(id in playerQueue) && sentPause) {
+            gameStartTimer = Date.now() + constants.LOBBY_LENGTH;
+            let sockets = getConnections()
+            const broadcast = JSON.stringify([constants.MESSAGES.pauseClock, false,gameStartTimer])
+            for (const socketID in sockets) {
+                sockets[socketID].send(broadcast);
+            }
+            sentPause = false;
         }
+
         playerQueue[id] = {
             username: data.username,
-            body: constants.DEFAULT_BODY,
-            ball: constants.TEMP_DEFAULT_BALL_MODEL_UNTIL_SELECT_BALL_IS_DONE,
+            ball: data.ball,
+            icon: data.icon,
+            ready: data.ready,
         };
+        if (data.pet) playerQueue[id].pet = data.pet
+
+        
         break
     }
 }
@@ -68,7 +94,7 @@ export function doTick() {
         //check skins against token (DB function)
         let data = {}
         data.players = playerQueue
-        data.count = Object.keys(playerQueue).length
+        data.count = Object.keys(data.players).length
         console.log("[START]",data.players)
         onFinish(1,data)
         return

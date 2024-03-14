@@ -2,10 +2,8 @@ import * as three from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 
 import skybox from "../../assets/textures/skybox.png";
-import arena from "../../assets/models/SeaArena.glb";
-import vikingboat from "../../assets/models/VikingBoat.glb";
+import arena from "../../assets/models/Arena.glb";
 
-import { colors } from "../constants";
 
 const ModelLoader = new GLTFLoader();
 const TextureLoader = new three.TextureLoader();

@@ -22,6 +22,40 @@ export function getProgress() {
     return loaded/totalModels;
 }
 
+export function applyTransformations(modelID, scene) {
+    switch (modelID) {
+        case "0":
+            scene.scale.set(2,2,2);
+            scene.position.set(0,0,0);
+            scene.rotateY(Math.PI)
+            break
+        case "5":
+            scene.scale.set(20,20,20);
+            scene.position.y = 0;
+            scene.rotateY(Math.PI)
+            break;
+        case "6":
+            scene.scale.set(8,8,8);
+            scene.position.y = 0;
+            scene.rotateY(Math.PI)
+            break;
+        case "7":
+            scene.scale.set(8,8,-8);
+            scene.position.y = 0;
+            scene.rotateY(Math.PI)
+            break;
+        case "8":
+            scene.scale.set(8,8,8);
+            scene.position.y = 0;
+            scene.rotation.y = (Math.PI * 0.5);
+            break
+        case "9":
+            scene.scale.set(1.25,1,1.25);
+            scene.rotateY(Math.PI)
+            break;
+    }
+}
+
 export function updateModelList(modelList) {
     for (const model in Object.keys(modelList)) {
         if (!(model in models)) {
@@ -30,6 +64,7 @@ export function updateModelList(modelList) {
             ModelLoader.load(
                 MODEL_IDS[model],
                 (gltf) => {
+                    applyTransformations(model,gltf.scene);
                     models[model].add(gltf.scene);
                     loaded++;
                     if (loaded == totalModels) {

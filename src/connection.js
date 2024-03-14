@@ -60,9 +60,9 @@ export function setupWSS(httpServer) {
 
         ws.on("close", function close() {
             console.log("[DISCONNECT] ID:%d", id);
+            delete connections[id];
             logout(id);
             handlers["disconnect"](id);
-            delete connections[id];
         });
     });
 }

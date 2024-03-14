@@ -28,6 +28,23 @@ export function applyTransformations(modelID, scene) {
             scene.scale.set(2,2.5,2);
             scene.position.set(0,-0.5,0);
             break
+        case "5":
+            scene.scale.set(20,20,20);
+            scene.position.y = 0.1;
+            break;
+        case "6":
+            scene.scale.set(8,8,8);
+            scene.position.y = 0.1;
+            break;
+        case "7":
+            scene.scale.set(8,8,-8);
+            scene.position.y = 0.1;
+            break;
+        case "8":
+            scene.scale.set(8,8,8);
+            scene.position.y = 0.1;
+            scene.rotation.y = (Math.PI * -0.5);
+            break;
     }
 }
 

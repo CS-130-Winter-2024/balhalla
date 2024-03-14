@@ -94,6 +94,7 @@ export function addPlayer(playerID, data, metadata) {
     petModels[playerID] = new PetModel(metadata.pet);
     petModels[playerID].body.position.x = playersModels[playerID].group.position.x;
     petModels[playerID].body.position.z = playersModels[playerID].group.position.z;
+    petModels[playerID].body.position.y = 0.1;
     if (metadata.team == 0){
       petModels[playerID].body.position.z += -1;
     } else {
@@ -111,11 +112,14 @@ export function removePlayer(playerID) {
   delete players[playerID];
   delete playersMetadata[playerID];
 
-  if (playerID in petModels && petModels[playerID].alive){
-    otherPlayerGroup.remove(petModels[playerID].body);
+  if (playerID in petModels){
+    if (petModels[playerID].alive){
+      otherPlayerGroup.remove(petModels[playerID].body);
+    }
+    petModels[playerID].dispose();
+    delete petModels[playerID];
   }
-  petModels[playerID].dispose();
-  delete petModels[playerID];
+  
 }
 
 export function clearPlayers() {
@@ -162,11 +166,13 @@ export function update() {
       }
     }
 
+    // movements and rotations for the player's pet so it follows them
     if (!(playerID in petModels)) continue;
     let dist = (players[playerID].x - petModels[playerID].body.position.x) * (players[playerID].x - petModels[playerID].body.position.x) +
             (players[playerID].z - petModels[playerID].body.position.z) * (players[playerID].z - petModels[playerID].body.position.z);
     if(dist > 3){
       petModels[playerID].body.position.lerp(reusableVector, 0.08);
+      petModels[playerID].body.position.y = 0.1;
 
       let x_direction = players[playerID].x - petModels[playerID].body.position.x;
       let z_direction = players[playerID].z - petModels[playerID].body.position.z;

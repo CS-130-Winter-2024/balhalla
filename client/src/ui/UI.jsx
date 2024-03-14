@@ -23,13 +23,11 @@ import InGameMenu from './components/InGameMenu.jsx'
 
 import sampleData from './sample-data.json'
 import { Announcer } from './components/Announcer.jsx'
-import { handleLogin, handleSignup } from "../game/Authentication.jsx"
-
+import { handleLogin, handleSignup } from '../game/Authentication.jsx'
 
 set_global('AUTHENTICATED', false)
 // TODO: when page is loaded, check token in cookies against server
 // if so, start as logged in, otherwise logged out
-
 
 function Leaderboard() {
   const [users, setUsers] = useState([])
@@ -116,13 +114,27 @@ function Leaderboard() {
             backgroundColor: '#fff',
             padding: '20px',
             height: '550px',
-            width: '400px',
+            width: '600px',
             color: 'black',
             fontFamily: 'Jorvik',
             backgroundImage: TEXTURES.stone,
+            alignContent: 'center',
+            alignSelf: 'center',
+            backgroundImage: `url(${backgroundImage})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
           }}
         >
-          <h1 style={{ color: 'white', fontFamily: 'Jorvik' }}>Leaderboard</h1>
+          <h1
+            style={{
+              color: 'white',
+              fontFamily: 'Jorvik',
+              alignContent: 'center',
+              marginTop: '10px',
+            }}
+          >
+            Leaderboard
+          </h1>
           <div style={{ overflowX: 'auto' }}>
             <table
               style={{
@@ -132,25 +144,64 @@ function Leaderboard() {
               }}
             >
               <thead>
-                <tr style={{ backgroundColor: '#333', color: 'white' }}>
+                <tr style={{ color: 'white' }}>
                   <th style={{ fontFamily: 'Jorvik' }}>Rank</th>
                   <th style={{ fontFamily: 'Jorvik' }}>Username</th>
-                  <th style={{ fontFamily: 'Jorvik' }}>Points</th>
+                  <th style={{ fontFamily: 'Jorvik' }}>Wins</th>
+                  <th style={{ fontFamily: 'Jorvik' }}>Losses</th>
                   <th style={{ fontFamily: 'Jorvik' }}>Hits</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody style={{ alignItems: 'center', overflow: scroll }}>
                 {users
                   // .slice(indexOfFirstUser, indexOfLastUser)
                   .map((user, index) => (
                     <tr key={user.username}>
-                      <td style={{ fontFamily: 'Jorvik' }}>
+                      <td
+                        style={{
+                          fontFamily: 'Jorvik',
+                          color: 'white',
+                          textAlign: 'center',
+                        }}
+                      >
                         {indexOfFirstUser + index + 1}
                       </td>
-                      <td style={{ fontFamily: 'Jorvik' }}>{user.username}</td>
-                      <td style={{ fontFamily: 'Jorvik' }}>{user.wins}</td>
-                      <td style={{ fontFamily: 'Jorvik' }}>{user.losses}</td>
-                      <td style={{ fontFamily: 'Jorvik' }}>{user.hits}</td>
+                      <td
+                        style={{
+                          fontFamily: 'Jorvik',
+                          color: 'white',
+                          textAlign: 'center',
+                        }}
+                      >
+                        {user.username}
+                      </td>
+                      <td
+                        style={{
+                          fontFamily: 'Jorvik',
+                          color: 'white',
+                          textAlign: 'center',
+                        }}
+                      >
+                        {user.wins}
+                      </td>
+                      <td
+                        style={{
+                          fontFamily: 'Jorvik',
+                          color: 'white',
+                          textAlign: 'center',
+                        }}
+                      >
+                        {user.losses}
+                      </td>
+                      <td
+                        style={{
+                          fontFamily: 'Jorvik',
+                          color: 'white',
+                          textAlign: 'center',
+                        }}
+                      >
+                        {user.hits}
+                      </td>
                     </tr>
                   ))}
               </tbody>
@@ -161,10 +212,31 @@ function Leaderboard() {
               page={page}
               onPageChange={handleChangePage}
               rowsPerPage={rowsPerPage}
+              style={{
+                color: 'white',
+                position: 'absolute',
+                bottom: '20px',
+                fontFamily: 'Jorvik',
+                left: '100px',
+                bottom: '10px',
+              }}
+              sx={{
+                fontFamily: 'Jorvik',
+              }}
             />
           </div>
 
-          <Button variant="contained" onClick={handleCloseModal}>
+          <Button
+            variant="contained"
+            onClick={handleCloseModal}
+            style={{
+              color: 'black',
+              backgroundColor: 'white',
+              fontFamily: 'Jorvik',
+              position: 'absolute',
+              bottom: '20px',
+            }}
+          >
             Close
           </Button>
         </div>
@@ -415,7 +487,6 @@ export default function UI({ showAlert }) {
 
   useEffect(() => {
     // attempt to login with current token
-    
   }, [])
   const [showStore, setShowStore] = useState(false)
 

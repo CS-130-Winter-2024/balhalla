@@ -2,6 +2,5 @@
 node_modules/
 public/
 client/package-lock.json
-db/keys.js
-package-lock.json
 db/keys.cjs
+package-lock.json

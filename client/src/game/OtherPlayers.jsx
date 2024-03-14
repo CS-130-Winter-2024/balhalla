@@ -31,6 +31,10 @@ class PlayerModel {
     this.body.remove(this.body.children[0]);
     this.group.remove(this.tag);
     this.group.remove(this.body);
+    if (this.pet != undefined){
+      this.pet.remove(this.pet.children[0]);
+      this.group.remove(this.pet);
+    }
   }
 
   update(camera) {
@@ -43,10 +47,28 @@ class PlayerModel {
   }
 }
 
+class PetModel {
+  constructor(model){
+    this.body = new three.Group();
+    this.body.add(getModelInstance("1")); // should be model
+    this.body.rotateY(1.5);
+    this.body.position.y = -0.5;
+    this.alive = true;
+  }
+
+  dispose() {
+    this.body.remove(this.body.children[0]);
+  }
+
+  update(camera) {
+    this.tag.quaternion.copy(camera.quaternion);
+  }
+}
 
 var players = {};
 var playersMetadata = {};
 var playersModels = {};
+var petModels = {};
 
 var otherPlayerGroup = new three.Group();
 
@@ -67,6 +89,17 @@ export function addPlayer(playerID, data, metadata) {
   playersModels[playerID].group.position.z = data.z
   playersModels[playerID].body.rotateY(data.z < 0 ? Math.PI/2 : -Math.PI/2);
   otherPlayerGroup.add(playersModels[playerID].group);
+
+  petModels[playerID] = new PetModel(metadata.pet);
+  petModels[playerID].body.position.x = playersModels[playerID].group.position.x;
+  petModels[playerID].body.position.z = playersModels[playerID].group.position.z;
+  if (metadata.team == 0){
+    petModels[playerID].body.position.z += -1;
+  } else {
+    petModels[playerID].body.position.z += 1;
+  }
+  petModels[playerID].body.rotateY(data.z < 0 ? Math.PI/2 : -Math.PI/2);
+  otherPlayerGroup.add(petModels[playerID].body);
 }
 
 export function removePlayer(playerID) {
@@ -75,6 +108,12 @@ export function removePlayer(playerID) {
   delete playersModels[playerID];
   delete players[playerID];
   delete playersMetadata[playerID];
+
+  if (petModels[playerID].alive){
+    otherPlayerGroup.remove(petModels[playerID].body);
+  }
+  petModels[playerID].dispose();
+  delete petModels[playerID];
 }
 
 export function clearPlayers() {
@@ -87,6 +126,8 @@ export function clearPlayers() {
 
 export function playerDeath(playerID) { // function to trigger upon player knockout
   playersModels[playerID].switchGhost();
+  otherPlayerGroup.remove(petModels[playerID].body);
+  petModels[playerID].alive = false;
 }
 
 // Called on server update message
@@ -97,8 +138,8 @@ export function updatePlayers(update) {
   };
 }
 
-//update the 3d models of the players using the "players" object
-//called every frame
+// update the 3d models of the players using the "players" object
+// called every frame
 export function update() {
   for (let playerID in players) {
     if (playerID == get_global("CLIENT_ID")) continue;
@@ -110,7 +151,24 @@ export function update() {
     // Used to orient the player models in the direction they last moved toward
     let rotation = Math.atan2(players[playerID].direction[0], players[playerID].direction[1]);
     if(players[playerID].direction[0]+players[playerID].direction[1] != 0){
-      playersModels[playerID].body.rotation.y = rotation + Math.PI;
+      if (playersMetadata[playerID].team == 1){ // RED TEAM movement rotations
+        playersModels[playerID].body.rotation.y = rotation + Math.PI;
+      } else { // BLUE TEAM movement rotations
+        playersModels[playerID].body.rotation.y = -rotation;
+      }
+      
+    }
+
+    let dist = (players[playerID].x - petModels[playerID].body.position.x) * (players[playerID].x - petModels[playerID].body.position.x) +
+            (players[playerID].z - petModels[playerID].body.position.z) * (players[playerID].z - petModels[playerID].body.position.z);
+    if(dist > 3){
+      
+      petModels[playerID].body.position.lerp(reusableVector, 0.08);
+      // NEED TO ADD PET TURNING TO FACE MOVEMENT DIRECTION
+
+      // reusableVector.sub(petModels[playerID].body.position);
+      // let rotation = Math.atan2(reusableVector[0], reusableVector[1]);
+      // petModels[playerID].body.rotation.y = rotation + Math.PI;
     }
   }
 }

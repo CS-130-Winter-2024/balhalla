@@ -41,6 +41,8 @@ export const MOVEMENT_MAP = { w: 0, a: 1, s: 2, d: 3 }
 export const DASH_COOLDOWN = 5000
 export const DASH_SPEED = 15
 
+export const TAG_HEIGHT = 2.5
+
 //WEBSOCKETS ----------------
 export const UPDATE_RATE = 25 // milliseconds between when a player can send updates to the server
 export const MESSAGES = {

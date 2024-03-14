@@ -274,8 +274,7 @@ module.exports = {
         table.integer('wins').defaultTo(0);
         table.integer('losses').defaultTo(0);
         table.integer('hits').defaultTo(0);
-        //ball
-        table.integer('ball');
+        table.integer('ball').defaultTo(2);
         //pet - charm that gets added to player as a customization
         table.integer('pet');
         table.integer('icon');

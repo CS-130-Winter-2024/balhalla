@@ -1,6 +1,9 @@
 import * as constants from "../../constants.js";
 import { getConnections } from "../connection.js";
 
+import pkg from "../../db/database.cjs";
+const { updatePoints, updateHits, updateWin, updateLoss } = pkg;
+
 var players = {}; //playerid associated
 var playersMetadata = {}; //playerid associated
 var balls = {didChange:false};
@@ -74,6 +77,7 @@ function isGameOver() {
   return -1;
 }
 
+
 export function endState() {
   let winner = 2; //0=team 1, 1=team2, 2=tie
   let mvp = -1; // ID of the current mvp player
@@ -109,10 +113,21 @@ export function endState() {
     points[id] = playersMetadata[id].hits * 10;
     if (playersMetadata[id].team == winner){
       points[id] += 50;
+      updateWin(playersMetadata[id].username, 1)
     }
+    else {
+      updateLoss(playersMetadata[id].username, 1)
+    }
+    
     if (id == mvp){
       points[id] += 10;
     }
+
+    // update points in database
+    updatePoints(playersMetadata[id].username, points[id])
+    // update hits in database
+    updateHits(playersMetadata[id].username, playersMetadata[id].hits)
+    
   }
 
   //wipe everything

@@ -50,7 +50,7 @@ class PlayerModel {
 class PetModel {
   constructor(model){
     this.body = new three.Group();
-    this.body.add(getModelInstance("1")); // should be model
+    this.body.add(getModelInstance(model)); // should be model
     this.body.rotateY(1.5);
     this.body.position.y = -0.5;
     this.alive = true;
@@ -90,16 +90,18 @@ export function addPlayer(playerID, data, metadata) {
   playersModels[playerID].body.rotateY(data.z < 0 ? Math.PI/2 : -Math.PI/2);
   otherPlayerGroup.add(playersModels[playerID].group);
 
-  petModels[playerID] = new PetModel(metadata.pet);
-  petModels[playerID].body.position.x = playersModels[playerID].group.position.x;
-  petModels[playerID].body.position.z = playersModels[playerID].group.position.z;
-  if (metadata.team == 0){
-    petModels[playerID].body.position.z += -1;
-  } else {
-    petModels[playerID].body.position.z += 1;
+  if (metadata.pet){
+    petModels[playerID] = new PetModel(metadata.pet);
+    petModels[playerID].body.position.x = playersModels[playerID].group.position.x;
+    petModels[playerID].body.position.z = playersModels[playerID].group.position.z;
+    if (metadata.team == 0){
+      petModels[playerID].body.position.z += -1;
+    } else {
+      petModels[playerID].body.position.z += 1;
+    }
+    petModels[playerID].body.rotateY(data.z < 0 ? Math.PI/2 : -Math.PI/2);
+    otherPlayerGroup.add(petModels[playerID].body);
   }
-  petModels[playerID].body.rotateY(data.z < 0 ? Math.PI/2 : -Math.PI/2);
-  otherPlayerGroup.add(petModels[playerID].body);
 }
 
 export function removePlayer(playerID) {
@@ -109,7 +111,7 @@ export function removePlayer(playerID) {
   delete players[playerID];
   delete playersMetadata[playerID];
 
-  if (petModels[playerID].alive){
+  if (playerID in petModels && petModels[playerID].alive){
     otherPlayerGroup.remove(petModels[playerID].body);
   }
   petModels[playerID].dispose();
@@ -126,8 +128,10 @@ export function clearPlayers() {
 
 export function playerDeath(playerID) { // function to trigger upon player knockout
   playersModels[playerID].switchGhost();
-  otherPlayerGroup.remove(petModels[playerID].body);
-  petModels[playerID].alive = false;
+  if (playerID in petModels){
+    otherPlayerGroup.remove(petModels[playerID].body);
+    petModels[playerID].alive = false;
+  }
 }
 
 // Called on server update message

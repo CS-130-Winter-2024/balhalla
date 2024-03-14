@@ -1,8 +1,7 @@
 // SettingsTabContent.jsx
 import { useState, useEffect } from 'react'
 import { Button, Box, Typography } from '@mui/material'
-import PropTypes from 'prop-types'
-import { set_global } from "../../constants"
+import { get_global, set_global } from "../../constants"
 
 const forbiddenKeys = [
   ' ',
@@ -40,16 +39,6 @@ function textStyle(size = 3, bolded = false, color = 'black') {
   }
 }
 
-// props validation
-SettingsTabContent.propTypes = {
-  initialKeybinds: PropTypes.arrayOf(
-    PropTypes.shape({
-      key: PropTypes.string.isRequired,
-      description: PropTypes.string.isRequired,
-    }),
-  ),
-  showAlert: PropTypes.func.isRequired,
-}
 
 
 let testKeybinds = {
@@ -61,11 +50,13 @@ let testKeybinds = {
   "Dash":"Shift"
 }
 
+set_global("KEYBINDS",localStorage.getItem('keybinds') ? JSON.parse(localStorage.getItem("keybinds")) : testKeybinds);
+
 function SettingsTabContent({
   showAlert,
 }) {
-  const [keybinds, setKeybinds] = useState(testKeybinds)
-  const [newKeybinds, setNewKeybinds] = useState(testKeybinds)
+  const [keybinds, setKeybinds] = useState(get_global("KEYBINDS"))
+  const [newKeybinds, setNewKeybinds] = useState(get_global("KEYBINDS"))
   const [isSaveVisible, setSaveVisible] = useState(false)
 
   const handleSave = () => {

@@ -9,10 +9,12 @@ export const TICK_DT = 0.05; //tick rate in seconds
 
 //speed
 export const PLAYER_SPEED = 5; //meters/second for players
+export const DEAD_PLAYER_SPEED = 3; //meters/second for players
 export const BALL_SPEED = 20; //INITIAL BALL SPEED
-export const BALL_SHOVE_SPEED = 4; // speed of a ball on the ground a ghost is pushing
+export const BALL_SHOVE_SPEED = 3; // speed of a ball on the ground a ghost is pushing
 export const BALL_GRAVITY = 9.8;
 export const SPEED_DT = PLAYER_SPEED * TICK_DT;
+export const DEAD_SPEED_DT = DEAD_PLAYER_SPEED * TICK_DT;
 
 //sizing
 export const WORLD_HALF_WIDTH = 14.5; //POSITIVE Z is RED TEAM (TEAM 1), NEGATIVE Z is BLUE TEAM (TEAM 0)

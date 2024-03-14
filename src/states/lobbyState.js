@@ -3,7 +3,7 @@ import { getConnections } from "../connection.js";
 var playerQueue = {}
 
 var gameStartTimer = Date.now() + constants.LOBBY_LENGTH;
-var sentPause = false;
+var sentPause = true;
 
 var onFinish = ()=>{}
 
@@ -17,7 +17,7 @@ export function addPlayer(id) {
     let list = JSON.stringify([constants.MESSAGES.playerList,0, id, gameStartTimer]);
     sockets[id].send(list)
     if (Object.keys(playerQueue).length < constants.MINIMUM_PLAYERS) {
-        JSON.stringify([constants.MESSAGES.pauseClock, true,null]);
+        sockets[id].send(JSON.stringify([constants.MESSAGES.pauseClock, true,null]));
     }
 }
 
@@ -82,6 +82,7 @@ export function processMessage(id, message) {
 var prev = -1;
 export function doTick() {
     if (Object.keys(playerQueue).length < constants.MINIMUM_PLAYERS) {
+        gameStartTimer = Date.now() + constants.LOBBY_LENGTH;
         return;
     }
     if (Date.now() >= gameStartTimer) {

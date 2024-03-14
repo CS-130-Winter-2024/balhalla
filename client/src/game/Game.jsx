@@ -63,6 +63,7 @@ function websocketSetup() {
           -playerData.z,
         )
         constants.set_global('LOCKED', true)
+        constants.set_global("ANNOUNCE",`You joined the ${data.metaData[player].team == 0 ? "Blue" : "Red"} team!`);
         continue
       }
       Others.addPlayer(player, data.playerData[player], data.metaData[player])
@@ -125,9 +126,11 @@ function websocketSetup() {
 
     if (data.target == constants.get_global('CLIENT_ID')) {
       // If player is hit, they won't know yet
-      console.log('I was hit!')
+      constants.set_global("ANNOUNCE",`You were killed by ${Others.getMetadataByPlayerID(data.killer).username}!`);
     } else {
-      // any hit players should become ghosts
+      if (data.killer = constants.get_global("CLIENT_ID")) {
+        constants.set_global("ANNOUNCE",`You killed ${Others.getMetadataByPlayerID(data.target).username}!`);
+      }
       Others.playerDeath(data.target)
     }
   })

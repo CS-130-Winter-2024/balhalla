@@ -14,10 +14,9 @@ var properties = {
   y: constants.ALIVE_Y,
   z: 0,
   directionHeld: [0, 0, 0, 0],
-  hasBall: true,
+  hasBall: false,
+  alive: true
 };
-// Meta data of the client player (player's points, selected ball, selected pet, etc.)
-var myMetadata;
 
 var movementVector = new three.Vector3();
 var perpVector = new three.Vector3();
@@ -26,6 +25,22 @@ var prevCamVector = new three.Vector3();
 
 var dashScalar = 1; // always applied to movements, greater than 1 when dash is used
 var dashAvailable = true; // based on dash cooldown, defines when dash can be used
+
+
+let keybinds = {
+  "w":0,
+  "a":1,
+  "s":2,
+  "d":3
+}
+
+constants.add_listener("KEYBINDS",(newBinds)=>{
+  keybinds = {};
+  keybinds[newBinds.Forward] = 0;
+  keybinds[newBinds.Left] = 1;
+  keybinds[newBinds.Backward] = 2;
+  keybinds[newBinds.Right] = 3;
+})
 
 // Uses camera direction and movement key presses to determine player's movement direction
 function calculateDirection() {
@@ -84,13 +99,13 @@ function onKeyDown(e) {
   if (constants.get_global("LOCKED")) {
     let wasMovement = false;
 
-    if (e.key in constants.MOVEMENT_MAP) { // Movement keys: WASD
-      let index = constants.MOVEMENT_MAP[e.key];
+    if (e.key in keybinds) { // Movement keys: WASD
+      let index = keybinds[e.key];
       wasMovement = properties.directionHeld[index] == 0;
       properties.directionHeld[index] = 1;
     }
 
-    if (e.key == constants.SHIFT_KEY){ // dash should only trigger on key press, not release
+    if (e.key == constants.get_global("KEYBINDS").Dash){ // dash should only trigger on key press, not release
       if (dashAvailable){
         wasMovement = true;
         dashScalar = constants.DASH_SPEED;
@@ -120,11 +135,11 @@ function onKeyUp(e) {
   if (constants.get_global("LOCKED")) {
     let wasMovement = false;
 
-    if (e.key in constants.MOVEMENT_MAP) { // Movement keys: WASD
-      let index = constants.MOVEMENT_MAP[e.key];
+    if (e.key in keybinds) { // Movement keys: WASD
+      let index = keybinds[e.key];
       wasMovement = true;
       properties.directionHeld[index] = 0;
-    } else if (e.key == constants.THROW_KEY) {
+    } else if (e.key == constants.get_global("KEYBINDS").Throw) {
       throwBall();
     }
 
@@ -201,6 +216,9 @@ export function getSpectateCamera() {
 }
 
 export function updatePlayer(data, force=false) {
+  if (data.alive && properties.hasBall == false && data.hasBall && !force) {
+    constants.set_global("ANNOUNCE","You picked up a weapon!");
+  }
   properties = {
     ...properties,
     ...data,

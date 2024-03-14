@@ -245,6 +245,19 @@ function Leaderboard() {
   )
 }
 
+function Disconnected({}) {
+  const [show, setShow] = useState(false);
+
+  useEffect(()=>{
+    add_listener("DISCONNECTED",setShow);
+  })
+  return (show && <div style={{zIndex:99,backgroundImage:`url(${backgroundImage})`,backgroundSize:"100% 100%", width:"100%", height:"100%", position:"absolute",top:0,left:0}}>
+    <p style={{fontSize:32,textAlign:"center",position:"absolute",top:"40%",width:"100%",fontFamily:"Jorvik", color:"white"}}>
+      You have been disconnected from the server. Please refresh.
+    </p>
+  </div>)
+}
+
 function ToggleLoginScreen() {
   const [showLogin, setShowLogin] = useState(false)
   const [email, setEmail] = useState('')
@@ -507,6 +520,7 @@ export default function UI({ showAlert }) {
 
   return (
     <>
+      <Disconnected />
       <EndScreen />
       <Clock />
       <div

@@ -177,7 +177,6 @@ function Store({ isOpen, onClose, showAlert }) {
     })
       .then(response => response.json())
       .then(data => {
-        console.log(data);
         if (data.success) {
           showAlert(
             `You bought ${MODEL_PROPERTIES[item].name} for ${MODEL_PROPERTIES[item].cost} coins`,
@@ -187,7 +186,6 @@ function Store({ isOpen, onClose, showAlert }) {
           set_global("POINTS",coins-MODEL_PROPERTIES[item].cost)
           setCoins(coins - MODEL_PROPERTIES[item].cost)
           let newOwned = data.itemArray
-          console.log("Newowned",newOwned)
           setOwned(newOwned)
           set_global('OWNED', newOwned)
         } else {

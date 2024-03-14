@@ -20,7 +20,6 @@ export function updateBalls(ballData) {
     }
     for (const index in ballData) {
       if (!(index in balls)) {
-        console.log("Added Ball", index);
         addBall(index, ballData[index]);
       }
     }
@@ -66,7 +65,6 @@ export function update() {
     if (index == "didChange") continue;
     if (!(index in balls && index in ballsModels)) {
       console.log("[PROBLEM] Ball ID: ",index," | ",balls[index]," | ballsModels:",ballsModels[index])
-      alert("PROBLEM DETECTED!");
       continue;
     }
     let ball = balls[index];

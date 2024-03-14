@@ -25,9 +25,7 @@ export async function handleSignup(username, pw, conf_pw) {
     .then(jsondata => {
       if (jsondata.error) {
         console.log(jsondata.error)
-        alert(jsondata.error)
       }
-      console.log('signup data:', jsondata)
       localStorage.setItem('token', jsondata.token)
 
       set_global('BALL', jsondata.ball)
@@ -52,8 +50,6 @@ export async function handleSignup(username, pw, conf_pw) {
 }
 
 export async function handleLogin(username, pw) {
-  console.log(username)
-  console.log(pw)
 
   await fetch('/login', {
     method: 'POST',
@@ -67,13 +63,11 @@ export async function handleLogin(username, pw) {
   })
     .then(response => response.json())
     .then(jsondata => {
-      console.log(jsondata)
       if (jsondata.error) {
-        alert(jsondata.error)
+        console.log(jsondata.error)
         return
       }
       // setSharedBool(true);
-      console.log('login token:', jsondata.token)
       localStorage.setItem('token', jsondata.token)
       set_global('AUTHENTICATED', true)
 
@@ -83,7 +77,6 @@ export async function handleLogin(username, pw) {
       set_global('USERNAME', jsondata.username)
       set_global('ICON', jsondata.icon)
       set_global('OWNED', jsondata.item_array)
-      console.log('[TEST]', jsondata.item_array)
 
       const { wins, losses, hits } = jsondata
       set_global('STATS', {
@@ -111,7 +104,6 @@ export async function handleTokenLogin() {
   })
     .then(response => response.json())
     .then(jsondata => {
-      console.log('[LOGINTOKEN]', jsondata)
       if (jsondata.error) {
         set_global('USERNAME', getUsername())
         localStorage.removeItem('token')
@@ -156,19 +148,6 @@ export async function handleItemUpdates(ball, pet, icon) {
       icon: icon,
     }),
   })
-    // .then(response => response.json())
-    // .then(jsondata => {
-    //   if (jsondata.error) {
-    //     console.log(jsondata.error)
-    //     alert(jsondata.error)
-    //   }
-    //   console.log('signup data:', jsondata)
-    //   localStorage.setItem('token', jsondata.token)
-
-    //   set_global('BALL', jsondata.ball)
-    //   set_global('PET', jsondata.pet)
-    //   set_global('ICON', jsondata.icon)
-    // })
 }
 
 if (localStorage.getItem('token')) {

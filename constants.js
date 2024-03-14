@@ -56,7 +56,6 @@ export function message_parse(msg) {
   let output = {};
   let data = JSON.parse(msg);
   output.type = data[0];
-  console.log("[MESSAGE]", data);
   switch (
     data[0] //data[0] = type
   ) {

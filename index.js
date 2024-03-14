@@ -13,7 +13,7 @@ const __dirname = url.fileURLToPath(new URL(".", import.meta.url));
 const app = express();
 
 import pkg from "./db/database.cjs";
-const { signup, login, tokenLogin, getLeaderboardList, purchaseItem } = pkg;
+const { signup, login, tokenLogin, getLeaderboardList, purchaseItem, updateItems } = pkg;
 
 //Client Page Server
 app.use(express.static(path.join(__dirname, "public")));
@@ -47,6 +47,9 @@ app.get("/get_leaderboard", (request, response) => {
 });
 app.post("/purchase_item", (request, response, next) => {
   purchaseItem(request.body.username, request.body.item_id, request.body.item_cost);
+})
+app.post("/update_items", (request, response, next) => {
+  updateItems(request.body.token, request.body.ball, request.body.pet, request.body.icon);
 })
 // app.get("/test", (req, res) => {
 //   purchaseItem("admin", 21, 1);

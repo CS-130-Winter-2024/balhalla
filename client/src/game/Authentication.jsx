@@ -138,7 +138,33 @@ export async function handleTokenLogin() {
     })
 }
 
-export async function updateItems(token, ball, pet, icon) {}
+export async function handleItemUpdates(ball, pet, icon) {
+  await fetch('/update_items', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      token: localStorage.getItem('token'),
+      ball: ball,
+      pet: pet,
+      icon: icon,
+    }),
+  })
+    // .then(response => response.json())
+    // .then(jsondata => {
+    //   if (jsondata.error) {
+    //     console.log(jsondata.error)
+    //     alert(jsondata.error)
+    //   }
+    //   console.log('signup data:', jsondata)
+    //   localStorage.setItem('token', jsondata.token)
+
+    //   set_global('BALL', jsondata.ball)
+    //   set_global('PET', jsondata.pet)
+    //   set_global('ICON', jsondata.icon)
+    // })
+}
 
 if (localStorage.getItem('token')) {
   console.log('token login attempt', localStorage.getItem('token'))

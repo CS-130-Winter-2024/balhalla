@@ -233,6 +233,16 @@ async function updateHits(user, hitChange) {
     })
 }
 
+async function updateItems(token, ball, pet, icon) {
+  await knex('accounts')
+    .where('token', token)
+    .update({
+      ball: ball,
+      pet: pet,
+      icon: icon,
+    })
+}
+
 async function purchaseItem(user, itemID, itemCost) {
   let curPoints
   await knex('accounts')
@@ -295,7 +305,8 @@ module.exports = {
   updateLoss,
   updateHits,
   purchaseItem,
-  getAllPurchasedItems
+  getAllPurchasedItems,
+  updateItems
 };
 
 if (!doTest) return;

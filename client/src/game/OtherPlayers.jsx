@@ -156,19 +156,23 @@ export function update() {
       } else { // BLUE TEAM movement rotations
         playersModels[playerID].body.rotation.y = -rotation;
       }
-      
     }
 
+    if (!(playerID in petModels)) continue;
     let dist = (players[playerID].x - petModels[playerID].body.position.x) * (players[playerID].x - petModels[playerID].body.position.x) +
             (players[playerID].z - petModels[playerID].body.position.z) * (players[playerID].z - petModels[playerID].body.position.z);
     if(dist > 3){
-      
       petModels[playerID].body.position.lerp(reusableVector, 0.08);
-      // NEED TO ADD PET TURNING TO FACE MOVEMENT DIRECTION
 
-      // reusableVector.sub(petModels[playerID].body.position);
-      // let rotation = Math.atan2(reusableVector[0], reusableVector[1]);
-      // petModels[playerID].body.rotation.y = rotation + Math.PI;
+      let x_direction = players[playerID].x - petModels[playerID].body.position.x;
+      let z_direction = players[playerID].z - petModels[playerID].body.position.z;
+      let rotation = Math.atan2(x_direction, z_direction);
+
+      if (playersMetadata[playerID].team == 1){ // RED TEAM movement rotations
+        petModels[playerID].body.rotation.y = rotation + Math.PI;
+      } else { // BLUE TEAM movement rotations
+        petModels[playerID].body.rotation.y = -rotation;
+      }
     }
   }
 }

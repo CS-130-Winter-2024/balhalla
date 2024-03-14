@@ -53,6 +53,7 @@ export const MESSAGES = {
   playerKnockout: 'g', //server->client
   gameEnd: 'h', //server->client
   throwBall: 'i', //client->server
+  pauseClock: "j",
 }
 
 export function message_parse(msg) {
@@ -107,6 +108,11 @@ export function message_parse(msg) {
       output.target = data[1]
       output.killer = data[2]
       break
+    case MESSAGES.pauseClock:
+      output.pause = data[1];
+      output.newTime = data[2];
+      output.ready = data[3];
+      output.total = data[4];
   }
   return output
 }

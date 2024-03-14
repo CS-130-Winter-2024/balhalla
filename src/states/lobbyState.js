@@ -3,26 +3,37 @@ import { getConnections } from "../connection.js";
 var playerQueue = {}
 
 var gameStartTimer = Date.now() + constants.LOBBY_LENGTH;
+var sentPause = false;
 
 var onFinish = ()=>{}
 
 export function startState(timer) {
     playerQueue = {};
-    gameStartTimer = timer;
+    gameStartTimer = timer ? timer : Date.now() + constants.LOBBY_LENGTH;
 }
 
 export function addPlayer(id) {
     let sockets = getConnections();
     let list = JSON.stringify([constants.MESSAGES.playerList,0, id, gameStartTimer]);
     sockets[id].send(list)
+    if (Object.keys(playerQueue).length < constants.MINIMUM_PLAYERS) {
+        JSON.stringify([constants.MESSAGES.pauseClock, true,null]);
+    }
 }
 
 export function deletePlayer(id) {
     if (id in playerQueue) {
         delete playerQueue[id];
+        if (Object.keys(playerQueue).length < constants.MINIMUM_PLAYERS && !sentPause) {
+            let sockets = getConnections()
+            const broadcast = JSON.stringify([constants.MESSAGES.pauseClock, true,null])
+            for (const socketID in sockets) {
+                sockets[socketID].send(broadcast);
+            }
+            sentPause = true;
+        }
     }
 }
-
 //lobby logic
 //join -> add to ready check
 //join again -> remove from ready check
@@ -33,7 +44,26 @@ export function processMessage(id, message) {
       case constants.MESSAGES.playerJoin:
         if (!data.ready) {
             delete playerQueue[id]
+            if (Object.keys(playerQueue).length < constants.MINIMUM_PLAYERS && !sentPause) {
+                let sockets = getConnections()
+                const broadcast = JSON.stringify([constants.MESSAGES.pauseClock, true,null])
+                for (const socketID in sockets) {
+                    sockets[socketID].send(broadcast);
+                }
+                sentPause = true;
+            }
             return
+        }
+
+
+        if (Object.keys(playerQueue).length == (constants.MINIMUM_PLAYERS - 1) && !(id in playerQueue) && sentPause) {
+            gameStartTimer = Date.now() + constants.LOBBY_LENGTH;
+            let sockets = getConnections()
+            const broadcast = JSON.stringify([constants.MESSAGES.pauseClock, false,gameStartTimer])
+            for (const socketID in sockets) {
+                sockets[socketID].send(broadcast);
+            }
+            sentPause = false;
         }
 
         playerQueue[id] = {
@@ -44,6 +74,7 @@ export function processMessage(id, message) {
         };
         if (data.pet) playerQueue[id].pet = data.pet
 
+        
         break
     }
 }
@@ -51,7 +82,6 @@ export function processMessage(id, message) {
 var prev = -1;
 export function doTick() {
     if (Object.keys(playerQueue).length < constants.MINIMUM_PLAYERS) {
-        gameStartTimer = Date.now() + constants.LOBBY_LENGTH;
         return;
     }
     if (Date.now() >= gameStartTimer) {

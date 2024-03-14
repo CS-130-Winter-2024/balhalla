@@ -1,4 +1,4 @@
-export const MINIMUM_PLAYERS = 1;
+export const MINIMUM_PLAYERS = 2;
 
 //times
 export const LOBBY_LENGTH = 10000;
@@ -46,7 +46,8 @@ export const MESSAGES = {
   gameStart: "f", // server->client
   playerKnockout: "g", //server->client
   gameEnd: "h", //server->client
-  throwBall: "i", //server->client
+  throwBall: "i", //server->client,
+  pauseClock: "j"
 };
 
 export function message_parse(msg) {

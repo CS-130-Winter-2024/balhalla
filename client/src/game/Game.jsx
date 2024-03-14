@@ -132,6 +132,17 @@ function websocketSetup() {
     }
   })
 
+  setHandler(constants.MESSAGES.pauseClock, (socket, data) => {
+    if (data.pause) {
+      constants.set_global('TIMER_LABEL', "Waiting for players");
+      constants.set_global('CURRENT_TIMER', null);
+    } else {
+      constants.set_global('TIMER_LABEL', 'Game starts in')
+      constants.set_global('CURRENT_TIMER', data.newTime)
+    }
+    
+  })
+
   constants.add_listener("IN_QUEUE",(inQueue)=>{
     var eventMsg = JSON.stringify([
       constants.MESSAGES.playerJoin,

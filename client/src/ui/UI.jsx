@@ -9,8 +9,10 @@ import TextField from '@mui/material/TextField'
 import { TablePagination } from '@mui/material'
 import backgroundImage from '../../assets/textures/Background.png'
 import Store from './components/Store'
-import { add_listener, get_global, print_globals, remove_listener, set_global, TEXTURES, MESSAGES } from '../constants'
+import { add_listener, get_global, print_globals, remove_listener, set_global, TEXTURES } from '../constants'
 import Clock from './components/Clock'
+import EndScreen from './components/EndScreen.jsx'
+import InGameMenu from './components/InGameMenu.jsx'
 
 import sampleData from './sample-data.json'
 
@@ -527,6 +529,7 @@ export default function UI({ showAlert }) {
 
   return (
     <>
+      <EndScreen/>
       <Clock />
       <div
         id="UI"
@@ -595,7 +598,8 @@ export default function UI({ showAlert }) {
           Shop
         </Button>
       </div>
-      <div id="overlay" style={{ display: (get_global("LOCKED") && 'block') || 'none' }}>
+      <div id="overlay" style={{ display: (locked && 'block') || 'none' }}>
+        <InGameMenu showAlert={showAlert}/>
         <img
           src={crosshair}
           style={{
@@ -607,6 +611,7 @@ export default function UI({ showAlert }) {
           width={50}
           height={50}
         />
+        
       </div>
     </>
   )

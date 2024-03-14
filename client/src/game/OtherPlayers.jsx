@@ -120,7 +120,6 @@ export function getPlayerModelGroup() {
   return otherPlayerGroup;
 }
 
-
-export function getBallModelByPlayerID(playerID) {
-  return playersMetadata[playerID]["ball"];
+export function getMetadataByPlayerID(playerID) {
+  return playersMetadata[playerID];
 }

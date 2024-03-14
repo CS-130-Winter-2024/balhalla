@@ -120,7 +120,7 @@ function InGameMenu({ showAlert }) {
               {/* Left Body */}
               <Box style={styles.leftBody}>
                 <Box style={styles.leftTop}>
-                  <AvatarSelector showAlert={showAlert} />
+                  <AvatarSelector showAlert={showAlert} canClick={showStats} />
                   <Typography style={textStyle(3, true)}>{username}</Typography>
                 </Box>
 

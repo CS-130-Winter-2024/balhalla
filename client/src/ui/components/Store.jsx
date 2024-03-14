@@ -66,8 +66,8 @@ function BuyConfirmationDialog({
 }
 
 function Store({ isOpen, onClose, showAlert }) {
-  const [currWeapon, setCurrWeapon] = useState(get_global('WEAPON') || 2)
-  const [prevWeapon, setPrevWeapon] = useState(get_global('WEAPON') || 2)
+  const [currWeapon, setCurrWeapon] = useState(get_global('BALL') || 2)
+  const [prevWeapon, setPrevWeapon] = useState(get_global('BALL') || 2)
 
   const [currPet, setCurrPet] = useState(get_global('PET'))
   const [prevPet, setPrevPet] = useState(get_global('PET'))
@@ -156,8 +156,10 @@ function Store({ isOpen, onClose, showAlert }) {
   }
 
   const handleSave = () => {
-    set_global('WEAPON', currWeapon)
+    set_global('BALL', currWeapon)
     set_global('PET', currPet)
+
+    set_global("IN_QUEUE",get_global("IN_QUEUE")) //this is so jank but don't worry about it
     //somehow propagate this to the server
     setPrevWeapon(currWeapon)
     setPrevPet(currPet)

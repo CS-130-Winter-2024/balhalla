@@ -51,7 +51,6 @@ function websocketSetup() {
   setHandler(constants.MESSAGES.gameStart, (socket, data) => {
     constants.set_global('GAME_STATE', 1)
     constants.set_global('GAME_OVER', false)
-    Player.setMetadata(data.metaData[constants.get_global('CLIENT_ID')])
     for (let player in data.playerData) {
       if (player == constants.get_global('CLIENT_ID')) {
         // updates client based on server's info about that client (alive status, client's points in-game, position, etc.)
@@ -95,7 +94,10 @@ function websocketSetup() {
     var eventMsg = JSON.stringify([
       constants.MESSAGES.playerJoin,
       { username: constants.get_global('USERNAME'),
-        ready:constants.get_global("IN_QUEUE")
+        ready:constants.get_global("IN_QUEUE"),
+        ball: constants.get_global("BALL"),
+        pet: constants.get_global("PET"),
+        icon: constants.get_global("ICON"),
       }
     ])
     socket.send(eventMsg);

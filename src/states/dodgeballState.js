@@ -194,6 +194,7 @@ export function processMessage(id, message) {
           velocity: data.direction.map((x) => x * constants.BALL_SPEED),
           throwerID: id,
           isGrounded: false,
+          model: playersMetadata[id].ball || 2,
         };
         balls.didChange = true;
       }

@@ -233,11 +233,3 @@ export function update() {
   intermediateVector.set(properties.x, properties.y, properties.z);
   camera.position.lerp(intermediateVector, 0.2);
 }
-
-export function setMetadata(data){
-  myMetadata = data;
-}
-
-export function getMetadata(){
-  return myMetadata;
-}

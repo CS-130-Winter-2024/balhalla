@@ -18,6 +18,7 @@ import turtlePng from '../assets/images/turtle.png'
 import pigPng from '../assets/images/pig.png'
 import duckPng from '../assets/images/duck.png'
 
+import vikon from "../assets/images/Viking.png"
 import kev from '../assets/images/KingKev.jpg'
 import panda from '../assets/images/Panda.png'
 import shaq from '../assets/images/Shaq.png'
@@ -225,9 +226,9 @@ export const BALL_ANIMATIONS = {
   },
 }
 
-export const AVATARS = [kev, panda, shaq, hamter, goku]
+export const AVATARS = [vikon,kev, panda, shaq, hamter, goku]
 
-export const AVATAR_NAMES = ['King Kev', 'Panda', 'Shaquille', 'Hamter', 'Goku']
+export const AVATAR_NAMES = ['Viking','King Kev', 'Panda', 'Shaquille', 'Hamter', 'Goku']
 
 export const TEXTURES = {stone, stoneVert, parchment};
 

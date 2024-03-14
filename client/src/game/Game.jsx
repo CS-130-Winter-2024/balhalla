@@ -9,8 +9,6 @@ import * as Balls from './Balls'
 import * as PlayerPet from "./PlayerPet"
 import { loadDefault } from './Models'
 
-let petID = prompt("What pet id?")
-
 // Defines how the game handles messages from server
 function websocketSetup() {
   //On connect, send username
@@ -167,7 +165,7 @@ function websocketSetup() {
         username: constants.get_global('USERNAME'),
         ready: inQueue,
         ball: constants.get_global('BALL'),
-        pet: petID,
+        pet: constants.get_global('PET'),
         icon: constants.get_global('ICON'),
       },
     ])

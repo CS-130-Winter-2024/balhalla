@@ -1,4 +1,4 @@
-import { set_global } from '../constants'
+import { set_global, get_global } from '../constants'
 
 function getUsername() {
   //return prompt("What is your username?");
@@ -47,6 +47,7 @@ export async function handleSignup(username, pw, conf_pw) {
       })
 
       set_global('AUTHENTICATED', true)
+      set_global("IN_QUEUE",get_global("IN_QUEUE")) //this is so jank but don't worry about it
     })
 }
 
@@ -93,6 +94,8 @@ export async function handleLogin(username, pw) {
         Games: wins + losses,
         Hitrate: parseFloat(((hits / (wins + losses)) * 100).toFixed(2)),
       })
+
+      set_global("IN_QUEUE",get_global("IN_QUEUE")) //this is so jank but don't worry about it
     })
 }
 
@@ -134,6 +137,8 @@ export async function handleTokenLogin() {
         Games: wins + losses,
         Hitrate: parseFloat(((hits / (wins + losses)) * 100).toFixed(2)),
       })
+
+      set_global("IN_QUEUE",get_global("IN_QUEUE")) //this is so jank but don't worry about it
       return true
     })
 }

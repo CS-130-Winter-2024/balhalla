@@ -90,6 +90,7 @@ export function message_parse(msg) {
       output.mvp = data[2]
       output.points = data[3]
       output.startTime = data[4]
+      output.totalPoints = data[5]
       break
     case MESSAGES.serverUpdate:
       output.playerData = data[1]
@@ -110,8 +111,6 @@ export function message_parse(msg) {
     case MESSAGES.pauseClock:
       output.pause = data[1];
       output.newTime = data[2];
-      output.ready = data[3];
-      output.total = data[4];
   }
   return output
 }
@@ -137,76 +136,69 @@ export const MODEL_IDS = {
 }
 
 export const MODEL_PROPERTIES = {
-  0: {
+  "0": {
     name: 'Viking',
     buyable: false,
     type: 'Body',
   },
-  1: {
+  "1": {
     name: 'Boat',
     buyable: false,
     type: 'Body',
   },
-  2: {
+  "2": {
     name: 'Axe',
     buyable: true,
     type: 'Weapon',
     cost: 0,
     image: axePng,
   },
-  3: {
+  "3": {
     name: 'Mjolnir',
     buyable: true,
     type: 'Weapon',
     cost: 10,
     image: hammerPng,
   },
-  4: {
+  "4": {
     name: 'Trident',
     buyable: true,
     type: 'Weapon',
     cost: 10,
     image: tridentPng,
   },
-  5: {
+  "5": {
     name: 'Tree',
     buyable: true,
     type: 'Pet',
     cost: 0,
     image: treePng,
   },
-  6: {
+  "6": {
     name: 'Turtle',
     buyable: true,
     type: 'Pet',
     cost: 0,
     image: turtlePng,
   },
-  7: {
+  "7": {
     name: 'Pig',
     buyable: true,
     type: 'Pet',
     cost: 0,
     image: pigPng,
   },
-  8: {
+  "8": {
     name: 'Duck',
     buyable: true,
     type: 'Pet',
     cost: 0,
     image: duckPng,
   },
-  9: {
+  "9": {
     name: 'Ghost',
     buyable: false,
     type: 'Body',
-  },
-  10: {
-    name: 'Jordan',
-    buyable: true,
-    type: 'Pet',
-    cost: 999,
-    image: duckPng,
   },
 }
 

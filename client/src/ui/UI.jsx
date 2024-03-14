@@ -178,8 +178,6 @@ function ToggleLoginScreen() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
 
-  const [auth, setAuth] = useState(false)
-
   // if(get_global('AUTHENTICATED')){
 
   // }
@@ -236,6 +234,7 @@ function ToggleLoginScreen() {
               paddingLeft: 10,
               paddingTop: -5,
               margin: '5px',
+              fontFamily:"Jorvik"
             }}
           >
             Login
@@ -251,8 +250,9 @@ function ToggleLoginScreen() {
                 color: 'white',
                 backgroundColor: '#65727d',
                 borderRadius: '5px',
+                fontFamily: "Jorvik"
               },
-              label: { color: 'white' },
+              label: { color: 'white', fontFamily:"Jorvik" },
             }}
           />
           <br />
@@ -266,7 +266,7 @@ function ToggleLoginScreen() {
                 backgroundColor: '#65727d',
                 borderRadius: '5px',
               },
-              label: { color: 'white' },
+              label: { color: 'white', fontFamily: "Jorvik" },
             }}
             style={{ padding: 10 }}
             value={password}
@@ -275,7 +275,7 @@ function ToggleLoginScreen() {
           <br />
           <Button
             onClick={() => handleLogin(email, password)}
-            style={{ color: 'white', paddingLeft: 10 }}
+            style={{ color: 'black', backgroundColor:"white", paddingLeft: 10, fontFamily:"Jorvik" }}
           >
             Submit
           </Button>
@@ -336,6 +336,7 @@ function ToggleSignUpScreen() {
               paddingLeft: 10,
               paddingTop: -5,
               margin: '5px',
+              fontFamily: "Jorvik"
             }}
           >
             Sign Up
@@ -351,8 +352,9 @@ function ToggleSignUpScreen() {
                 color: 'white',
                 backgroundColor: '#65727d',
                 borderRadius: '5px',
+                fontFamily:"Jorvik"
               },
-              label: { color: 'white' },
+              label: { color: 'white', fontFamily:"Jorvik" },
             }}
           />
           <br />
@@ -368,8 +370,9 @@ function ToggleSignUpScreen() {
                 color: 'white',
                 backgroundColor: '#65727d',
                 borderRadius: '5px',
+                fontFamily:"Jorvik",
               },
-              label: { color: 'white' },
+              label: { color: 'white', fontFamily:"Jorvik" },
             }}
           />
           <br />
@@ -386,13 +389,13 @@ function ToggleSignUpScreen() {
                 backgroundColor: '#65727d',
                 borderRadius: '5px',
               },
-              label: { color: 'white' },
+              label: { color: 'white', fontFamily:"Jorvik" },
             }}
           />
           <br />
           <Button
             onClick={() => handleSignup(email, password, confirmPassword)}
-            style={{ color: 'white', paddingLeft: 10 }}
+            style={{ color: 'black', backgroundColor:"white", fontFamily:"Jorvik", paddingLeft: 10 }}
           >
             Submit
           </Button>

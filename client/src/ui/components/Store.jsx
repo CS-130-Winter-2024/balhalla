@@ -85,55 +85,37 @@ function Store({ isOpen, onClose, showAlert }) {
 
   // useEffect to update values
   useEffect(() => {
-    //let weaponListener = add_listener('WEAPON', setCurrWeapon)
-    //let petListener = add_listener('PET', setCurrPet)
     let ownedListener = add_listener('OWNED', setOwned)
     let coinsListener = add_listener('POINTS', setCoins)
+    let ballListener = add_listener("BALL",(ball)=>{
+      setCurrWeapon(ball)
+      setPrevWeapon(ball)
+    })
+    let petListener = add_listener("PET",(pet)=>{
+      setCurrPet(pet)
+      setPrevPet(pet)
+    })
     let lockedListener = add_listener('LOCKED', x => {
       if (x) onClose()
     })
     return () => {
-      //remove_listener('WEAPON', weaponListener)
-      //remove_listener('PET', petListener)
+      remove_listener('WEAPON', ballListener)
+      remove_listener('PET', petListener)
       remove_listener('OWNED', ownedListener)
       remove_listener('POINTS', coinsListener)
+      remove_listener("LOCKED", lockedListener);
     }
   }, [])
 
   const handleBuy = item => {
-    // if (coins < MODEL_PROPERTIES[item].cost) {
-    //   showAlert('You do not have enough points!', 'error')
-    // }
+    if (coins < MODEL_PROPERTIES[item].cost) {
+      showAlert('You do not have enough points!', 'error')
+    }
 
-    fetch('/purchase_item', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        username: get_global('USERNAME'),
-        item_id: item,
-        item_cost: MODEL_PROPERTIES[item].cost,
-      }),
-    })
-      .then(response => response.json())
-      .then(data => {
-        if (data) {
-          setSelectedItemForPurchase(item)
-          setRemainingBalance(coins - MODEL_PROPERTIES[item].cost)
-          setShowConfirmationDialog(true)
-        } else {
-          // what to do if item alr bought or not enough coins
-          showAlert('Sorry King, you are broke', 'error')
-        }
-      })
-
-    // if (){
-    //   //attempt back end call for purchase
-    //   setSelectedItemForPurchase(item)
-    //   setRemainingBalance(coins - MODEL_PROPERTIES[item].cost)
-    //   setShowConfirmationDialog(true)
-    // }
+    //attempt back end call for purchase
+    setSelectedItemForPurchase(item)
+    setRemainingBalance(coins - MODEL_PROPERTIES[item].cost)
+    setShowConfirmationDialog(true)
   }
 
   const handleEquipChange = (event, type) => {
@@ -158,24 +140,62 @@ function Store({ isOpen, onClose, showAlert }) {
   const handleSave = () => {
     set_global('BALL', currWeapon)
     set_global('PET', currPet)
-
     set_global("IN_QUEUE",get_global("IN_QUEUE")) //this is so jank but don't worry about it
-    //somehow propagate this to the server
+
+
     setPrevWeapon(currWeapon)
     setPrevPet(currPet)
+
+    //post to server
+    if (!localStorage.getItem("token")) return; //shouldnt happen
+    fetch('/update_items', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        token: localStorage.getItem("token"),
+        ball: currWeapon,
+        pet: currPet,
+        icon: get_global("ICON")
+      }),
+    })
+    ///
   }
 
-  const handleConfirmBuy = item => {
-    showAlert(
-      `You bought ${MODEL_PROPERTIES[item].name} for ${MODEL_PROPERTIES[item].cost} coins`,
-      'success',
-    )
-    setShowConfirmationDialog(false)
-    setCoins(coins - MODEL_PROPERTIES[item].cost)
-
-    let newOwned = [...owned, item]
-    setOwned(newOwned)
-    set_global('OWNED', newOwned)
+  const handleConfirmBuy = async (item) => {
+    await fetch('/purchase_item', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        token: localStorage.getItem("token"),
+        item_id: item,
+        item_cost: MODEL_PROPERTIES[item].cost,
+      }),
+    })
+      .then(response => response.json())
+      .then(data => {
+        console.log(data);
+        if (data.success) {
+          showAlert(
+            `You bought ${MODEL_PROPERTIES[item].name} for ${MODEL_PROPERTIES[item].cost} coins`,
+            'success',
+          )
+          setShowConfirmationDialog(false)
+          set_global("POINTS",coins-MODEL_PROPERTIES[item].cost)
+          setCoins(coins - MODEL_PROPERTIES[item].cost)
+          let newOwned = data.itemArray
+          console.log("Newowned",newOwned)
+          setOwned(newOwned)
+          set_global('OWNED', newOwned)
+        } else {
+          // what to do if item alr bought or not enough coins
+          showAlert('Sorry King, you are broke', 'error')
+        }
+    })
+    
   }
 
   const onCloseDialog = item => {
@@ -338,6 +358,16 @@ function Store({ isOpen, onClose, showAlert }) {
             </Grid>
             <Grid item xs={4}>
               {/* Right Side: Equip section */}
+              <Typography
+                  variant="h6"
+                  gutterBottom
+                  style={{
+                    fontFamily,
+                    color: primaryColor,
+                  }}
+                >
+                  {coins} Points
+              </Typography>
               <FormControl fullWidth>
                 <Typography
                   variant="h6"
@@ -409,10 +439,9 @@ function Store({ isOpen, onClose, showAlert }) {
 
                 <Button
                   variant="contained"
-                  color="primary"
                   onClick={handleSave}
                   disabled={!canSave()}
-                  style={{ marginTop: '16px' }}
+                  style={{ marginTop: '16px', display:canSave() ? "inline-flex" : "none", backgroundColor:"white",fontFamily:"Jorvik",color:"black" }}
                 >
                   Save
                 </Button>

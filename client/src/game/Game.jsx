@@ -60,6 +60,7 @@ function websocketSetup() {
           -playerData.z,
         )
         constants.set_global('LOCKED', true)
+        constants.set_global("HITS",0)
         constants.set_global(
           'ANNOUNCE',
           `You joined the ${data.metaData[player].team == 0 ? 'Blue' : 'Red'} team!`,
@@ -82,10 +83,20 @@ function websocketSetup() {
 
   setHandler(constants.MESSAGES.gameEnd, (socket, data) => {
     clearTimeout(constants.get_global("START_TIMEOUT"));
+    constants.set_global('MVP', data.mvp)
+    if (data.mvp == constants.get_global("CLIENT_ID")) {
+      constants.set_global('MVP_DATA',{
+        username: constants.get_global("USERNAME"),
+        icon: constants.get_global("ICON") || 0,
+        hits: constants.get_global("HITS")
+      })
+    } else {
+      constants.set_global('MVP_DATA',Others.getMetadataByPlayerID(data.mvp))
+    }
     constants.set_global('GAME_STATE', 0)
     constants.set_global('WINNER', data.winner)
-    constants.set_global('MVP', data.mvp)
     constants.set_global('INDIVIDUAL_SCORE', data.points)
+    constants.set_global("POINTS",data.totalPoints)
     Player.setSpectate(true)
 
     Others.clearPlayers()
@@ -143,8 +154,9 @@ function websocketSetup() {
           'ANNOUNCE',
           `You killed ${Others.getMetadataByPlayerID(data.target).username}!`,
         )
+        constants.set_global("HITS",constants.get_global("HITS")+1)
       }
-      Others.playerDeath(data.target)
+      Others.playerDeath(data.target, data.killer)
     }
   })
 

@@ -46,10 +46,10 @@ app.get("/get_leaderboard", (request, response) => {
   getLeaderboardList(request, response);
 });
 app.post("/purchase_item", (request, response, next) => {
-  purchaseItem(request.body.username, request.body.item_id, request.body.item_cost);
+  purchaseItem(request.body.token, request.body.item_id, request.body.item_cost, response);
 })
 app.post("/update_items", (request, response, next) => {
-  updateItems(request.body.token, request.body.ball, request.body.pet, request.body.icon);
+  updateItems(request.body.token, request.body.ball, request.body.pet, request.body.icon, response);
 })
 // app.get("/test", (req, res) => {
 //   purchaseItem("admin", 21, 1);

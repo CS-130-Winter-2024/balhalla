@@ -107,8 +107,11 @@ export function clearPlayers() {
   }
 }
 
-export function playerDeath(playerID) { // function to trigger upon player knockout
+export function playerDeath(playerID, killerID) { // function to trigger upon player knockout
   playersModels[playerID].switchGhost();
+  if (killerID in playersMetadata) {
+    playersMetadata[killerID].hits += 1;
+  }
 }
 
 // Called on server update message
@@ -140,5 +143,7 @@ export function getPlayerModelGroup() {
 }
 
 export function getMetadataByPlayerID(playerID) {
-  return playersMetadata[playerID];
+  if (playerID in playersMetadata)
+    return playersMetadata[playerID];
+  return null
 }

@@ -4,9 +4,9 @@ import clockImage from "../../../assets/images/Clock.png";
 const clockImageUrl = "url("+clockImage+")"
 
 export default function Clock({}) {
-    const [time, setTime] = useState(Date.now()+10000);
+    const [time, setTime] = useState(null);
     const [display, setDisplay] = useState(0);
-    const [text, setText] = useState("Game starts in");
+    const [text, setText] = useState("Waiting for players");
 
     useEffect(()=>{
         let listener = add_listener("CURRENT_TIMER",setTime);

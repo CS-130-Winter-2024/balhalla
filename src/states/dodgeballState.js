@@ -118,8 +118,13 @@ export function endState() {
 
   //credit points to players
   let points = {};
+  let totalPoints = {};
   for (const id in playersMetadata){
+    totalPoints[id] = 0;
     points[id] = playersMetadata[id].hits * 10;
+    if (id == mvp){
+      points[id] += 10;
+    }
     if (playersMetadata[id].team == winner){
       points[id] += 50;
       updateWin(playersMetadata[id].username, 1)
@@ -128,8 +133,9 @@ export function endState() {
       updateLoss(playersMetadata[id].username, 1)
     }
     
-    if (id == mvp){
-      points[id] += 10;
+    if (playersMetadata[id].username in playerPoints) {
+      console.log("PLAYER FOUND!");
+      totalPoints[id] = playerPoints[playersMetadata[id].username] + points[id];
     }
 
     // update points in database
@@ -146,9 +152,9 @@ export function endState() {
 
   let sockets = getConnections();
   let newTime = Date.now() + constants.LOBBY_LENGTH + 250
-  
+  console.log("[PLAYERPOINTS]",playerPoints);
   for (const id in sockets) {
-    const broadcast = JSON.stringify([constants.MESSAGES.gameEnd, winner, mvp, points[id], newTime, (playerPoints[playersMetadata[id].username] + points[id]) || 0])
+    const broadcast = JSON.stringify([constants.MESSAGES.gameEnd, winner, mvp, points[id], newTime, totalPoints[id]])
     sockets[id].send(broadcast);
   }
 
@@ -369,9 +375,7 @@ export function doTick() {
               players[playerID].hasBall = false;
               playersMetadata[ball.throwerID].hits++;
 
-              if (isGameOver() != -1) {
-                endState();
-              }
+              
 
               // LATER: if have ball, return ball to game
   
@@ -386,6 +390,10 @@ export function doTick() {
                 sockets[otherID].send(
                   JSON.stringify([constants.MESSAGES.playerKnockout, playerID, ball.throwerID]),
                 );
+              }
+
+              if (isGameOver() != -1) {
+                endState();
               }
             }
           }

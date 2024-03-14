@@ -85,7 +85,6 @@ async function signup(request, response, next) {
             knex('items').insert({
               username: request.body.username,
               item_id: 2,
-              token: token
             });
 
             console.log("signup db token:", token)
@@ -249,7 +248,7 @@ async function updateHits(user, hitChange) {
 
 async function updateItems(token, ball, pet, icon) {
   await knex('accounts')
-    .where('token', token)
+    .where('username', tokens[token])
     .update({
       ball: ball,
       pet: pet,
@@ -257,8 +256,13 @@ async function updateItems(token, ball, pet, icon) {
     })
 }
 
-async function purchaseItem(user, itemID, itemCost) {
+async function purchaseItem(token, itemID, itemCost,response) {
   let curPoints
+  let user = tokens[token];
+  if (!user) { //
+    response.json({success:false,itemArray:null});
+    return false
+  }
   await knex('accounts')
     .select('points')
     .where('username', user)
@@ -266,18 +270,29 @@ async function purchaseItem(user, itemID, itemCost) {
       curPoints = data[0].points;
       console.log('curppoints:', curPoints)
     })
-
-  await knex('items')
+  if (curPoints < itemCost) {
+    response.json({success:false,itemArray:null})
+    return false;
+  }
+  let items;
+  let canPurchase = await knex('items')
     .select()
-    .where('item_id', itemID)
+    .where({"username":user})
     .then(rows => {
       console.log('item alr purchased?', rows)
-      if (rows.length !== 0 || curPoints - itemCost < 0) {
-        console.log('cannot purchase')
-        return false; // item alr owned or can't afford, return false
+      items = rows;
+      for (const row of rows) {
+        if (row.item_id == itemID) {
+          console.log('cannot purchase')
+          response.status(200).json({success:false,itemArray:null})
+          return false;
+        }
       }
+      return true;
     })
     .catch(err => console.error(err))
+  if (!canPurchase) return;
+  
 
   await knex('accounts')
     .where('username', user)
@@ -289,8 +304,11 @@ async function purchaseItem(user, itemID, itemCost) {
     item_id: itemID,
   })
     .then(() => {
-      console.log(itemID, 'purchased?')
-      return true; // Value is in the column
+      items = items.map(x=>x.item_id);
+      items.push(Number(itemID));
+      console.log(items)
+      response.status(200).json({success:true,itemArray:items});
+      return;
     })
     .catch(err => console.error(err))
 }

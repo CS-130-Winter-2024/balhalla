@@ -51,6 +51,7 @@ export function applyTransformations(modelID, scene) {
             break
         case "9":
             scene.scale.set(1.25,1,1.25);
+            scene.rotateY(Math.PI)
             break;
     }
 }

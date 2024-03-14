@@ -5,6 +5,8 @@ import * as constants from "../constants"
 var camera;
 var spectateCamera;
 
+var spectateAnim = 0
+
 constants.set_global("SPECTATING",true)
 var spectating = true
 
@@ -177,7 +179,7 @@ function createSpectateCamera() {
   spectateCamera = new three.PerspectiveCamera(75, 2, 0.1, 1000);
   spectateCamera.position.z = 0;
   spectateCamera.position.y = 10;
-  spectateCamera.position.x = 17;
+  spectateCamera.position.x = 22;
   spectateCamera.zoom = 1;
   spectateCamera.lookAt(0, 0, 0);
   spectateCamera.updateProjectionMatrix();
@@ -216,7 +218,7 @@ export function getSpectateCamera() {
 }
 
 export function updatePlayer(data, force=false) {
-  if (data.alive && properties.hasBall == false && data.hasBall && !force) {
+  if (data && data.alive && properties.hasBall == false && data.hasBall && !force) {
     constants.set_global("ANNOUNCE","You picked up a weapon!");
   }
   properties = {
@@ -232,10 +234,16 @@ export function isAlive() {
   return properties.alive;
 }
 
+const twoPI = Math.PI * 2;
 function updateSpectateCamera() {
-  //do nothing for now
+  spectateAnim += 0.0025118; //pi/180, comes out to full rotation every 6s
+  if (spectateAnim > twoPI) {
+    spectateAnim = 0;
+  }
+  spectateCamera.position.x = Math.cos(spectateAnim) * 22;
+  spectateCamera.position.z = Math.sin(spectateAnim) * 22;
+  spectateCamera.lookAt(0, 0, 0);
 }
-
 export function update() {
   if (spectating) {
     updateSpectateCamera();

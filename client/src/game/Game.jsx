@@ -23,7 +23,6 @@ function websocketSetup() {
       },
     ])
     socket.send(eventMsg)
-    document.dispatchEvent(new CustomEvent('setUsername', { detail: usernm }))
   })
 
   //On player list sent, add all players to scene

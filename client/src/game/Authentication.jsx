@@ -1,6 +1,5 @@
 import { set_global } from '../constants'
 
-
 function getUsername() {
   //return prompt("What is your username?");
   return 'Guest ' + Math.floor(Math.random() * 1000)
@@ -69,8 +68,8 @@ export async function handleLogin(username, pw) {
     .then(jsondata => {
       console.log(jsondata)
       if (jsondata.error) {
-        console.log(jsondata.error)
         alert(jsondata.error)
+        return
       }
       // setSharedBool(true);
       console.log('login token:', jsondata.token)
@@ -111,8 +110,9 @@ export async function handleTokenLogin() {
     .then(jsondata => {
       console.log('[LOGINTOKEN]', jsondata)
       if (jsondata.error) {
-        set_global("USERNAME",getUsername());
-        return;
+        set_global('USERNAME', getUsername())
+        localStorage.removeItem('token')
+        return
       }
 
       set_global('AUTHENTICATED', true)
@@ -138,7 +138,11 @@ export async function handleTokenLogin() {
     })
 }
 
+export async function updateItems(token, ball, pet, icon) {}
+
 if (localStorage.getItem('token')) {
   console.log('token login attempt', localStorage.getItem('token'))
   handleTokenLogin()
+} else {
+  set_global('USERNAME', getUsername())
 }

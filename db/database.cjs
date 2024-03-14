@@ -3,7 +3,7 @@ const jwt = require("jsonwebtoken")
 const SECRET = "any_secret_you_want_to_use"
 
 var URL = process.env.DATABASE_URL;
-
+var doTest = false
 if (URL == null) {
   try {
     let DB_URL = require("./keys.cjs");
@@ -172,10 +172,10 @@ async function tokenLogin(request, response, next) {
           rows[0]['item_array'] = item_array
           console.log('login rows:', JSON.stringify(rows[0]));
           response.status(200).json(rows[0])
-      })
-      .catch(err => {
-        console.error(err);
-      })
+        })
+        .catch(err => {
+          console.error(err);
+        })
     }).catch(err => {
       console.error(err);
     })
@@ -298,6 +298,7 @@ module.exports = {
   getAllPurchasedItems
 };
 
+if (!doTest) return;
 (async () => {
 
   // Only while developing, we will drop database and re-create it

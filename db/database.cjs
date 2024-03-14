@@ -11,21 +11,21 @@ if (URL == null) {
   } catch {
     //if we cant connect, dont even try lol
     module.exports = {
-      signup:()=>{},
-      login:()=>{},
-      getLeaderboardList:()=>{},
-      updatePoints:()=>{},
-      updateWin:()=>{},
-      updateLoss:()=>{},
-      updateHits:()=>{},
-      purchaseItem:()=>{},
-      getAllPurchasedItems:()=>{}
+      signup: () => { },
+      login: () => { },
+      getLeaderboardList: () => { },
+      updatePoints: () => { },
+      updateWin: () => { },
+      updateLoss: () => { },
+      updateHits: () => { },
+      purchaseItem: () => { },
+      getAllPurchasedItems: () => { }
     }
     return;
   }
 }
 
-
+var tokens = {}
 
 
 const knex = require("knex")({
@@ -59,27 +59,29 @@ async function signup(request, response, next) {
         username: request.body.username,
         password: hashedPassword
       })
-      .returning(["username", "password"])
-      .then(new_user => {
-        console.log('signup user', new_user)
-        return jwt.sign(new_user[0].username, SECRET, (error, token) => {
-          knex.select('username', 'wins', 'losses', 'hits', 'points', 'ball', 'pet', 'icon')
-            .from('accounts')
-            .where('username', request.body.username)
-            .then(rows => {
-              rows[0]['token'] = token
-              rows[0]['item_array'] = [2]
-              console.log('login rows:', JSON.stringify(rows[0]));
-              response.status(200).json(JSON.stringify(rows[0]))
-            })
-            .catch(err => {
-              console.error(err);
-            })
+        .returning(["username", "password"])
+        .then(new_user => {
+          console.log('signup user', new_user)
+          return jwt.sign(new_user[0].username, SECRET, (error, token) => {
+            knex.select('username', 'wins', 'losses', 'hits', 'points', 'ball', 'pet', 'icon')
+              .from('accounts')
+              .where('username', request.body.username)
+              .then(rows => {
+                rows[0]['token'] = token
+                tokens[token] = request.body.username;
+                rows[0]['item_array'] = [2]
+                console.log('login rows:', JSON.stringify(rows[0]));
+                response.status(200).json(rows[0])
+              })
+              .catch(err => {
+                console.error(err);
+              })
 
-          knex('items').insert({
-            username: request.body.username,
-            item_id: 2,
-          });
+            knex('items').insert({
+              username: request.body.username,
+              item_id: 2,
+              token: token
+            });
 
             console.log("signup db token:", token)
           })
@@ -118,26 +120,64 @@ async function login(request, response, next) {
                   .then(item_row => {
                     item_array = item_row.map(row => row.item_id);
                     console.log('itemarray:', item_array);
-                  })
+                  }).then(() => {
 
-                knex.select('username', 'wins', 'losses', 'hits', 'points', 'ball', 'pet', 'icon')
-                  .from('accounts')
-                  .where('username', request.body.username)
-                  .then(rows => {
-                    rows[0]['token'] = token
-                    rows[0]['item_array'] = item_array
-                    console.log('login rows:', JSON.stringify(rows[0]));
-                    response.status(200).json(JSON.stringify(rows[0]))
+                    knex.select('username', 'wins', 'losses', 'hits', 'points', 'ball', 'pet', 'icon')
+                      .from('accounts')
+                      .where('username', request.body.username)
+                      .then(rows => {
+                        tokens[token] = request.body.username;
+                        rows[0]['token'] = token
+                        rows[0]['item_array'] = item_array
+                        console.log('login rows:', JSON.stringify(rows[0]));
+                        response.status(200).json(rows[0])
+                      })
                   })
                   .catch(err => {
                     console.error(err);
                   })
+
+                knex.update({ token: token })
+                  .where('username', request.body.username);
 
                 console.log("db token:", token)
               })
             }
           })
       }
+    })
+}
+
+async function tokenLogin(request, response, next) {
+  console.log(request.body)
+  if (!(request.body.token in tokens)) {
+    response.status(401).json({
+      error: "Token invalid"
+    })
+    return;
+  }
+
+  let item_array
+  knex.select('item_id')
+    .from('items')
+    .where('username', tokens[request.body.token])
+    .then(item_row => {
+      item_array = item_row.map(row => row.item_id);
+      console.log('itemarray:', item_array);
+    }).then(() => {
+      knex.select('username', 'wins', 'losses', 'hits', 'points', 'ball', 'pet', 'icon')
+        .from('accounts')
+        .where('username', tokens[request.body.token])
+        .then(rows => {
+          rows[0]['item_array'] = item_array
+          console.log('login rows:', JSON.stringify(rows[0]));
+          response.status(200).json(rows[0])
+      })
+      .catch(err => {
+        console.error(err);
+      })
+    }).catch(err => {
+      console.error(err);
     })
 }
 
@@ -213,24 +253,22 @@ async function purchaseItem(user, itemID, itemCost) {
         return false; // item alr owned or can't afford, return false
       }
     })
-   .catch(err => console.error(err))
-  
+    .catch(err => console.error(err))
+
   await knex('accounts')
     .where('username', user)
     .decrement('points', itemCost)
-  .catch(err => console.error(err))
+    .catch(err => console.error(err))
 
   await knex('items').insert({
     username: user,
     item_id: itemID,
   })
-  .then(() => {
-    console.log(itemID, 'purchased?')
-    return true; // Value is in the column
-  })
-  .catch(err => console.error(err))
-
-      
+    .then(() => {
+      console.log(itemID, 'purchased?')
+      return true; // Value is in the column
+    })
+    .catch(err => console.error(err))
 }
 
 async function getAllPurchasedItems(username) {
@@ -250,6 +288,7 @@ async function getAllPurchasedItems(username) {
 module.exports = {
   signup,
   login,
+  tokenLogin,
   getLeaderboardList,
   updatePoints,
   updateWin,
@@ -277,8 +316,9 @@ module.exports = {
         table.integer('ball').defaultTo(2);
         //pet - charm that gets added to player as a customization
         table.integer('pet');
-        table.integer('icon');
+        table.integer('icon').defaultTo(0);
         table.string('password');
+        table.string('token')
       });
     }
   });

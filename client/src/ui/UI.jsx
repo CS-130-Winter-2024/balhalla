@@ -9,119 +9,27 @@ import TextField from '@mui/material/TextField'
 import { TablePagination } from '@mui/material'
 import backgroundImage from '../../assets/textures/Background.png'
 import Store from './components/Store'
-import { add_listener, get_global, print_globals, remove_listener, set_global, TEXTURES } from '../constants'
+import {
+  add_listener,
+  get_global,
+  print_globals,
+  remove_listener,
+  set_global,
+  TEXTURES,
+} from '../constants'
 import Clock from './components/Clock'
 import EndScreen from './components/EndScreen.jsx'
 import InGameMenu from './components/InGameMenu.jsx'
 
 import sampleData from './sample-data.json'
 import { Announcer } from './components/Announcer.jsx'
+import { handleLogin, handleSignup } from "../game/Authentication.jsx"
 
-set_global('AUTHENTICATED', false);
+
+set_global('AUTHENTICATED', false)
 // TODO: when page is loaded, check token in cookies against server
 // if so, start as logged in, otherwise logged out
-var token_to_username = {}
 
-async function handleSignup(username, pw, conf_pw) {
-  // check if pw is same as conf_pw
-  if (pw !== conf_pw) {
-    alert('Passwords do not match. Please try again with matching passwords.')
-  }
-
-  // console.log(admin);
-  // console.log(pw);
-  await fetch('/signup', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      username: username,
-      password: pw,
-    }),
-  })
-    .then(response => response.json())
-    .then(data => {
-      const jsondata = JSON.parse(data)
-      if (jsondata.error) {
-        console.log(jsondata.error)
-        alert(jsondata.error)
-      }
-      console.log('signup data:', jsondata)
-      localStorage.setItem('token', jsondata.token)
-      token_to_username[jsondata.token] = username
-
-      set_global('BALL', jsondata.ball)
-      set_global('PET', jsondata.pet)
-      set_global('POINTS', jsondata.points)
-      set_global('USERNAME', jsondata.username)
-      set_global('ICON', jsondata.icon)
-      set_global('OWNED', jsondata.item_array)
-      const { wins, losses, hits } = jsondata
-      set_global('STATS', {
-        Wins: wins,
-        Losses: losses,
-        Hits: hits,
-        Winrate: parseFloat(((wins / (wins + losses)) * 100).toFixed(2)),
-        Games: wins + losses,
-        Hitrate: parseFloat(((hits / (wins + losses)) * 100).toFixed(2)),
-      })
-
-      set_global('AUTHENTICATED', true)
-    })
-}
-
-async function handleLogin(username, pw) {
-  console.log(username)
-  console.log(pw)
-
-  await fetch('/login', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      username: username,
-      password: pw,
-    }),
-  })
-    .then(response => response.json())
-    .then(data => {
-      const jsondata = JSON.parse(data)
-      console.log(jsondata)
-      if (jsondata.error) {
-        console.log(jsondata.error)
-        alert(jsondata.error)
-      }
-      // setSharedBool(true);
-      console.log('login token:', jsondata.token)
-      localStorage.setItem('token', jsondata.token)
-      set_global('AUTHENTICATED', true)
-
-      token_to_username[data.token] = username
-      for (var key in token_to_username) {
-        console.log(key + ' : ' + token_to_username[key])
-      }
-
-      set_global('BALL', jsondata.ball)
-      set_global('PET', jsondata.pet)
-      set_global('POINTS', jsondata.points)
-      set_global('USERNAME', jsondata.username)
-      set_global('ICON', jsondata.icon)
-      set_global('OWNED', jsondata.item_array)
-      console.log('[TEST]', jsondata.item_array)
-
-      const { wins, losses, hits } = jsondata
-      set_global('STATS', {
-        Wins: wins,
-        Losses: losses,
-        Hits: hits,
-        Winrate: parseFloat(((wins / (wins + losses)) * 100).toFixed(2)),
-        Games: wins + losses,
-        Hitrate: parseFloat(((hits / (wins + losses)) * 100).toFixed(2)),
-      })
-    })
-}
 
 function Leaderboard() {
   const [users, setUsers] = useState([])
@@ -496,49 +404,41 @@ function ToggleSignUpScreen() {
 
 export default function UI({ showAlert }) {
   const [locked, setLocked] = useState(false)
-  const [inQueue, setInQueue] = useState(true);
-  const [spectating, setSpectating] = useState(true);
-  const [username, setUsername] = useState(get_global("USERNAME") || "")
+  const [inQueue, setInQueue] = useState(true)
+  const [spectating, setSpectating] = useState(true)
+  const [username, setUsername] = useState(get_global('USERNAME') || '')
 
   const [auth, setAuth] = useState(false)
 
-
-  if (localStorage.getItem('token') in token_to_username) {
-    // TODO: toggle to logged in screen with user token_to_username[localStorage.getItem("token")]
-  } else {
-    // TODO: toggle to logged out screen
-  }
   useEffect(() => {
+    // attempt to login with current token
     
   }, [])
   const [showStore, setShowStore] = useState(false)
 
   useEffect(() => {
-    set_global("IN_QUEUE",true);
+    set_global('IN_QUEUE', true)
 
-    let listener = add_listener('LOCKED', setLocked);
-    let spectatingListener = add_listener("SPECTATING", setSpectating);
-    let authListener = add_listener('AUTHENTICATED', setAuth);
-    let usernameListener = add_listener('USERNAME', setUsername);
-    return ()=>{
-      remove_listener("LOCKED", listener);
-      remove_listener("AUTHENTICATED",authListener);
-      remove_listener("USERNAME", usernameListener);
-      remove_listener("SPECTATING",spectatingListener);
+    let listener = add_listener('LOCKED', setLocked)
+    let spectatingListener = add_listener('SPECTATING', setSpectating)
+    let authListener = add_listener('AUTHENTICATED', setAuth)
+    let usernameListener = add_listener('USERNAME', setUsername)
+    return () => {
+      remove_listener('LOCKED', listener)
+      remove_listener('AUTHENTICATED', authListener)
+      remove_listener('USERNAME', usernameListener)
+      remove_listener('SPECTATING', spectatingListener)
     }
   }, [])
 
   return (
     <>
-      <EndScreen/>
+      <EndScreen />
       <Clock />
       <div
         id="UI"
         style={{
-          display:
-            (locked && 'none') ||
-            (spectating && 'block') ||
-            'none',
+          display: (locked && 'none') || (spectating && 'block') || 'none',
           backgroundImage: `url(${TEXTURES.stoneVert})`,
           backgroundSize: '100% 100%',
           border: '2px solid #0',
@@ -572,35 +472,37 @@ export default function UI({ showAlert }) {
             fontFamily: 'Jorvik',
           }}
           onClick={() => {
-            print_globals();
-            set_global("IN_QUEUE",!inQueue);
-            setInQueue(!inQueue);
+            print_globals()
+            set_global('IN_QUEUE', !inQueue)
+            setInQueue(!inQueue)
           }}
         >
-          {inQueue && "Leave Queue" || "Enter Queue"}
+          {(inQueue && 'Leave Queue') || 'Enter Queue'}
         </Button>
         {!auth && <ToggleLoginScreen></ToggleLoginScreen>}
 
         {!auth && <ToggleSignUpScreen id="logIn"></ToggleSignUpScreen>}
 
         <Leaderboard></Leaderboard>
-        {auth && <Button
-          id="logIn"
-          style={{
-            backgroundColor: 'white',
-            color: 'black',
-            fontFamily: 'Jorvik',
-          }}
-          onClick={() => {
-            setShowStore(true)
-          }}
-          variant="outlined"
-        >
-          Shop
-        </Button>}
+        {auth && (
+          <Button
+            id="logIn"
+            style={{
+              backgroundColor: 'white',
+              color: 'black',
+              fontFamily: 'Jorvik',
+            }}
+            onClick={() => {
+              setShowStore(true)
+            }}
+            variant="outlined"
+          >
+            Shop
+          </Button>
+        )}
       </div>
       <div id="overlay" style={{ display: (locked && 'block') || 'none' }}>
-        <InGameMenu showAlert={showAlert}/>
+        <InGameMenu showAlert={showAlert} />
         <Announcer />
         <img
           src={crosshair}
@@ -613,7 +515,6 @@ export default function UI({ showAlert }) {
           width={50}
           height={50}
         />
-        
       </div>
     </>
   )

@@ -8,22 +8,19 @@ import * as Player from './Player'
 import * as Balls from './Balls'
 import { loadDefault } from './Models'
 
-function getUsername() {
-  //return prompt("What is your username?");
-  return 'Guest ' + Math.floor(Math.random() * 1000)
-}
-
 // Defines how the game handles messages from server
 function websocketSetup() {
   //On connect, send username
   setHandler('open', socket => {
-    let usernm = getUsername()
-    constants.set_global('USERNAME', usernm)
     var eventMsg = JSON.stringify([
       constants.MESSAGES.playerJoin,
-      { username: constants.get_global('USERNAME'),
-        ready: true
-     },
+      {
+        username: constants.get_global('USERNAME'),
+        ready: true,
+        ball: constants.get_global('BALL'),
+        pet: constants.get_global('PET'),
+        icon: constants.get_global('ICON'),
+      },
     ])
     socket.send(eventMsg)
     document.dispatchEvent(new CustomEvent('setUsername', { detail: usernm }))
@@ -63,7 +60,10 @@ function websocketSetup() {
           -playerData.z,
         )
         constants.set_global('LOCKED', true)
-        constants.set_global("ANNOUNCE",`You joined the ${data.metaData[player].team == 0 ? "Blue" : "Red"} team!`);
+        constants.set_global(
+          'ANNOUNCE',
+          `You joined the ${data.metaData[player].team == 0 ? 'Blue' : 'Red'} team!`,
+        )
         continue
       }
       Others.addPlayer(player, data.playerData[player], data.metaData[player])
@@ -94,14 +94,15 @@ function websocketSetup() {
     //QUEUE
     var eventMsg = JSON.stringify([
       constants.MESSAGES.playerJoin,
-      { username: constants.get_global('USERNAME'),
-        ready:constants.get_global("IN_QUEUE"),
-        ball: constants.get_global("BALL"),
-        pet: constants.get_global("PET"),
-        icon: constants.get_global("ICON"),
-      }
+      {
+        username: constants.get_global('USERNAME'),
+        ready: constants.get_global('IN_QUEUE'),
+        ball: constants.get_global('BALL'),
+        pet: constants.get_global('PET'),
+        icon: constants.get_global('ICON'),
+      },
     ])
-    socket.send(eventMsg);
+    socket.send(eventMsg)
   })
 
   //On other player connect, add their data to scene
@@ -126,10 +127,16 @@ function websocketSetup() {
 
     if (data.target == constants.get_global('CLIENT_ID')) {
       // If player is hit, they won't know yet
-      constants.set_global("ANNOUNCE",`You were killed by ${Others.getMetadataByPlayerID(data.killer).username}!`);
+      constants.set_global(
+        'ANNOUNCE',
+        `You were killed by ${Others.getMetadataByPlayerID(data.killer).username}!`,
+      )
     } else {
-      if (data.killer = constants.get_global("CLIENT_ID")) {
-        constants.set_global("ANNOUNCE",`You killed ${Others.getMetadataByPlayerID(data.target).username}!`);
+      if ((data.killer = constants.get_global('CLIENT_ID'))) {
+        constants.set_global(
+          'ANNOUNCE',
+          `You killed ${Others.getMetadataByPlayerID(data.target).username}!`,
+        )
       }
       Others.playerDeath(data.target)
     }
@@ -137,26 +144,26 @@ function websocketSetup() {
 
   setHandler(constants.MESSAGES.pauseClock, (socket, data) => {
     if (data.pause) {
-      constants.set_global('TIMER_LABEL', "Waiting for players");
-      constants.set_global('CURRENT_TIMER', null);
+      constants.set_global('TIMER_LABEL', 'Waiting for players')
+      constants.set_global('CURRENT_TIMER', null)
     } else {
       constants.set_global('TIMER_LABEL', 'Game starts in')
       constants.set_global('CURRENT_TIMER', data.newTime)
     }
-    
   })
 
-  constants.add_listener("IN_QUEUE",(inQueue)=>{
+  constants.add_listener('IN_QUEUE', inQueue => {
     var eventMsg = JSON.stringify([
       constants.MESSAGES.playerJoin,
-      { username: constants.get_global('USERNAME'),
+      {
+        username: constants.get_global('USERNAME'),
         ready: inQueue,
-        ball: constants.get_global("BALL"),
-        pet: constants.get_global("PET"),
-        icon: constants.get_global("ICON"),
-      }
+        ball: constants.get_global('BALL'),
+        pet: constants.get_global('PET'),
+        icon: constants.get_global('ICON'),
+      },
     ])
-    getSocket().send(eventMsg);
+    getSocket().send(eventMsg)
   })
   setupConnection()
 }
@@ -178,8 +185,8 @@ function updateAspect(renderer, camera) {
 
 function initialize() {
   //set globals
-  constants.set_global("LOCKED",false);
-  
+  constants.set_global('LOCKED', false)
+
   //handle login from here
 }
 
@@ -218,12 +225,12 @@ export default function main() {
   constants.add_listener('LOCKED', isLocked => {
     if (isLocked) {
       try {
-        controls.lock();
+        controls.lock()
       } catch {
-        constants.set_global("LOCKED",false)
+        constants.set_global('LOCKED', false)
       }
     } else {
-      controls.unlock();
+      controls.unlock()
     }
   })
   controls.addEventListener('unlock', () => {
@@ -244,11 +251,11 @@ export default function main() {
   Player.attachKeybinds()
 
   //Update viewport whenever changed
-  updateAspect(renderer, Player.getCamera());
+  updateAspect(renderer, Player.getCamera())
   window.addEventListener('resize', () => {
     //fix both spectate and regular camera
-    updateAspect(renderer, Player.getCamera(true));
-    updateAspect(renderer, Player.getSpectateCamera());
+    updateAspect(renderer, Player.getCamera(true))
+    updateAspect(renderer, Player.getSpectateCamera())
   })
 
   //Render loop

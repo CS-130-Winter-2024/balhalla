@@ -2,11 +2,15 @@ import * as constants from "../../constants.js";
 import { getConnections } from "../connection.js";
 
 import pkg from "../../db/database.cjs";
-const { updatePoints, updateHits, updateWin, updateLoss } = pkg;
+const { updatePoints, updateHits, updateWin, updateLoss, getPointsByUsernames } = pkg;
 
 var players = {}; //playerid associated
 var playersMetadata = {}; //playerid associated
 var balls = {didChange:false};
+
+
+var playersByName = {}
+var playerPoints;
 
 var gameStartTimer;
 var gameEndTimer;
@@ -22,6 +26,7 @@ export function startState(data) {
   //add all the readied players to the game
   let current = 0;
   let playerCount = [0,0]
+  playersByName = {}
   for (const id in data.players) {
 
     //pick z coordinate
@@ -49,12 +54,16 @@ export function startState(data) {
       team: teams[current],
       hits: 0,
     };
-    
+    playersByName[data.players[id].username] = id
     current++;
   }
 
   gameStartTimer = Date.now() + constants.START_COUNTDOWN;
   gameEndTimer = gameStartTimer + constants.GAME_LENGTH;
+
+  getPointsByUsernames(Object.keys(playersByName)).then(
+    (players)=>{playerPoints = players}
+  )
 
   //propagate the playerlist to everyone
   for (const id in sockets) {
@@ -139,7 +148,7 @@ export function endState() {
   let newTime = Date.now() + constants.LOBBY_LENGTH + 250
   
   for (const id in sockets) {
-    const broadcast = JSON.stringify([constants.MESSAGES.gameEnd, winner, mvp, points[id], newTime])
+    const broadcast = JSON.stringify([constants.MESSAGES.gameEnd, winner, mvp, points[id], newTime, (playerPoints[playersMetadata[id].username] + points[id]) || 0])
     sockets[id].send(broadcast);
   }
 

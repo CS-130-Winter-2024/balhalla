@@ -25,25 +25,32 @@ export function getProgress() {
 export function applyTransformations(modelID, scene) {
     switch (modelID) {
         case "0":
-            scene.scale.set(2,2.5,2);
-            scene.position.set(0,-0.5,0);
+            scene.scale.set(2,2,2);
+            scene.position.set(0,0,0);
+            scene.rotateY(Math.PI)
             break
         case "5":
             scene.scale.set(20,20,20);
-            scene.position.y = 0.1;
+            scene.position.y = 0;
+            scene.rotateY(Math.PI)
             break;
         case "6":
             scene.scale.set(8,8,8);
-            scene.position.y = 0.1;
+            scene.position.y = 0;
+            scene.rotateY(Math.PI)
             break;
         case "7":
             scene.scale.set(8,8,-8);
-            scene.position.y = 0.1;
+            scene.position.y = 0;
+            scene.rotateY(Math.PI)
             break;
         case "8":
             scene.scale.set(8,8,8);
-            scene.position.y = 0.1;
-            scene.rotation.y = (Math.PI * -0.5);
+            scene.position.y = 0;
+            scene.rotation.y = (Math.PI * 0.5);
+            break
+        case "9":
+            scene.scale.set(1.25,1,1.25);
             break;
     }
 }

@@ -42,6 +42,11 @@ const knex = require("knex")({
 
 async function signup(request, response, next) {
   // check if username is taken
+  if (request.body.username.slice(0,5) == "Guest") {
+    return response.status(401).json({
+      error: "Username already taken"
+    })
+  }
   knex("accounts")
     .where({ username: request.body.username })
     .first()
@@ -197,6 +202,15 @@ function getLeaderboardList(request, response) {
 
 }
 
+async function getPointsByUsernames(usernames) {
+  let points = await knex.select("username","points").from('accounts').whereIn("username",usernames);
+  let output = {}
+  for (const entry of points) {
+    output[entry.username] = entry.points
+  }
+  return output;
+}
+
 async function updatePoints(user, pointChange) {
   await knex('accounts')
     .where('username', user)
@@ -306,8 +320,10 @@ module.exports = {
   updateHits,
   purchaseItem,
   getAllPurchasedItems,
-  updateItems
+  updateItems,
+  getPointsByUsernames
 };
+getPointsByUsernames(["bigcheung","admin"]);
 
 if (!doTest) return;
 (async () => {

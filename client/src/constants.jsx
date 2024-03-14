@@ -32,11 +32,8 @@ import parchment from "../assets/textures/Parchment.png"
 
 //GAME
 export const SPEED = 5 // Player speed
-export const ALIVE_Y = 1.75 // Camera position when player is alive
+export const ALIVE_Y = 1.4 // Camera position when player is alive
 
-export const THROW_KEY = 'f'
-export const SHIFT_KEY = 'Shift'
-export const MOVEMENT_MAP = { w: 0, a: 1, s: 2, d: 3 }
 
 export const DASH_COOLDOWN = 5000
 export const DASH_SPEED = 15

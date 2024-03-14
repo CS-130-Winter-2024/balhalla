@@ -6,7 +6,10 @@ import * as constants from '../constants'
 import * as Others from './OtherPlayers'
 import * as Player from './Player'
 import * as Balls from './Balls'
+import * as PlayerPet from "./PlayerPet"
 import { loadDefault } from './Models'
+
+let petID = prompt("What pet id?")
 
 // Defines how the game handles messages from server
 function websocketSetup() {
@@ -62,20 +65,25 @@ function websocketSetup() {
         constants.set_global(
           'ANNOUNCE',
           `You joined the ${data.metaData[player].team == 0 ? 'Blue' : 'Red'} team!`,
-        )
+        );
+
+        if (data.metaData[player].pet) {
+          PlayerPet.createPet(data.metaData[player].pet, playerData, data.metaData[player].team)
+        }
         continue
       }
       Others.addPlayer(player, data.playerData[player], data.metaData[player])
     }
 
     constants.set_global('CURRENT_TIMER', data.startTime)
-    setTimeout(() => {
+    constants.set_global("START_TIMEOUT",setTimeout(() => {
       constants.set_global('TIMER_LABEL', 'Game ends in')
       constants.set_global('CURRENT_TIMER', data.endTime)
-    }, data.startTime - Date.now())
+    }, data.startTime - Date.now()))
   })
 
   setHandler(constants.MESSAGES.gameEnd, (socket, data) => {
+    clearTimeout(constants.get_global("START_TIMEOUT"));
     constants.set_global('GAME_STATE', 0)
     constants.set_global('WINNER', data.winner)
     constants.set_global('MVP', data.mvp)
@@ -84,6 +92,7 @@ function websocketSetup() {
 
     Others.clearPlayers()
     Balls.clearBalls()
+    PlayerPet.deletePet()
 
     constants.set_global('TIMER_LABEL', 'Game starts in')
     constants.set_global('CURRENT_TIMER', data.startTime)
@@ -158,7 +167,7 @@ function websocketSetup() {
         username: constants.get_global('USERNAME'),
         ready: inQueue,
         ball: constants.get_global('BALL'),
-        pet: constants.get_global('PET'),
+        pet: petID,
         icon: constants.get_global('ICON'),
       },
     ])
@@ -214,6 +223,9 @@ export default function main() {
   scene.add(Others.getPlayerModelGroup())
   scene.add(Balls.getBallGroup())
 
+  //add player pet
+  scene.add(PlayerPet.petGroup);
+
   var controls = new PointerLockControls(camera, renderer.domElement)
   controls.connect()
   constants.set_global('LOCKED', false)
@@ -262,6 +274,7 @@ export default function main() {
     Player.update()
     Others.update()
     Balls.update()
+    PlayerPet.update(Player.isAlive())
     renderer.render(scene, Player.getCamera())
     requestAnimationFrame(animate)
   }

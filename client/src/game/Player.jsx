@@ -228,6 +228,10 @@ export function updatePlayer(data, force=false) {
   }
 }
 
+export function isAlive() {
+  return properties.alive;
+}
+
 function updateSpectateCamera() {
   //do nothing for now
 }

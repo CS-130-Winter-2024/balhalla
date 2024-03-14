@@ -238,7 +238,7 @@ function Store({ isOpen, onClose, showAlert }) {
           <Grid container spacing={2}>
             <Grid item xs={8}>
               {/* Left Side: Display available items for purchase */}
-              <Grid container spacing={2}>
+              <Grid container spacing={1}>
                 {BUYABLE_MODELS.map((item, index) => {
                   let itemData = MODEL_PROPERTIES[item]
                   return (
@@ -319,7 +319,6 @@ function Store({ isOpen, onClose, showAlert }) {
                                   )}
                                   onClick={() => handleBuy(item)}
                                   style={{
-                                    width: '30%',
                                     maxHeight: '20%',
                                     fontFamily: fontFamily,
                                     backgroundColor: 'black',

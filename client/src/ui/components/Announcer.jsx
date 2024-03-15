@@ -26,7 +26,11 @@ const styles = {
         textAlign:"center"
     }
 }
-
+/**
+ * Functional component for displaying announcements.
+ * @param {Object} props - The properties passed to the component (currently empty).
+ * @returns {JSX.Element} JSX element representing the Announcer component.
+ */
 export function Announcer({}) {
     const [announcement, setAnnouncement] = useState("");
     const [rendering, setRendering] = useState(false)

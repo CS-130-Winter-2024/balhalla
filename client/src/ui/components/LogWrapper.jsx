@@ -5,6 +5,11 @@ LoggingWrapper.propTypes = {
   enableLogging: PropTypes.bool.isRequired,
 }
 
+/**
+ * A component for enabling or disabling logging to the console based on a flag.
+ * @param {boolean} enableLogging - Flag to enable or disable logging.
+ * @returns {Object} - Object with functions to enable and disable console logging.
+ */
 function LoggingWrapper({ enableLogging }) {
   const originalConsole = { ...console }
   const disableConsole = () => {
@@ -40,6 +45,12 @@ LogWrapper.propTypes = {
   enableLogging: PropTypes.bool.isRequired,
 }
 
+/**
+ * A component for wrapping children components with logging functionality based on a flag.
+ * @param {ReactNode} children - The child components to be wrapped.
+ * @param {boolean} enableLogging - Flag to enable or disable logging.
+ * @returns {ReactNode} - The wrapped child components.
+ */
 function LogWrapper({ children, enableLogging }) {
   const logger = LoggingWrapper(enableLogging)
 

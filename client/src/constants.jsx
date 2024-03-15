@@ -18,22 +18,20 @@ import turtlePng from '../assets/images/turtle.png'
 import pigPng from '../assets/images/pig.png'
 import duckPng from '../assets/images/duck.png'
 
-import vikon from "../assets/images/Viking.png"
+import vikon from '../assets/images/Viking.png'
 import kev from '../assets/images/KingKev.jpg'
 import panda from '../assets/images/Panda.png'
 import shaq from '../assets/images/Shaq.png'
 import hamter from '../assets/images/Hamter.jpg'
 import goku from '../assets/images/goku_pfp.jpg'
 
-
-import stone from "../assets/textures/Background.png"
-import stoneVert from "../assets/textures/BackgroundVertical.png"
-import parchment from "../assets/textures/Parchment.png"
+import stone from '../assets/textures/Background.png'
+import stoneVert from '../assets/textures/BackgroundVertical.png'
+import parchment from '../assets/textures/Parchment.png'
 
 //GAME
 export const SPEED = 5 // Player speed
 export const ALIVE_Y = 1.4 // Camera position when player is alive
-
 
 export const DASH_COOLDOWN = 5000
 export const DASH_SPEED = 15
@@ -42,6 +40,12 @@ export const TAG_HEIGHT = 2.5
 
 //WEBSOCKETS ----------------
 export const UPDATE_RATE = 25 // milliseconds between when a player can send updates to the server
+
+/**
+ * Messages used for communication between server and client.
+ * @type {object}
+ * @constant
+ */
 export const MESSAGES = {
   sendMovement: 'a', //server<-client DONE ON CLIENT
   serverUpdate: 'b', //server->client DONE ON CLIENT
@@ -52,9 +56,14 @@ export const MESSAGES = {
   playerKnockout: 'g', //server->client
   gameEnd: 'h', //server->client
   throwBall: 'i', //client->server
-  pauseClock: "j",
+  pauseClock: 'j',
 }
 
+/**
+ * Parses a message from the server and executes the appropriate action.
+ * @param {JSON} msg - The message to parse.
+ * @returns {dict} data - The data to be sent to the client.
+ */
 export function message_parse(msg) {
   let output = {}
   let data = JSON.parse(msg)
@@ -91,6 +100,7 @@ export function message_parse(msg) {
       output.points = data[3]
       output.startTime = data[4]
       output.totalPoints = data[5]
+      output.mvpData = data[6]
       break
     case MESSAGES.serverUpdate:
       output.playerData = data[1]
@@ -109,8 +119,8 @@ export function message_parse(msg) {
       output.killer = data[2]
       break
     case MESSAGES.pauseClock:
-      output.pause = data[1];
-      output.newTime = data[2];
+      output.pause = data[1]
+      output.newTime = data[2]
   }
   return output
 }
@@ -119,6 +129,12 @@ export function message_parse(msg) {
 export const DODGE_BALL_SIDES = 28
 
 // uncomment this out when we merge it into the main branch
+
+/**
+ * Provides models of each entity in the game.
+ * @type {enum}
+ * @constant
+ */
 export const MODEL_IDS = {
   0: viking,
   1: vikingboat,
@@ -134,78 +150,91 @@ export const MODEL_IDS = {
   // model for player when dead
   9: vikingghost,
 }
-
+/**
+ * Exports properties for each entity.
+ * @type {object}
+ * @constant
+ */
 export const MODEL_PROPERTIES = {
-  "0": {
+  0: {
     name: 'Viking',
     buyable: false,
     type: 'Body',
   },
-  "1": {
+  1: {
     name: 'Boat',
     buyable: false,
     type: 'Body',
   },
-  "2": {
+  2: {
     name: 'Axe',
     buyable: true,
     type: 'Weapon',
     cost: 0,
     image: axePng,
   },
-  "3": {
+  3: {
     name: 'Mjolnir',
     buyable: true,
     type: 'Weapon',
     cost: 200,
     image: hammerPng,
   },
-  "4": {
+  4: {
     name: 'Trident',
     buyable: true,
     type: 'Weapon',
     cost: 300,
     image: tridentPng,
   },
-  "5": {
+  5: {
     name: 'Tree',
     buyable: true,
     type: 'Pet',
     cost: 200,
     image: treePng,
   },
-  "6": {
+  6: {
     name: 'Turtle',
     buyable: true,
     type: 'Pet',
     cost: 300,
     image: turtlePng,
   },
-  "7": {
+  7: {
     name: 'Pig',
     buyable: true,
     type: 'Pet',
     cost: 300,
     image: pigPng,
   },
-  "8": {
+  8: {
     name: 'Duck',
     buyable: true,
     type: 'Pet',
     cost: 1000,
     image: duckPng,
   },
-  "9": {
+  9: {
     name: 'Ghost',
     buyable: false,
     type: 'Body',
   },
 }
-
+/**
+ * Uses buyable property to export only buyable entities
+ * @type {object}
+ * @constant
+ */
 export const BUYABLE_MODELS = Object.keys(MODEL_PROPERTIES).filter(x => {
   return MODEL_PROPERTIES[x].buyable
 })
 
+/**
+ * Applies animations to a model based on its corresponding model ID
+ * @type {object}
+ * @constant
+ */
 export const BALL_ANIMATIONS = {
   // applies animations to a model based on its corresponding model ID
   2: function (model) {
@@ -222,14 +251,38 @@ export const BALL_ANIMATIONS = {
     model.rotation.z = 0.5 * Math.PI
   },
 }
+/**
+ * Exports avatar pictures for user profile.
+ * @type {object}
+ * @constant
+ */
+export const AVATARS = [vikon, kev, panda, shaq, hamter, goku]
 
-export const AVATARS = [vikon,kev, panda, shaq, hamter, goku]
+/**
+ * Exports only avatar names.
+ * @type {object}
+ * @constant
+ */
+export const AVATAR_NAMES = [
+  'Viking',
+  'King Kev',
+  'Panda',
+  'Shaquille',
+  'Hamter',
+  'Goku',
+]
+/**
+ * Exports textures for Three.JS
+ * @type {object}
+ * @constant
+ */
+export const TEXTURES = { stone, stoneVert, parchment }
 
-export const AVATAR_NAMES = ['Viking','King Kev', 'Panda', 'Shaquille', 'Hamter', 'Goku']
-
-export const TEXTURES = {stone, stoneVert, parchment};
-
-// color constants themes
+/**
+ * Color constants themes
+ * @type {object}
+ * @constant
+ */
 export const colors = {
   default: 0xffffff,
   floor: 0x333333,
@@ -244,6 +297,13 @@ var GLOBAL_STORE = {}
 
 var LISTENERS = {}
 
+/**
+ * Custom function to add listeners to global storage.
+ * @param {string} key
+ * @param {function} callback
+ * @param {boolean} repeat
+ * @returns {number} index
+ */
 export function add_listener(key, fun, repeat = true) {
   let index = 0
   if (key in LISTENERS) {
@@ -258,7 +318,11 @@ export function add_listener(key, fun, repeat = true) {
   }
   return index
 }
-
+/**
+ * Removes listeners from global storage.
+ * @param {string} key
+ * @param {number} index
+ */
 export function remove_listener(key, index) {
   if (key in LISTENERS && index in LISTENERS[key]) {
     delete LISTENERS[key][index]
@@ -274,16 +338,25 @@ export function remove_listener(key, index) {
 }
 
 // used to retrieve values that client needs access to
+/**
+ * Used to retrieve values that client needs access to.
+ * @param {string} key
+ * @returns {any} value
+ */
 export function get_global(key) {
   if (key in GLOBAL_STORE) {
     return GLOBAL_STORE[key]
   }
   return null
 }
-
-export function set_global(key, value, trigger=true) {
+/**
+ * Used to set values that client needs access to.
+ * @param {string} key
+ * @param {any} value
+ */
+export function set_global(key, value, trigger = true) {
   GLOBAL_STORE[key] = value
-  if (!trigger) return;
+  if (!trigger) return
   if (key in LISTENERS) {
     for (const fun in LISTENERS[key]) {
       try {
@@ -292,12 +365,14 @@ export function set_global(key, value, trigger=true) {
           delete LISTENERS[key][fun]
         }
       } catch {
-        console.log("[LISTENER] Error listening on ",key," for ID",fun);
+        console.log('[LISTENER] Error listening on ', key, ' for ID', fun)
       }
     }
   }
 }
-
+/**
+ * Prints global storage to console.
+ */
 export function print_globals() {
-  console.log(GLOBAL_STORE);
+  console.log(GLOBAL_STORE)
 }

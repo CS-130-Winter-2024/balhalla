@@ -3,6 +3,14 @@ import PropTypes from 'prop-types'
 import Alert from '@mui/material/Alert'
 import Fade from '@mui/material/Fade'
 
+/**
+ * A custom alert component for displaying messages with different severity levels.
+ * @param {Object} props - The props object containing message, severity, onClose, and isOpen properties.
+ * @param {string} props.message - The message to display in the alert.
+ * @param {string} props.severity - Severity level of the alert (info, error, success).
+ * @param {Function} props.onClose - Function to handle closing the alert.
+ * @param {boolean} props.isOpen - Flag indicating if the alert is open.
+ */
 const CustomAlert = ({ message, severity, onClose, isOpen }) => {
   const [visible, setVisible] = useState(isOpen)
 

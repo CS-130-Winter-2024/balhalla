@@ -17,8 +17,8 @@ import { AVATARS, AVATAR_NAMES, get_global, set_global } from '../../constants'
 
 //import
 
-import bg from "../../../assets/textures/Background.png"
-const bgUrl = "url("+bg+")";
+import bg from '../../../assets/textures/Background.png'
+const bgUrl = 'url(' + bg + ')'
 
 // Sample image options (you can replace these with your image URLs)
 
@@ -43,18 +43,18 @@ const styles = {
   },
   background: {
     backgroundImage: bgUrl,
-    backgroundSize: "100% 100%",
+    backgroundSize: '100% 100%',
   },
   actionButton: {
-    color:"white",
-    fontFamily:"Jorvik",
-    fontSize:"18px"
+    color: 'white',
+    fontFamily: 'Jorvik',
+    fontSize: '18px',
   },
   captionText: {
-    color:"white",
-    fontFamily:"Jorvik",
-    fontSize:"16px",
-  }
+    color: 'white',
+    fontFamily: 'Jorvik',
+    fontSize: '16px',
+  },
 }
 
 // prop validation
@@ -63,10 +63,16 @@ AvatarSelector.propTypes = {
   showAlert: PropTypes.func.isRequired,
 }
 
-function AvatarSelector({showAlert, canClick }) {
+/**
+ * A component for selecting and changing the user's avatar.
+ * @param {Object} props - The props object containing showAlert and canClick properties.
+ * @param {Function} props.showAlert - Function to display alerts.
+ * @param {boolean} props.canClick - Flag indicating if the component is clickable.
+ */
+function AvatarSelector({ showAlert, canClick }) {
   const [open, setOpen] = useState(false)
-  const [selectedAvatar, setSelectedAvatar] = useState(get_global("ICON") || 0)
-  const [newAvatar, setNewAvatar] = useState(AVATARS[get_global("ICON") || 0])
+  const [selectedAvatar, setSelectedAvatar] = useState(get_global('ICON') || 0)
+  const [newAvatar, setNewAvatar] = useState(AVATARS[get_global('ICON') || 0])
 
   const handleOpen = () => {
     setOpen(true)
@@ -78,21 +84,21 @@ function AvatarSelector({showAlert, canClick }) {
 
   const handleSave = () => {
     setSelectedAvatar(newAvatar)
-    set_global("ICON",newAvatar);
+    set_global('ICON', newAvatar)
     setOpen(false)
     showAlert('Profile picture saved!', 'success')
 
-    if (!localStorage.getItem("token")) return; //shouldnt happen
+    if (!localStorage.getItem('token')) return //shouldnt happen
     fetch('/update_items', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        token: localStorage.getItem("token"),
-        ball: get_global("BALL") || 2,
-        pet: get_global("PET"),
-        icon: get_global("ICON")
+        token: localStorage.getItem('token'),
+        ball: get_global('BALL') || 2,
+        pet: get_global('PET'),
+        icon: get_global('ICON'),
       }),
     })
   }
@@ -104,7 +110,11 @@ function AvatarSelector({showAlert, canClick }) {
   return (
     <Box>
       <Tooltip title="Change Avatar">
-        <IconButton onClick={handleOpen} disabled={!canClick} sx={styles.avatarButton}>
+        <IconButton
+          onClick={handleOpen}
+          disabled={!canClick}
+          sx={styles.avatarButton}
+        >
           <Avatar
             src={AVATARS[selectedAvatar]}
             alt="Profile Avatar"
@@ -113,16 +123,27 @@ function AvatarSelector({showAlert, canClick }) {
         </IconButton>
       </Tooltip>
 
-      <Dialog open={open} onClose={handleClose} >
-        <DialogTitle style={{textAlign:"center", backgroundImage:bgUrl, color:"white", borderBottom:"3px solid white", fontFamily:"Jorvik", fontSize:"26px"}}>Select Profile Picture</DialogTitle>
+      <Dialog open={open} onClose={handleClose}>
+        <DialogTitle
+          style={{
+            textAlign: 'center',
+            backgroundImage: bgUrl,
+            color: 'white',
+            borderBottom: '3px solid white',
+            fontFamily: 'Jorvik',
+            fontSize: '26px',
+          }}
+        >
+          Select Profile Picture
+        </DialogTitle>
         <DialogContent sx={styles.background}>
           <Grid container spacing={2}>
-            {AVATARS.map((imageUrl,index) => (
+            {AVATARS.map((imageUrl, index) => (
               <Grid item key={imageUrl}>
                 <Box
                   sx={{
                     ...styles.avatarOption,
-                    border: `3px solid ${index === newAvatar ? "white" : 'transparent'}`,
+                    border: `3px solid ${index === newAvatar ? 'white' : 'transparent'}`,
                   }}
                   onClick={() => handleImageClick(index)}
                 >
@@ -139,11 +160,17 @@ function AvatarSelector({showAlert, canClick }) {
             ))}
           </Grid>
         </DialogContent>
-        <DialogActions style={{backgroundImage:bgUrl,borderTop:"3px solid white"}}>
+        <DialogActions
+          style={{ backgroundImage: bgUrl, borderTop: '3px solid white' }}
+        >
           <Button onClick={handleClose} style={styles.actionButton}>
             Cancel
           </Button>
-          <Button onClick={handleSave} style={styles.actionButton} disabled={!newAvatar}>
+          <Button
+            onClick={handleSave}
+            style={styles.actionButton}
+            disabled={!newAvatar}
+          >
             Save
           </Button>
         </DialogActions>

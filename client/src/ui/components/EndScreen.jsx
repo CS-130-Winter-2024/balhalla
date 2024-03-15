@@ -21,6 +21,11 @@ import axe from '../../../assets/images/sword_cross.png'
 import fire from '../../../assets/images/fire.gif'
 const bgUrl = 'url(' + TEXTURES.stone + ')'
 
+/**
+ * Returns styling options based on 'Viking' font
+ * @param {number} size - Size of the font
+ * @param {boolean} bold - Whether the font is bold
+ */
 function textStyle(size = 3, bolded = false) {
   if (size < 0 || size > 6) {
     console.error('Invalid size for textStyle')
@@ -45,13 +50,17 @@ function textStyle(size = 3, bolded = false) {
   }
 }
 
+/**
+ * Component for displaying the end screen with game results and player information. Controls UI + gets winners/MVP
+ */
 const EndScreen = ({}) => {
   const [visible, setVisible] = useState(false)
 
   const [winner, setWinner] = useState('Blue Team Wins')
-  const [points_earned, setPoints] = useState(get_global('INDIVIDUAL_SCORE') || 0)
+  const [points_earned, setPoints] = useState(
+    get_global('INDIVIDUAL_SCORE') || 0,
+  )
   const [mvp, setMvp] = useState(get_global('MVP_DATA') || {})
-
 
   // delete these two and replace with the two on top once you verify the other two on top works (i have no idea, couldnt test)
   // not sure how metadata suppose to look, but from other code i assume .username .team .hits
@@ -62,12 +71,16 @@ const EndScreen = ({}) => {
     let listener = add_listener('GAME_OVER', x => {
       if (!x) return
       setVisible(true)
+      if (get_global('WINNER') == 0) {
+        setWinner('Blue Team Wins')
+      }
       if (get_global('WINNER') == 1) {
         setWinner('Red Team Wins')
       } else if (get_global('WINNER') == 2) {
         setWinner('Tied Match')
       }
-      setMvp(get_global('MVP_DATA'));
+      setPoints(get_global('INDIVIDUAL_SCORE') || 0)
+      setMvp(get_global('MVP_DATA'))
     })
 
     let closeListener = add_listener('SPECTATING', x => {
@@ -144,11 +157,36 @@ const EndScreen = ({}) => {
         </Box>
         <Box
           flex={4}
-          style={{ display: 'flex', flexDirection:"column", alignItems: 'stretch' }}
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'stretch',
+          }}
         >
-          <Box flex={1} display={"flex"} justifyContent={"center"} flexDirection={"row"} alignItems={"center"}>
-            <Box flexShrink={1} flexBasis={150} display={"flex"} alignItems={"center"} justifyContent={"center"} flexDirection={"column"}>
-              <Typography style={{ ...textStyle(5, true), color: '#b29146', zIndex:1, width:"100%", textAlign:"center" }}>
+          <Box
+            flex={1}
+            display={'flex'}
+            justifyContent={'center'}
+            flexDirection={'row'}
+            alignItems={'center'}
+          >
+            <Box
+              flexShrink={1}
+              flexBasis={150}
+              display={'flex'}
+              alignItems={'center'}
+              justifyContent={'center'}
+              flexDirection={'column'}
+            >
+              <Typography
+                style={{
+                  ...textStyle(5, true),
+                  color: '#b29146',
+                  zIndex: 1,
+                  width: '100%',
+                  textAlign: 'center',
+                }}
+              >
                 MVP
               </Typography>
               <Box style={{ position: 'relative', marginTop: 5 }}>
@@ -164,7 +202,7 @@ const EndScreen = ({}) => {
                   }}
                 />
                 <Avatar
-                  src={(mvp && mvp.icon) ? AVATARS[mvp.icon] : AVATARS[0]}
+                  src={mvp && mvp.icon ? AVATARS[mvp.icon] : AVATARS[0]}
                   alt="Profile Avatar"
                   sx={{
                     ...styles.avatarImage,
@@ -174,11 +212,20 @@ const EndScreen = ({}) => {
                   }}
                 />
               </Box>
-              <Typography style={{ ...textStyle(5, true), zIndex:1, color: '#ffffff' }}>
-                {(mvp && mvp.username) || "Nobody"}
+              <Typography
+                style={{ ...textStyle(5, true), zIndex: 1, color: '#ffffff' }}
+              >
+                {(mvp && mvp.username) || 'Nobody'}
               </Typography>
             </Box>
-            <Box flexShrink={1} flexBasis={100} display={"flex"} alignItems={"stretch"} justifyContent={"center"} flexDirection={"column"}>
+            <Box
+              flexShrink={1}
+              flexBasis={100}
+              display={'flex'}
+              alignItems={'stretch'}
+              justifyContent={'center'}
+              flexDirection={'column'}
+            >
               <Typography
                 style={{
                   ...textStyle(4, false),
@@ -187,52 +234,66 @@ const EndScreen = ({}) => {
                   textAlign: 'center',
                 }}
               >
-                {(mvp && mvp.hits) || 0} KILL{(mvp && mvp.hits > 1 && "") || "S"}
+                {(mvp && mvp.hits) || 0} KILL
+                {(mvp && mvp.hits > 1 && '') || 'S'}
               </Typography>
             </Box>
-            {points_earned != 0 && <Box flexBasis={250} display={"flex"} flexDirection={"column"} justifyContent={"space-around"} alignItems={"stretch"}>
-              <Typography
-                style={{
-                  ...textStyle(4, false),
-                  color: '#9c9c9c',
-                  wordSpacing: '0.2em',
-                  textAlign: 'center',
-                }}
+            {points_earned != 0 && (
+              <Box
+                flexBasis={250}
+                display={'flex'}
+                flexDirection={'column'}
+                justifyContent={'space-around'}
+                alignItems={'stretch'}
               >
-                You earned {points_earned} points!
-              </Typography>
-              <Typography
-                style={{
-                  ...textStyle(4, false),
-                  color: '#9c9c9c',
-                  wordSpacing: '0.2em',
-                  textAlign: 'center',
-                }}
-              >
-                You have a grand total of {get_global("POINTS") || points_earned} points!
-              </Typography>
-            </Box>}
+                <Typography
+                  style={{
+                    ...textStyle(4, false),
+                    color: '#9c9c9c',
+                    wordSpacing: '0.2em',
+                    textAlign: 'center',
+                  }}
+                >
+                  You earned {points_earned} points!
+                </Typography>
+                <Typography
+                  style={{
+                    ...textStyle(4, false),
+                    color: '#9c9c9c',
+                    wordSpacing: '0.2em',
+                    textAlign: 'center',
+                  }}
+                >
+                  {get_global('POINTS')
+                    ? `You have a grand total of ${get_global('POINTS')} points!`
+                    : 'Sign up or login to save your points!'}
+                </Typography>
+              </Box>
+            )}
           </Box>
 
           <Box
             flex={2}
-            alignItems={"center"}
-            justifyContent={"center"}
-            display={"flex"}
+            alignItems={'center'}
+            justifyContent={'center'}
+            display={'flex'}
           >
-            <Button variant="outlined"
+            <Button
+              variant="outlined"
               style={{
                 fontFamily: 'Jorvik',
                 backgroundColor: 'white',
                 color: 'black',
-                fontSize:"22px",
-                zIndex:1,
-              }} 
-              onClick={()=>{setVisible(false)}}>
-                OK
+                fontSize: '22px',
+                zIndex: 1,
+              }}
+              onClick={() => {
+                setVisible(false)
+              }}
+            >
+              OK
             </Button>
           </Box>
-          
         </Box>
         <img
           src={fire}
@@ -243,8 +304,8 @@ const EndScreen = ({}) => {
             width: '100%',
             height: '25%',
             opacity: 0.45,
-            left:0,
-            zIndex:0,
+            left: 0,
+            zIndex: 0,
           }}
         />
       </DialogContent>

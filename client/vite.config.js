@@ -2,6 +2,9 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
 // https://vitejs.dev/config/
+/**
+ * Specifies Vite configuration for local running.
+ */
 export default defineConfig({
   plugins: [react()],
   server: {

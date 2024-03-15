@@ -9,7 +9,11 @@ PlayerStats.propTypes = {
     }),
   ),
 }
-
+/**
+ * A component for displaying player statistics in target rendered layout
+ * @param {Object[]} stats - Array of objects containing player statistics data.
+ * @returns {JSX.Element} - Rendered player statistics component.
+ */
 function PlayerStats({ stats }) {
   const renderStats = () => {
     const rows = []
@@ -23,8 +27,8 @@ function PlayerStats({ stats }) {
           style={{
             display: 'flex',
             justifyContent: 'space-around',
-            flexDirection: "row",
-            flex:1,
+            flexDirection: 'row',
+            flex: 1,
           }}
         >
           {rowStats.map(({ key, value }, index) => (
@@ -42,7 +46,12 @@ function PlayerStats({ stats }) {
             >
               <Typography
                 variant="subtitle1"
-                style={{ fontWeight: 'bold', color: 'white', fontFamily:"Jorvik", fontSize:"18px" }}
+                style={{
+                  fontWeight: 'bold',
+                  color: 'white',
+                  fontFamily: 'Jorvik',
+                  fontSize: '18px',
+                }}
               >
                 {key}
               </Typography>
@@ -53,7 +62,14 @@ function PlayerStats({ stats }) {
                   backgroundColor: 'white',
                 }}
               />
-              <Typography variant="subtitle1" style={{ color: "white", fontFamily: "Jorvik", fontSize:"18px" }}>
+              <Typography
+                variant="subtitle1"
+                style={{
+                  color: 'white',
+                  fontFamily: 'Jorvik',
+                  fontSize: '18px',
+                }}
+              >
                 {value}
               </Typography>
             </Box>
@@ -70,7 +86,7 @@ function PlayerStats({ stats }) {
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'center',
-          flex:1,
+          flex: 1,
         }}
       >
         {rows}
@@ -78,7 +94,7 @@ function PlayerStats({ stats }) {
     )
   }
 
-  return <Box style={{ flex:1 }}>{renderStats()}</Box>
+  return <Box style={{ flex: 1 }}>{renderStats()}</Box>
 }
 
 export default PlayerStats

@@ -12,6 +12,9 @@ const INSTRUCTIONS = `
   Pick up weapons on the ground to be able to throw again\n
   When you are hit, you turn into a ghost that can push weapons around`
 
+/**
+ * A component for displaying game instructions, used inside the Game Menu.
+ */
 function TabInstructionsContent({}) {
   const styles = {
     container: {
@@ -24,13 +27,13 @@ function TabInstructionsContent({}) {
     header: {
       ...textStyle(3, true),
       borderBottom: '2px solid black',
-      display:"flex",
-      flex:1,
+      display: 'flex',
+      flex: 1,
     },
     content: {
       ...textStyle(2),
-      display: "flex",
-      flex:9,
+      display: 'flex',
+      flex: 9,
       whiteSpace: 'pre-line',
       lineHeight: '1',
     },
@@ -70,14 +73,7 @@ function textStyle(size = 3, bolded = false, color = 'black') {
     console.error('Invalid size for textStyle')
     return
   }
-  const fontSizeMapping = [
-    '16px',
-    '18px',
-    '20px',
-    '24px',
-    '32px',
-    '40px',
-  ]
+  const fontSizeMapping = ['16px', '18px', '20px', '24px', '32px', '40px']
 
   return {
     color: color,

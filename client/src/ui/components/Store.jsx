@@ -17,7 +17,6 @@ import {
   DialogActions,
 } from '@mui/material'
 
-
 import {
   BUYABLE_MODELS,
   MODEL_PROPERTIES,
@@ -25,7 +24,7 @@ import {
   set_global,
   add_listener,
   remove_listener,
-  TEXTURES
+  TEXTURES,
 } from '../../constants'
 const bgUrl = 'url(' + TEXTURES.stone + ')'
 const parchUrl = 'url(' + TEXTURES.parchment + ')'
@@ -39,6 +38,14 @@ const OFFSET = '0px'
 
 // make copy of object
 
+/**
+ * Functional component for the Buy Confirmation Dialog.
+ * @param {boolean} isOpen - Flag to control dialog visibility.
+ * @param {Object} item - Item to be bought.
+ * @param {number} remainingBalance - Remaining balance of coins.
+ * @param {Function} onClose - Function to close the dialog.
+ * @param {Function} onConfirm - Function to confirm the purchase.
+ */
 function BuyConfirmationDialog({
   isOpen,
   item,
@@ -65,6 +72,12 @@ function BuyConfirmationDialog({
   )
 }
 
+/**
+ * Functional component that displays the User Store, sets weapons, sets Pets, and checks if User has right number of currency
+ * @param {boolean} isOpen - Flag to control dialog visibility.
+ * @param {Function} onClose - Function to close the dialog.
+ * @param {Function} showAlert - Function that displays above Alert dialog.
+ */
 function Store({ isOpen, onClose, showAlert }) {
   const [currWeapon, setCurrWeapon] = useState(get_global('BALL') || 2)
   const [prevWeapon, setPrevWeapon] = useState(get_global('BALL') || 2)
@@ -84,14 +97,22 @@ function Store({ isOpen, onClose, showAlert }) {
   )
 
   // useEffect to update values
+
+  /**
+   *Sets up listeners to update values in the Store
+   * @function
+   * @name useEffect
+   * @param {Function} callback - Callback function to set up listeners and clean them up.
+   * @param {Array} dependencies - Empty array to ensure the effect runs only once.
+   */
   useEffect(() => {
     let ownedListener = add_listener('OWNED', setOwned)
     let coinsListener = add_listener('POINTS', setCoins)
-    let ballListener = add_listener("BALL",(ball)=>{
+    let ballListener = add_listener('BALL', ball => {
       setCurrWeapon(ball)
       setPrevWeapon(ball)
     })
-    let petListener = add_listener("PET",(pet)=>{
+    let petListener = add_listener('PET', pet => {
       setCurrPet(pet)
       setPrevPet(pet)
     })
@@ -103,10 +124,16 @@ function Store({ isOpen, onClose, showAlert }) {
       remove_listener('PET', petListener)
       remove_listener('OWNED', ownedListener)
       remove_listener('POINTS', coinsListener)
-      remove_listener("LOCKED", lockedListener);
+      remove_listener('LOCKED', lockedListener)
     }
   }, [])
 
+  /**
+   * Handles the purchase of an item.
+   * @function
+   * @name handleBuy
+   * @param {string} item - The item to be purchased.
+   */
   const handleBuy = item => {
     if (coins < MODEL_PROPERTIES[item].cost) {
       showAlert('You do not have enough points!', 'error')
@@ -118,6 +145,13 @@ function Store({ isOpen, onClose, showAlert }) {
     setShowConfirmationDialog(true)
   }
 
+  /**
+   * Handles the change of equipped item for a specific type (Weapon or Pet).
+   * @function
+   * @name handleEquipChange
+   * @param {Event} event - The event object containing the selected item value.
+   * @param {string} type - Weapon or Pet item.
+   */
   const handleEquipChange = (event, type) => {
     const selectedItemId = event.target.value
 
@@ -130,47 +164,65 @@ function Store({ isOpen, onClose, showAlert }) {
         break
     }
   }
-
+  /**
+   * Checks if changes can be saved based on whether the weapon or pet has changed.
+   * @function
+   * @returns {boolean} Returns true if the weapon or pet has changed, false otherwise.
+   */
   const canSave = () => {
     const weaponChanged = currWeapon != prevWeapon
     const petChanged = currPet != prevPet
     return weaponChanged || petChanged
   }
-
+  /**
+   * Handles saving changes by updating global states and sending data to the server.
+   * 
+   * @function
+   */
   const handleSave = () => {
     set_global('BALL', currWeapon)
     set_global('PET', currPet)
-    set_global("IN_QUEUE",get_global("IN_QUEUE")) //this is so jank but don't worry about it
-
+    set_global('IN_QUEUE', get_global('IN_QUEUE')) //this is so jank but don't worry about it
 
     setPrevWeapon(currWeapon)
     setPrevPet(currPet)
 
     //post to server
-    if (!localStorage.getItem("token")) return; //shouldnt happen
+    if (!localStorage.getItem('token')) return //shouldnt happen
     fetch('/update_items', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        token: localStorage.getItem("token"),
+        token: localStorage.getItem('token'),
         ball: currWeapon,
         pet: currPet,
-        icon: get_global("ICON")
+        icon: get_global('ICON'),
       }),
     })
     ///
   }
-
-  const handleConfirmBuy = async (item) => {
+  /**
+   * Handles the confirmation of purchasing an item asynchronously. The reponse for 'purchase_item' contains:
+   * {
+   *   {boolean} success,
+   *   {[integer]} itemArray,
+   * }
+   * 
+   * @async
+   * @function
+   * @name handleConfirmBuy
+   * @param {string} item - The item to be purchased.
+   */
+  const handleConfirmBuy = async item => {
     await fetch('/purchase_item', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        token: localStorage.getItem("token"),
+        token: localStorage.getItem('token'),
         item_id: item,
         item_cost: MODEL_PROPERTIES[item].cost,
       }),
@@ -183,7 +235,7 @@ function Store({ isOpen, onClose, showAlert }) {
             'success',
           )
           setShowConfirmationDialog(false)
-          set_global("POINTS",coins-MODEL_PROPERTIES[item].cost)
+          set_global('POINTS', coins - MODEL_PROPERTIES[item].cost)
           setCoins(coins - MODEL_PROPERTIES[item].cost)
           let newOwned = data.itemArray
           setOwned(newOwned)
@@ -192,15 +244,23 @@ function Store({ isOpen, onClose, showAlert }) {
           // what to do if item alr bought or not enough coins
           showAlert('Sorry King, you are broke', 'error')
         }
-    })
-    
+      })
   }
-
+  /**
+   * Closes the confirmation dialog and updates the remaining balance when an item is closed.
+   * @function
+   * @name onCloseDialog
+   * @param {string} item - The item associated with the selection.
+   */
   const onCloseDialog = item => {
     setShowConfirmationDialog(false)
     setRemainingBalance(coins + MODEL_PROPERTIES[item].cost)
   }
-
+  /**
+   * Filters the owned items to display only pets and creates menu items for each.
+   * @constant
+   * @name ownedPets
+   */
   const ownedPets = owned
     .filter(e => MODEL_PROPERTIES[e].type === 'Pet')
     .map(item => (
@@ -208,7 +268,11 @@ function Store({ isOpen, onClose, showAlert }) {
         {MODEL_PROPERTIES[item].name}
       </MenuItem>
     ))
-
+  /**
+   * Filters the owned items to display only weapons and creates menu items for each.
+   * @constant
+   * @name ownedWeapons
+   */
   const ownedWeapons = owned
     .filter(e => MODEL_PROPERTIES[e].type === 'Weapon')
     .map(item => (
@@ -357,14 +421,14 @@ function Store({ isOpen, onClose, showAlert }) {
             <Grid item xs={4}>
               {/* Right Side: Equip section */}
               <Typography
-                  variant="h6"
-                  gutterBottom
-                  style={{
-                    fontFamily,
-                    color: primaryColor,
-                  }}
-                >
-                  {coins} Points
+                variant="h6"
+                gutterBottom
+                style={{
+                  fontFamily,
+                  color: primaryColor,
+                }}
+              >
+                {coins} Points
               </Typography>
               <FormControl fullWidth>
                 <Typography
@@ -439,7 +503,13 @@ function Store({ isOpen, onClose, showAlert }) {
                   variant="contained"
                   onClick={handleSave}
                   disabled={!canSave()}
-                  style={{ marginTop: '16px', display:canSave() ? "inline-flex" : "none", backgroundColor:"white",fontFamily:"Jorvik",color:"black" }}
+                  style={{
+                    marginTop: '16px',
+                    display: canSave() ? 'inline-flex' : 'none',
+                    backgroundColor: 'white',
+                    fontFamily: 'Jorvik',
+                    color: 'black',
+                  }}
                 >
                   Save
                 </Button>

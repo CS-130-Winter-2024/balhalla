@@ -14,7 +14,7 @@ import {
   get_global,
   remove_listener,
   set_global,
-  TEXTURES
+  TEXTURES,
 } from '../../constants'
 
 const bgUrl = 'url(' + TEXTURES.stone + ')'
@@ -60,6 +60,10 @@ InGameMenu.propTypes = {
   showAlert: PropTypes.func.isRequired,
 }
 
+/**
+ * A component for displaying the in-game menu with user information, stats, and settings.
+ * @param {Function} showAlert - Function to display alerts.
+ */
 function InGameMenu({ showAlert }) {
   // conditions and states
   const [open, setOpen] = useState(false)
@@ -70,7 +74,9 @@ function InGameMenu({ showAlert }) {
   const [username, setUsername] = useState(get_global('USERNAME') || 'Guest')
 
   const [stats, setStats] = useState()
-
+  /**
+   * Function to reformat stats data for display.
+   */
   function reformatStats() {
     const statsObject = get_global('STATS') || {}
     const statsArray = Object.entries(statsObject).map(([key, value]) => ({

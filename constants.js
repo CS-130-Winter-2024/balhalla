@@ -49,9 +49,16 @@ export const MESSAGES = {
   playerKnockout: "g", //server->client
   gameEnd: "h", //server->client
   throwBall: "i", //server->client,
-  pauseClock: "j"
+  pauseClock: "j",
 };
 
+/**
+ * Function to parse a message received from a player and extract relevant data.
+ * @function
+ * @name message_parse
+ * @param {string} msg - The message to parse, expected to be in JSON format.
+ * @returns {object} - An object containing parsed data extracted from the message.
+ */
 export function message_parse(msg) {
   let output = {};
   let data = JSON.parse(msg);
@@ -80,6 +87,14 @@ export function message_parse(msg) {
 }
 
 //shuffle a team into 2 sides;
+
+/**
+ * Function to randomly assign players to two teams based on the given count.
+ * @function
+ * @name assign_random
+ * @param {number} count - The total number of players to assign to teams.
+ * @returns {Array} - An array containing the team assignments and a tiebreaker value.
+ */
 export function assign_random(count) {
   let tiebreaker = (count % 2 == 1 && Math.floor(Math.random() * 2)) || 0;
   let teamOneCount = Math.floor(count / 2) + tiebreaker;

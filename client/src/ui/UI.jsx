@@ -1,7 +1,6 @@
 import { useEffect, useState, createContext, useContext } from 'react'
 import './ui.css'
 import crosshair from './crosshair.svg'
-// import ErrorModal from "./ErrorModal";
 import Button from '@mui/material/Button'
 import Box from '@mui/material/Box'
 import Modal from '@mui/material/Modal'
@@ -21,14 +20,15 @@ import Clock from './components/Clock'
 import EndScreen from './components/EndScreen.jsx'
 import InGameMenu from './components/InGameMenu.jsx'
 
-import sampleData from './sample-data.json'
 import { Announcer } from './components/Announcer.jsx'
 import { handleLogin, handleSignup } from '../game/Authentication.jsx'
 
 set_global('AUTHENTICATED', false)
-// TODO: when page is loaded, check token in cookies against server
-// if so, start as logged in, otherwise logged out
 
+/**
+ *function that returns Leaderboard UI element
+ *@return {JSX.Element} Leaderboard UI element
+ */
 function Leaderboard() {
   const [users, setUsers] = useState([])
   const [openModal, setOpenModal] = useState(false)
@@ -40,10 +40,39 @@ function Leaderboard() {
     setPage(newPage)
   }
 
-  const testUsers = sampleData.users
-
+  /**
+   * A React hook that fetches the leaderboard data and sets up event listeners for 'LOCKED' and 'GAME_OVER' events.
+   * The event listeners are cleaned up when the component unmounts. The Response for 'get_leaderboard' contains:
+   * {
+   *   [
+   *     {string} username,
+   *     {integer} wins,
+   *     {integer} losses,
+   *     {integer} hits,
+   *   ]
+   * }
+   *
+   * @function useEffect
+   * @returns {void}
+   */
   useEffect(() => {
-    console.log('official users')
+    let closeListener = add_listener('LOCKED', x => {
+      if (!x) return
+      setOpenModal(false)
+    })
+    let listener = add_listener('GAME_OVER', isOver => {
+      if (!isOver) return
+      fetch('/get_leaderboard', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+        .then(response => response.json())
+        .then(data => {
+          setUsers(JSON.parse(data))
+        })
+    })
 
     fetch('/get_leaderboard', {
       method: 'GET',
@@ -53,25 +82,14 @@ function Leaderboard() {
     })
       .then(response => response.json())
       .then(data => {
-        console.log('leaderboard data:', data)
-        console.log('type of data:', typeof data)
-
         setUsers(JSON.parse(data))
-        console.log('leaderboard data:', users)
-        console.log('type of data:', typeof users)
       })
+    
+    return () => {
+      remove_listener('GAME_OVER', listener)
+      remove_listener('LOCKED', closeListener)
+    }
   }, [])
-
-  // useEffect(() => {
-  //   axios
-  //     .get("https://your-api-url.com/users")
-  //     .then((response) => {
-  //       setUsers(response.data);
-  //     })
-  //     .catch((error) => {
-  //       console.log(error);
-  //     });
-  // }, []);
 
   const handleOpenModal = () => {
     console.log(users)
@@ -116,6 +134,8 @@ function Leaderboard() {
             height: '550px',
             width: '600px',
             color: 'black',
+            display: 'flex',
+            flexDirection: 'column',
             fontFamily: 'Jorvik',
             backgroundImage: TEXTURES.stone,
             alignContent: 'center',
@@ -131,11 +151,12 @@ function Leaderboard() {
               fontFamily: 'Jorvik',
               alignContent: 'center',
               marginTop: '10px',
+              flex: 1,
             }}
           >
             Leaderboard
           </h1>
-          <div style={{ overflowX: 'auto' }}>
+          <div style={{ overflowX: 'auto', flex: 4 }}>
             <table
               style={{
                 width: '100%',
@@ -152,7 +173,7 @@ function Leaderboard() {
                   <th style={{ fontFamily: 'Jorvik' }}>Hits</th>
                 </tr>
               </thead>
-              <tbody style={{ alignItems: 'center', overflow: scroll }}>
+              <tbody style={{ alignItems: 'center', overflowY: 'scroll' }}>
                 {users
                   // .slice(indexOfFirstUser, indexOfLastUser)
                   .map((user, index) => (
@@ -206,7 +227,7 @@ function Leaderboard() {
                   ))}
               </tbody>
             </table>
-            <TablePagination
+            {/* <TablePagination
               component="div"
               count={users.length}
               page={page}
@@ -223,49 +244,123 @@ function Leaderboard() {
               sx={{
                 fontFamily: 'Jorvik',
               }}
-            />
+            /> */}
           </div>
-
-          <Button
-            variant="contained"
-            onClick={handleCloseModal}
-            style={{
-              color: 'black',
-              backgroundColor: 'white',
-              fontFamily: 'Jorvik',
-              position: 'absolute',
-              bottom: '20px',
-            }}
-          >
-            Close
-          </Button>
+          <div style={{ flex: 1 }}>
+            <Button
+              variant="contained"
+              onClick={handleCloseModal}
+              style={{
+                color: 'black',
+                backgroundColor: 'white',
+                fontFamily: 'Jorvik',
+                position: 'absolute',
+                bottom: '20px',
+              }}
+            >
+              Close
+            </Button>
+          </div>
         </div>
       </Modal>
     </div>
   )
 }
 
+/**
+ *returns UI element displayed when user disconnects
+ *@retur {JSX.Element} Disconnected
+ */
 function Disconnected({}) {
-  const [show, setShow] = useState(false);
+  const [show, setShow] = useState(false)
 
-  useEffect(()=>{
-    add_listener("DISCONNECTED",setShow);
+  useEffect(() => {
+    add_listener('DISCONNECTED', setShow)
   })
-  return (show && <div style={{zIndex:99,backgroundImage:`url(${backgroundImage})`,backgroundSize:"100% 100%", width:"100%", height:"100%", position:"absolute",top:0,left:0}}>
-    <p style={{fontSize:32,textAlign:"center",position:"absolute",top:"40%",width:"100%",fontFamily:"Jorvik", color:"white"}}>
-      You have been disconnected from the server. Please refresh.
-    </p>
-  </div>)
+  return (
+    show && (
+      <div
+        style={{
+          zIndex: 99,
+          backgroundImage: `url(${backgroundImage})`,
+          backgroundSize: '100% 100%',
+          width: '100%',
+          height: '100%',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+        }}
+      >
+        <p
+          style={{
+            fontSize: 32,
+            textAlign: 'center',
+            position: 'absolute',
+            top: '40%',
+            width: '100%',
+            fontFamily: 'Jorvik',
+            color: 'white',
+          }}
+        >
+          You have been disconnected from the server. Please refresh.
+        </p>
+      </div>
+    )
+  )
 }
 
+/**
+ *returns greyed out screen when user gets hit + becomes ghost
+ *@returns {JSX.Element} Ghost
+ */
+function DeadOverlay({}) {
+  const [show, setShow] = useState(false)
+
+  useEffect(() => {
+    add_listener('DEAD', setShow)
+  })
+  return (
+    show && (
+      <div
+        style={{
+          zIndex: 99,
+          backgroundColor: '#44c1f2',
+          opacity: 0.2,
+          pointerEvents: 'none',
+          width: '100%',
+          height: '100%',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+        }}
+      >
+        <p
+          style={{
+            fontSize: 32,
+            textAlign: 'center',
+            position: 'absolute',
+            bottom: '30%',
+            width: '100%',
+            fontFamily: 'Jorvik',
+            color: 'black',
+            textShadow: '0 0 2px white',
+          }}
+        >
+          You are dead!
+        </p>
+      </div>
+    )
+  )
+}
+
+/**
+ *controls Login button + login fields functionality
+ *@return {JSX.Element} Login
+ */
 function ToggleLoginScreen() {
   const [showLogin, setShowLogin] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-
-  // if(get_global('AUTHENTICATED')){
-
-  // }
 
   // const { sharedBoolean } = getSharedBoolean();
   function handleToggleLogin() {
@@ -319,7 +414,7 @@ function ToggleLoginScreen() {
               paddingLeft: 10,
               paddingTop: -5,
               margin: '5px',
-              fontFamily:"Jorvik"
+              fontFamily: 'Jorvik',
             }}
           >
             Login
@@ -335,9 +430,9 @@ function ToggleLoginScreen() {
                 color: 'white',
                 backgroundColor: '#65727d',
                 borderRadius: '5px',
-                fontFamily: "Jorvik"
+                fontFamily: 'Jorvik',
               },
-              label: { color: 'white', fontFamily:"Jorvik" },
+              label: { color: 'white', fontFamily: 'Jorvik' },
             }}
           />
           <br />
@@ -351,7 +446,7 @@ function ToggleLoginScreen() {
                 backgroundColor: '#65727d',
                 borderRadius: '5px',
               },
-              label: { color: 'white', fontFamily: "Jorvik" },
+              label: { color: 'white', fontFamily: 'Jorvik' },
             }}
             style={{ padding: 10 }}
             value={password}
@@ -360,7 +455,12 @@ function ToggleLoginScreen() {
           <br />
           <Button
             onClick={() => handleLogin(email, password)}
-            style={{ color: 'black', backgroundColor:"white", paddingLeft: 10, fontFamily:"Jorvik" }}
+            style={{
+              color: 'black',
+              backgroundColor: 'white',
+              paddingLeft: 10,
+              fontFamily: 'Jorvik',
+            }}
           >
             Submit
           </Button>
@@ -369,7 +469,10 @@ function ToggleLoginScreen() {
     </Box>
   )
 }
-
+/**
+ *controls Sign Up button + sign up fields functionality
+ *@returns {JSX.Element} SignUp
+ */
 function ToggleSignUpScreen() {
   const [showSignUp, setShowSignUp] = useState(false)
   const [email, setEmail] = useState('')
@@ -421,7 +524,7 @@ function ToggleSignUpScreen() {
               paddingLeft: 10,
               paddingTop: -5,
               margin: '5px',
-              fontFamily: "Jorvik"
+              fontFamily: 'Jorvik',
             }}
           >
             Sign Up
@@ -437,9 +540,9 @@ function ToggleSignUpScreen() {
                 color: 'white',
                 backgroundColor: '#65727d',
                 borderRadius: '5px',
-                fontFamily:"Jorvik"
+                fontFamily: 'Jorvik',
               },
-              label: { color: 'white', fontFamily:"Jorvik" },
+              label: { color: 'white', fontFamily: 'Jorvik' },
             }}
           />
           <br />
@@ -455,9 +558,8 @@ function ToggleSignUpScreen() {
                 color: 'white',
                 backgroundColor: '#65727d',
                 borderRadius: '5px',
-                fontFamily:"Jorvik",
               },
-              label: { color: 'white', fontFamily:"Jorvik" },
+              label: { color: 'white', fontFamily: 'Jorvik' },
             }}
           />
           <br />
@@ -474,13 +576,18 @@ function ToggleSignUpScreen() {
                 backgroundColor: '#65727d',
                 borderRadius: '5px',
               },
-              label: { color: 'white', fontFamily:"Jorvik" },
+              label: { color: 'white', fontFamily: 'Jorvik' },
             }}
           />
           <br />
           <Button
             onClick={() => handleSignup(email, password, confirmPassword)}
-            style={{ color: 'black', backgroundColor:"white", fontFamily:"Jorvik", paddingLeft: 10 }}
+            style={{
+              color: 'black',
+              backgroundColor: 'white',
+              fontFamily: 'Jorvik',
+              paddingLeft: 10,
+            }}
           >
             Submit
           </Button>
@@ -490,6 +597,11 @@ function ToggleSignUpScreen() {
   )
 }
 
+/**
+ *export function for all UI in the left side menu,
+ * Includes Leaderboard, Login, Sign Up, and Disconnected
+ * @retu {JSX.Element} UI (left menu)
+ */
 export default function UI({ showAlert }) {
   const [locked, setLocked] = useState(false)
   const [inQueue, setInQueue] = useState(true)
@@ -520,6 +632,7 @@ export default function UI({ showAlert }) {
 
   return (
     <>
+      <DeadOverlay />
       <Disconnected />
       <EndScreen />
       <Clock />

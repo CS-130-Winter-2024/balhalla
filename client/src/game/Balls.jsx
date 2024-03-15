@@ -2,7 +2,7 @@ import * as three from "three";
 import { BALL_ANIMATIONS } from "../constants";
 
 import { getModelInstance } from "./Models";
-import { getMetadataByPlayerID } from "./OtherPlayers";
+// import { getMetadataByPlayerID } from "./OtherPlayers";
 
 var balls = {}; // associates each ball with game data
 var ballsModels = {}; // associates each ball with 3d model
@@ -10,7 +10,13 @@ var ballGroup = new three.Group();
 
 var intermediateVector = new three.Vector3();
 
-// update ball data from server update
+/**
+ * Updates the state of the balls based on the provided server update.
+ *
+ * @param {Object} ballData - An object containing the updated ball data.
+ * @param {boolean} ballData.didChange - A flag indicating whether the ball data has changed.
+ * @param {Object} ballData[index] - The updated data for a specific ball, indexed by its identifier.
+ */
 export function updateBalls(ballData) {
   if (ballData.didChange) {
     for (const index in balls) {
@@ -28,8 +34,17 @@ export function updateBalls(ballData) {
   balls = ballData;
 }
 
-// adds ball in scene
-//   ball is in scene if thrown in air or sitting on floor
+/**
+ * Adds a new ball to the scene with the specified data.
+ * Ball is in scene if thrown in air or sitting on floor
+ *
+ * @param {string} id - The unique identifier for the ball.
+ * @param {Object} data - The data object containing the ball's properties.
+ * @param {string} data.model - The model identifier for the ball.
+ * @param {number} data.x - The x-coordinate position of the ball.
+ * @param {number} data.y - The y-coordinate position of the ball.
+ * @param {number} data.z - The z-coordinate position of the ball.
+ */   
 export function addBall(id, data) {
   let model = createBall(data.model);
 
@@ -39,8 +54,12 @@ export function addBall(id, data) {
   model.position.set(data.x, data.y, data.z);
 }
 
-// removes ball from scene
-//   ball is removed if player picks up, player hasBall status updates
+/**
+ * Removes a ball from the scene by its unique identifier.
+ * Ball is removed if player picks up, player hasBall status updates
+ *
+ * @param {string} id - The unique identifier of the ball to be removed.
+ */
 export function removeBall(id) {
   //dispose of 3d model
   ballGroup.remove(ballsModels[id]);
@@ -48,7 +67,10 @@ export function removeBall(id) {
   delete balls[id];
 }
 
-// cleans up all balls from the field
+/**
+ * Removes all balls from the field and clears the balls data.
+ *
+ */
 export function clearBalls() {
   for (const id in ballsModels) {
     removeBall(id);
@@ -57,9 +79,11 @@ export function clearBalls() {
   balls={}
 }
 
-// updates all in-game balls with server information
-//   new positions based on movement/"gravity"
-//   model based on association with player who threw/holds it
+/**
+ * Updates the position and rotation of the balls in the scene based on their current state with server information.
+ * New positions based on movement/"gravity".
+ * Model based on association with player who threw/holds it.
+ */  
 export function update() {
   for (const index in balls) {
     if (index == "didChange") continue;
@@ -78,12 +102,16 @@ export function update() {
   }
 }
 
-// For adding balls to scene
+/**
+ * For adding balls to scene
+ */
 export function getBallGroup() {
   return ballGroup;
 }
 
-// Creating ball model in three js
+/**
+ * Creating ball model in three js
+ */
 export function createBall(model) {
   return getModelInstance(model);
 }

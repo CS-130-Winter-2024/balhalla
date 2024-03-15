@@ -1,10 +1,39 @@
 import { set_global, get_global } from '../constants'
 
+/**
+ * Generates a guest username in the format 'Guest [random number]'.
+ *
+ * @returns {string} A guest username.
+ */
 function getUsername() {
   //return prompt("What is your username?");
   return 'Guest ' + Math.floor(Math.random() * 1000)
 }
 
+/**
+ * Handles the user signup process by sending a POST request to the server with the provided username and password. Ensures both user-entered passwords match. The token is saved as a cookie. The following values retrieved from Response object are set as global constants:
+ * {
+ *  {string} username,
+ *  {integer} ball,
+ *  {integer} pet,
+ *  {integer} icon,
+ *  {integer[]} item_array,
+ *  {integer} points,
+ *  {
+ *    {integer} wins,
+ *    {integer} losses,
+ *    {integer} hits,
+ *    {float} winrate,
+ *    {integer} games,
+ *    {float} hitrate,
+ *  }
+ * }
+ *
+ * @async
+ * @param {string} username - The username entered by the user.
+ * @param {string} pw - The password entered by the user.
+ * @param {string} conf_pw - The confirmed password entered by the user.
+ */
 export async function handleSignup(username, pw, conf_pw) {
   // check if pw is same as conf_pw
   if (pw !== conf_pw) {
@@ -28,12 +57,12 @@ export async function handleSignup(username, pw, conf_pw) {
       }
       localStorage.setItem('token', jsondata.token)
 
+      set_global('USERNAME', jsondata.username)
       set_global('BALL', jsondata.ball)
       set_global('PET', jsondata.pet)
-      set_global('POINTS', jsondata.points)
-      set_global('USERNAME', jsondata.username)
       set_global('ICON', jsondata.icon)
       set_global('OWNED', jsondata.item_array)
+      set_global('POINTS', jsondata.points)
       const { wins, losses, hits } = jsondata
       set_global('STATS', {
         Wins: wins,
@@ -49,6 +78,29 @@ export async function handleSignup(username, pw, conf_pw) {
     })
 }
 
+/**
+ * Handles the user login process by sending a POST request to the server with the provided username and password. The following values retrieved from Response object are set as global constants if username and password are correctly matched:
+ * {
+ *  {string} username,
+ *  {integer} ball,
+ *  {integer} pet,
+ *  {integer} icon,
+ *  {integer[]} item_array,
+ *  {integer} points,
+ *  {
+ *    {integer} wins,
+ *    {integer} losses,
+ *    {integer} hits,
+ *    {float} winrate,
+ *    {integer} games,
+ *    {float} hitrate,
+ *  }
+ * }
+ *
+ * @async
+ * @param {string} username - The username entered by the user.
+ * @param {string} pw - The password entered by the user.
+ */
 export async function handleLogin(username, pw) {
 
   await fetch('/login', {
@@ -92,6 +144,29 @@ export async function handleLogin(username, pw) {
     })
 }
 
+/**
+ * Handles the user login process by sending a POST request to the server with the stored token at page load. The following values retrieved from Response object are set as global constants if username and password are correctly matched:
+ * {
+ *  {string} username,
+ *  {integer} ball,
+ *  {integer} pet,
+ *  {integer} icon,
+ *  {integer[]} item_array,
+ *  {integer} points,
+ *  {
+ *    {integer} wins,
+ *    {integer} losses,
+ *    {integer} hits,
+ *    {float} winrate,
+ *    {integer} games,
+ *    {float} hitrate,
+ *  }
+ * }
+ *
+ * @async
+ * @param {string} tokem - The user's token stored as a cookie.
+ * @returns {boolean} True - if the token exists and is valid. False - otherwise.
+ */
 export async function handleTokenLogin() {
   await fetch('/token_login', {
     method: 'POST',
@@ -118,7 +193,6 @@ export async function handleTokenLogin() {
       set_global('USERNAME', jsondata.username)
       set_global('ICON', jsondata.icon)
       set_global('OWNED', jsondata.item_array)
-      console.log('[TEST]', jsondata.item_array)
 
       const { wins, losses, hits } = jsondata
       set_global('STATS', {
@@ -135,6 +209,14 @@ export async function handleTokenLogin() {
     })
 }
 
+/**
+ * Sends a POST request to the server to retrieve and update the user's ball, pet, and icon items.
+ *
+ * @async
+ * @param {number} ball - The new ball item for the user.
+ * @param {number} pet - The new pet item for the user.
+ * @param {number} icon - The new icon item for the user.
+ */
 export async function handleItemUpdates(ball, pet, icon) {
   await fetch('/update_items', {
     method: 'POST',

@@ -15,31 +15,39 @@ const app = express();
 import pkg from "./db/database.cjs";
 const { signup, login, tokenLogin, getLeaderboardList, purchaseItem, updateItems } = pkg;
 
-//Client Page Server
+/**
+ * Client Page Server
+ */
 app.use(express.static(path.join(__dirname, "public")));
 
-//API Server
+/**
+ * API Server
+ */
 app.use("/users", (req, res) => {
   res.status(200).send("GET HTTP method on user resource");
 });
 
-//Start HTTP Server
+/**
+ * Start HTTP Server
+ */
 const PORT = 8080;
 const httpServer = app.listen(PORT, () => {
   console.log(`App listening on port ${PORT}`);
   console.log("Press Ctrl+C to quit.");
 });
 
-// Database Commands
+/**
+ * Database Fetch Requests
+ */
 app.use(express.json());
 app.post("/signup", (request, response, next) => {
-  signup(request, response, next);
+  signup(request, response);
 });
 app.post("/login", (request, response, next) => {
-  login(request, response, next);
+  login(request, response);
 });
 app.post("/token_login", (request, response, next) => {
-  tokenLogin(request, response, next);
+  tokenLogin(request, response);
 });
 
 app.get("/get_leaderboard", (request, response) => {
@@ -51,11 +59,10 @@ app.post("/purchase_item", (request, response, next) => {
 app.post("/update_items", (request, response, next) => {
   updateItems(request.body.token, request.body.ball, request.body.pet, request.body.icon, response);
 })
-// app.get("/test", (req, res) => {
-//   purchaseItem("admin", 21, 1);
-// });
 
-
+/**
+ * Player and Server Websocket connections and Game Start
+ */
 setHandler("msg", processMessage);
 setHandler("connect", addPlayer);
 setHandler("disconnect", deletePlayer);

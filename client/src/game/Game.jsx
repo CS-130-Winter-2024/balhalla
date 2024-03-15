@@ -6,12 +6,20 @@ import * as constants from '../constants'
 import * as Others from './OtherPlayers'
 import * as Player from './Player'
 import * as Balls from './Balls'
-import * as PlayerPet from "./PlayerPet"
+import * as PlayerPet from './PlayerPet'
 import { loadDefault } from './Models'
+import { handleTokenLogin } from './Authentication'
 
-// Defines how the game handles messages from server
+/**
+ * Defines how the game handles messages from server. More detailed explanation embedded below.
+ */ 
 function websocketSetup() {
-  //On connect, send username
+  /**
+   * Sets up a handler for the 'open' event, which sends a 'playerJoin' message to the server with the player's username when the WebSocket connection is opened.
+   *
+   * @function
+   * @param {WebSocket} socket - The WebSocket instance.
+   */
   setHandler('open', socket => {
     var eventMsg = JSON.stringify([
       constants.MESSAGES.playerJoin,
@@ -26,7 +34,21 @@ function websocketSetup() {
     socket.send(eventMsg)
   })
 
-  //On player list sent, add all players to scene
+  /**
+   * Sets up a handler for the 'playerList' message, which all players to scene data based on the received data.
+   *
+   * @function
+   * @param {WebSocket} socket - The WebSocket instance.
+   * @param {Object} data - The data object received from the server.
+   * @param {string} data.id - The ID of the client player.
+   * @param {number} data.gameState - The current state of the game (0 for lobby, 1 for in-game).
+   * @param {Object} data.playerData - An object containing the player data, indexed by player IDs.
+   * @param {Object} data.metaData - An object containing the metadata for each player, indexed by player IDs.
+   * @param {Object} data.ballData - An object containing the ball data.
+   * @param {number} data.startTime - The time (in milliseconds) when the game starts.
+   * @param {number} data.endTime - The time (in milliseconds) when the game ends.
+   * @returns {void}
+   */
   setHandler(constants.MESSAGES.playerList, (socket, data) => {
     constants.set_global('CLIENT_ID', data.id)
     constants.set_global('GAME_STATE', data.gameState)
@@ -45,6 +67,17 @@ function websocketSetup() {
     }
   })
 
+  /**
+   * Sets up a handler for the 'gameStart' message, which initializes the game state and players based on the received data.
+   *
+   * @function
+   * @param {WebSocket} socket - The WebSocket instance.
+   * @param {Object} data - The data object received from the server.
+   * @param {Object} data.playerData - An object containing the player data, indexed by player IDs.
+   * @param {Object} data.metaData - An object containing the metadata for each player, indexed by player IDs.
+   * @param {number} data.startTime - The time (in milliseconds) when the game starts.
+   * @param {number} data.endTime - The time (in milliseconds) when the game ends.
+   */
   setHandler(constants.MESSAGES.gameStart, (socket, data) => {
     constants.set_global('GAME_STATE', 1)
     constants.set_global('GAME_OVER', false)
@@ -60,14 +93,18 @@ function websocketSetup() {
           -playerData.z,
         )
         constants.set_global('LOCKED', true)
-        constants.set_global("HITS",0)
+        constants.set_global('HITS', 0)
         constants.set_global(
           'ANNOUNCE',
           `You joined the ${data.metaData[player].team == 0 ? 'Blue' : 'Red'} team!`,
-        );
+        )
 
         if (data.metaData[player].pet) {
-          PlayerPet.createPet(data.metaData[player].pet, playerData, data.metaData[player].team)
+          PlayerPet.createPet(
+            data.metaData[player].pet,
+            playerData,
+            data.metaData[player].team,
+          )
         }
         continue
       }
@@ -75,28 +112,37 @@ function websocketSetup() {
     }
 
     constants.set_global('CURRENT_TIMER', data.startTime)
-    constants.set_global("START_TIMEOUT",setTimeout(() => {
-      constants.set_global('TIMER_LABEL', 'Game ends in')
-      constants.set_global('CURRENT_TIMER', data.endTime)
-    }, data.startTime - Date.now()))
+    constants.set_global(
+      'START_TIMEOUT',
+      setTimeout(() => {
+        constants.set_global('TIMER_LABEL', 'Game ends in')
+        constants.set_global('CURRENT_TIMER', data.endTime)
+      }, data.startTime - Date.now()),
+    )
   })
 
+  /**
+   * Sets up a handler for the 'gameEnd' message, which handles the end of a game and resets the game state.
+   *
+   * @function
+   * @param {WebSocket} socket - The WebSocket instance.
+   * @param {Object} data - The data object received from the server.
+   * @param {string} data.mvp - The ID of the player who was the MVP (Most Valuable Player).
+   * @param {Object} data.mvpData - The data associated with the MVP.
+   * @param {string} data.winner - The ID of the player who won the game.
+   * @param {number} data.points - The individual score of the player.
+   * @param {number} data.totalPoints - The total points of the player.
+   * @param {number} data.startTime - The time (in seconds) until the next game starts.
+   */
   setHandler(constants.MESSAGES.gameEnd, (socket, data) => {
-    clearTimeout(constants.get_global("START_TIMEOUT"));
+    clearTimeout(constants.get_global('START_TIMEOUT'))
+    constants.set_global('DEAD', false)
     constants.set_global('MVP', data.mvp)
-    if (data.mvp == constants.get_global("CLIENT_ID")) {
-      constants.set_global('MVP_DATA',{
-        username: constants.get_global("USERNAME"),
-        icon: constants.get_global("ICON") || 0,
-        hits: constants.get_global("HITS")
-      })
-    } else {
-      constants.set_global('MVP_DATA',Others.getMetadataByPlayerID(data.mvp))
-    }
+    constants.set_global('MVP_DATA', data.mvpData)
     constants.set_global('GAME_STATE', 0)
     constants.set_global('WINNER', data.winner)
     constants.set_global('INDIVIDUAL_SCORE', data.points)
-    constants.set_global("POINTS",data.totalPoints)
+    constants.set_global('POINTS', data.totalPoints)
     Player.setSpectate(true)
 
     Others.clearPlayers()
@@ -107,6 +153,10 @@ function websocketSetup() {
     constants.set_global('CURRENT_TIMER', data.startTime)
     constants.set_global('LOCKED', false)
     constants.set_global('GAME_OVER', true)
+
+    if (localStorage.getItem('token')) {
+      handleTokenLogin()
+    }
 
     //QUEUE
     var eventMsg = JSON.stringify([
@@ -122,23 +172,38 @@ function websocketSetup() {
     socket.send(eventMsg)
   })
 
-  //On other player connect, add their data to scene
+  /**
+   * On other player connect, add their data to scene
+   */
   setHandler(constants.MESSAGES.playerJoin, (socket, data) => {
     Others.addPlayer(data.id, data.playerData, data.metaData)
   })
 
-  //On other player disconnect, remove their data from scene
+  /**
+   * On other player disconnect, remove their data from scene
+   */
   setHandler(constants.MESSAGES.playerLeave, (socket, data) => {
     Others.removePlayer(data.id)
   })
 
-  //On server update, update scene
+  /**
+   * On server update, update scene of players and balls
+   */
   setHandler(constants.MESSAGES.serverUpdate, (socket, data) => {
     Player.updatePlayer(data.playerData[constants.get_global('CLIENT_ID')])
     Others.updatePlayers(data.playerData)
     Balls.updateBalls(data.ballData)
   })
 
+  /**
+   * Sets up a handler for the 'playerKnockout' message, which handles player knockouts and updates the game state accordingly.
+   *
+   * @function
+   * @param {WebSocket} socket - The WebSocket instance.
+   * @param {Object} data - The data object received from the server.
+   * @param {string} data.target - The ID of the player who was knocked out.
+   * @param {string} data.killer - The ID of the player who knocked out the target.
+   */
   setHandler(constants.MESSAGES.playerKnockout, (socket, data) => {
     console.log('[HIT]', data)
 
@@ -148,18 +213,28 @@ function websocketSetup() {
         'ANNOUNCE',
         `You were killed by ${Others.getMetadataByPlayerID(data.killer).username}!`,
       )
+      constants.set_global('DEAD', true)
     } else {
-      if ((data.killer = constants.get_global('CLIENT_ID'))) {
+      if (data.killer == constants.get_global('CLIENT_ID')) {
         constants.set_global(
           'ANNOUNCE',
           `You killed ${Others.getMetadataByPlayerID(data.target).username}!`,
         )
-        constants.set_global("HITS",constants.get_global("HITS")+1)
+        constants.set_global('HITS', constants.get_global('HITS') + 1)
       }
       Others.playerDeath(data.target, data.killer)
     }
   })
 
+  /**
+   * Sets up a handler for the 'pauseClock' message, which updates the game timer based on the received data.
+   *
+   * @function
+   * @param {WebSocket} socket - The WebSocket instance.
+   * @param {Object} data - The data object received from the server.
+   * @param {boolean} data.pause - A flag indicating whether the timer should be paused or not.
+   * @param {number} [data.newTime] - The new time value for the timer, if provided.
+   */
   setHandler(constants.MESSAGES.pauseClock, (socket, data) => {
     if (data.pause) {
       constants.set_global('TIMER_LABEL', 'Waiting for players')
@@ -170,6 +245,13 @@ function websocketSetup() {
     }
   })
 
+  /**
+   * Adds an event listener for the 'IN_QUEUE' event, which sends a 'playerJoin' message to the server with the player's information.
+   *
+   * @listens IN_QUEUE
+   * @param {boolean} inQueue - A flag indicating whether the player is in the queue or not.
+   * @returns {void}
+   */
   constants.add_listener('IN_QUEUE', inQueue => {
     var eventMsg = JSON.stringify([
       constants.MESSAGES.playerJoin,
@@ -186,6 +268,12 @@ function websocketSetup() {
   setupConnection()
 }
 
+/**
+ * Updates the aspect ratio of the renderer and camera based on the canvas size.
+ *
+ * @param {WebGLRenderer} renderer - The Three.js WebGLRenderer instance.
+ * @param {Camera} camera - The Three.js Camera instance.
+ */
 function updateAspect(renderer, camera) {
   const canvas = renderer.domElement
   // look up the size the canvas is being displayed
@@ -208,6 +296,11 @@ function initialize() {
   //handle login from here
 }
 
+/**
+ * The main entry point of the application, responsible for setting up the Three.js scene, loading models, adding lights, and initializing the game loop.
+ *
+ * @function main
+ */
 export default function main() {
   //establish scene and renderer
   var scene = new three.Scene()
@@ -234,7 +327,7 @@ export default function main() {
   scene.add(Balls.getBallGroup())
 
   //add player pet
-  scene.add(PlayerPet.petGroup);
+  scene.add(PlayerPet.petGroup)
 
   var controls = new PointerLockControls(camera, renderer.domElement)
   controls.connect()
@@ -279,7 +372,11 @@ export default function main() {
     updateAspect(renderer, Player.getSpectateCamera())
   })
 
-  //Render loop
+  /**
+   * The main animation render loop function that updates the game state and renders the scene.
+   *
+   * @function animate
+   */
   function animate() {
     Player.update()
     Others.update()

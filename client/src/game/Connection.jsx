@@ -10,6 +10,9 @@ var handlers = {
 };
 const URL = (import.meta.env.MODE == "development" && "ws://" + location.host + "/") || "wss://" + location.host + "/";
 
+/**
+ * Sets up the WebSocket connection and registers event handlers for various WebSocket events.
+ */
 export function setupConnection() {
   socket = new WebSocket(URL);
 
@@ -37,10 +40,19 @@ export function setupConnection() {
   });
 }
 
+/**
+ * Returns the WebSocket instance used for the connection.
+ */
 export function getSocket() {
   return socket;
 }
 
+/**
+ * Registers a callback function for a specific handler.
+ *
+ * @param {string} handler - The name of the handler for which the callback should be registered.
+ * @param {Function} callback - The callback function to be executed when the handler is triggered.
+ */
 export function setHandler(handler, callback) {
   handlers[handler] = callback;
 }

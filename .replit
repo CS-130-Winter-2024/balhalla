@@ -13,8 +13,6 @@ channel = "stable-23_05"
 language = "nodejs"
 
 [deployment]
-#run = ["node", "index.js"]
-
 deploymentTarget = "cloudrun"
 ignorePorts = false
 build = ["sh", "-c", "npm run build --prefix client/"]

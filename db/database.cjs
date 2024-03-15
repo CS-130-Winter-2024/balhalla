@@ -1,5 +1,6 @@
 const bcrypt = require("bcrypt")
 const jwt = require("jsonwebtoken")
+const assert = require('assert')
 const SECRET = "any_secret_you_want_to_use"
 
 var URL = process.env.DATABASE_URL;
@@ -445,6 +446,50 @@ async function purchaseItem(token, itemID, itemCost, response) {
     .catch(err => console.error(err))
 }
 
+describe('test_accounts', () => {
+
+  before(async () => {
+    await knex.schema.createTable('test_accounts', function(table) {
+        table.string('username').unique().primary();
+        table.integer('points').defaultTo(0);
+        table.check('?? >= ??', ['points', 0]);
+        table.integer('wins').defaultTo(0);
+        table.integer('losses').defaultTo(0);
+        table.integer('hits').defaultTo(0);
+        table.integer('ball').defaultTo(2);
+        //pet - charm that gets added to player as a customization
+        table.integer('pet');
+        table.integer('icon').defaultTo(0);
+        table.string('password');
+        table.string('token')
+    });
+  });
+
+  after(async () => {
+    await knex.schema.dropTableIfExists('test_accounts');
+  });
+
+  it('should insert a new account', async () => {
+    const testpw = await bcrypt.hash('password', 10);
+
+    await knex('test_accounts').insert({
+      username: 'mocha_test',
+      password: testpw,
+      points: 5,
+      hits: 2
+    });
+
+    const acc = await knex('test_accounts').select('*');
+    assert.strictEqual(acc.length, 1);
+    assert.strictEqual(acc[0].username, 'mocha_test');
+    assert.strictEqual(acc[0].points, 5);
+    assert.strictEqual(acc[0].hits, 2);
+    assert.strictEqual(acc[0].losses, 0);
+    assert.strictEqual(acc[0].wins, 0);
+
+  });
+});
+
 /**
  * Retrieves all the purchased items for a given username from the 'items' table and sends them as a JSON response.
  *
@@ -524,15 +569,6 @@ if (!doTest) return;
   });
 
   // TEST CASES - Ishaan
-
-  const testpw = await bcrypt.hash('1234', 10)
-
-  await knex('accounts').insert({
-    username: 'admin',
-    password: testpw,
-    points: 5,
-    hits: 2
-  });
 
   await knex('accounts').insert({
     username: 'admin2',

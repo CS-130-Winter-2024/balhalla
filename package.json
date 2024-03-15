@@ -7,7 +7,8 @@
     "setup": "npm install && cd client/ && npm install",
     "watch-client": "npm run watch --prefix client/",
     "serve": "nodemon index.js",
-    "start": "concurrently -k \"npm run watch-client\" \"npm run serve\""
+    "start": "concurrently -k \"npm run watch-client\" \"npm run serve\"",
+    "test": "mocha db/database.cjs"
   },
   "keywords": [],
   "author": "",
@@ -15,10 +16,12 @@
   "type": "module",
   "dependencies": {
     "@types/node": "^18.0.6",
+    "assert": "^2.1.0",
     "bcrypt": "^5.1.1",
     "express": "^4.18.2",
     "jsonwebtoken": "^9.0.2",
     "knex": "^3.1.0",
+    "mocha": "^10.3.0",
     "node-fetch": "^3.2.6",
     "pg": "^8.11.3",
     "vite": "^5.1.4",

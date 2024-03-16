@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: client/src/game/Balls.jsx</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: client/src/game/Balls.jsx</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import * as three from "three";
+import { BALL_ANIMATIONS } from "../constants";
+
+import { getModelInstance } from "./Models";
+// import { getMetadataByPlayerID } from "./OtherPlayers";
+
+var balls = {}; // associates each ball with game data
+var ballsModels = {}; // associates each ball with 3d model
+var ballGroup = new three.Group();
+
+var intermediateVector = new three.Vector3();
+
+/**
+ * Updates the state of the balls based on the provided server update.
+ *
+ * @param {Object} ballData - An object containing the updated ball data.
+ * @param {boolean} ballData.didChange - A flag indicating whether the ball data has changed.
+ * @param {Object} ballData[index] - The updated data for a specific ball, indexed by its identifier.
+ */
+export function updateBalls(ballData) {
+  if (ballData.didChange) {
+    for (const index in balls) {
+      if (!(index in ballData)) {
+        removeBall(index);
+      }
+    }
+    for (const index in ballData) {
+      if (!(index in balls)) {
+        addBall(index, ballData[index]);
+      }
+    }
+  }
+  // updating all ball positions/statuses
+  balls = ballData;
+}
+
+/**
+ * Adds a new ball to the scene with the specified data.
+ * Ball is in scene if thrown in air or sitting on floor
+ *
+ * @param {string} id - The unique identifier for the ball.
+ * @param {Object} data - The data object containing the ball's properties.
+ * @param {string} data.model - The model identifier for the ball.
+ * @param {number} data.x - The x-coordinate position of the ball.
+ * @param {number} data.y - The y-coordinate position of the ball.
+ * @param {number} data.z - The z-coordinate position of the ball.
+ */   
+export function addBall(id, data) {
+  let model = createBall(data.model);
+
+  ballsModels[id] = model;
+  ballsModels[id].rotation.order = 'YXZ'; // Rotation order allows orienting objects for animations
+  ballGroup.add(model);
+  model.position.set(data.x, data.y, data.z);
+}
+
+/**
+ * Removes a ball from the scene by its unique identifier.
+ * Ball is removed if player picks up, player hasBall status updates
+ *
+ * @param {string} id - The unique identifier of the ball to be removed.
+ */
+export function removeBall(id) {
+  //dispose of 3d model
+  ballGroup.remove(ballsModels[id]);
+  delete ballsModels[id];
+  delete balls[id];
+}
+
+/**
+ * Removes all balls from the field and clears the balls data.
+ *
+ */
+export function clearBalls() {
+  for (const id in ballsModels) {
+    removeBall(id);
+  }
+
+  balls={}
+}
+
+/**
+ * Updates the position and rotation of the balls in the scene based on their current state with server information.
+ * New positions based on movement/"gravity".
+ * Model based on association with player who threw/holds it.
+ */  
+export function update() {
+  for (const index in balls) {
+    if (index == "didChange") continue;
+    if (!(index in balls &amp;&amp; index in ballsModels)) {
+      console.log("[PROBLEM] Ball ID: ",index," | ",balls[index]," | ballsModels:",ballsModels[index])
+      continue;
+    }
+    let ball = balls[index];
+    intermediateVector.set(ball.x, ball.y, ball.z);
+    ballsModels[index].position.lerp(intermediateVector, 0.2);
+    if(ball.velocity[1] != 0){
+      // if ball is still in air, apply animation and "gravity"
+      ballsModels[index].rotation.y = Math.atan2(ball.velocity[0], ball.velocity[2]);
+      BALL_ANIMATIONS[balls[index].model](ballsModels[index]);
+    }
+  }
+}
+
+/**
+ * For adding balls to scene
+ */
+export function getBallGroup() {
+  return ballGroup;
+}
+
+/**
+ * Creating ball model in three js
+ */
+export function createBall(model) {
+  return getModelInstance(model);
+}
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="PlayerModel.html">PlayerModel</a></li></ul><h3>Global</h3><ul><li><a href="global.html#$g">$g</a></li><li><a href="global.html#AVATARS">AVATARS</a></li><li><a href="global.html#AVATAR_NAMES">AVATAR_NAMES</a></li><li><a href="global.html#AlertWrapper">AlertWrapper</a></li><li><a href="global.html#Announcer">Announcer</a></li><li><a href="global.html#AvatarSelector">AvatarSelector</a></li><li><a href="global.html#BALL_ANIMATIONS">BALL_ANIMATIONS</a></li><li><a href="global.html#BUYABLE_MODELS">BUYABLE_MODELS</a></li><li><a href="global.html#BuyConfirmationDialog">BuyConfirmationDialog</a></li><li><a href="global.html#CustomAlert">CustomAlert</a></li><li><a href="global.html#DeadOverlay">DeadOverlay</a></li><li><a href="global.html#Disconnected">Disconnected</a></li><li><a href="global.html#EndScreen">EndScreen</a></li><li><a href="global.html#Hx">Hx</a></li><li><a href="global.html#InGameMenu">InGameMenu</a></li><li><a href="global.html#Leaderboard">Leaderboard</a></li><li><a href="global.html#LogWrapper">LogWrapper</a></li><li><a href="global.html#LoggingWrapper">LoggingWrapper</a></li><li><a href="global.html#MESSAGES">MESSAGES</a></li><li><a href="global.html#MODEL_IDS">MODEL_IDS</a></li><li><a href="global.html#MODEL_PROPERTIES">MODEL_PROPERTIES</a></li><li><a href="global.html#Ng">Ng</a></li><li><a href="global.html#PORT">PORT</a></li><li><a href="global.html#PlayerStats">PlayerStats</a></li><li><a href="global.html#SettingsTabContent">SettingsTabContent</a></li><li><a href="global.html#Store">Store</a></li><li><a href="global.html#TEXTURES">TEXTURES</a></li><li><a href="global.html#TabInstructionsContent">TabInstructionsContent</a></li><li><a href="global.html#ToggleLoginScreen">ToggleLoginScreen</a></li><li><a href="global.html#ToggleSignUpScreen">ToggleSignUpScreen</a></li><li><a href="global.html#addBall">addBall</a></li><li><a href="global.html#addPlayer">addPlayer</a></li><li><a href="global.html#add_listener">add_listener</a></li><li><a href="global.html#animate">animate</a></li><li><a href="global.html#applyTransformations">applyTransformations</a></li><li><a href="global.html#assign_random">assign_random</a></li><li><a href="global.html#attachKeybinds">attachKeybinds</a></li><li><a href="global.html#broadcast">broadcast</a></li><li><a href="global.html#calculateDirection">calculateDirection</a></li><li><a href="global.html#clearBalls">clearBalls</a></li><li><a href="global.html#clearPlayers">clearPlayers</a></li><li><a href="global.html#colors">colors</a></li><li><a href="global.html#createBall">createBall</a></li><li><a href="global.html#createCamera">createCamera</a></li><li><a href="global.html#createPet">createPet</a></li><li><a href="global.html#createSpectateCamera">createSpectateCamera</a></li><li><a href="global.html#createWorld">createWorld</a></li><li><a href="global.html#deletePet">deletePet</a></li><li><a href="global.html#deletePlayer">deletePlayer</a></li><li><a href="global.html#doTick">doTick</a></li><li><a href="global.html#endState">endState</a></li><li><a href="global.html#forbiddenKeys">forbiddenKeys</a></li><li><a href="global.html#getAllPurchasedItems">getAllPurchasedItems</a></li><li><a href="global.html#getBallGroup">getBallGroup</a></li><li><a href="global.html#getCamera">getCamera</a></li><li><a href="global.html#getConnections">getConnections</a></li><li><a href="global.html#getLeaderboardList">getLeaderboardList</a></li><li><a href="global.html#getMetadataByPlayerID">getMetadataByPlayerID</a></li><li><a href="global.html#getModelInstance">getModelInstance</a></li><li><a href="global.html#getPlayerModelGroup">getPlayerModelGroup</a></li><li><a href="global.html#getPointsByUsernames">getPointsByUsernames</a></li><li><a href="global.html#getProgress">getProgress</a></li><li><a href="global.html#getSkybox">getSkybox</a></li><li><a href="global.html#getSocket">getSocket</a></li><li><a href="global.html#getSpectateCamera">getSpectateCamera</a></li><li><a href="global.html#getToken">getToken</a></li><li><a href="global.html#getUsername">getUsername</a></li><li><a href="global.html#get_global">get_global</a></li><li><a href="global.html#handleBuy">handleBuy</a></li><li><a href="global.html#handleConfirmBuy">handleConfirmBuy</a></li><li><a href="global.html#handleEquipChange">handleEquipChange</a></li><li><a href="global.html#handleItemUpdates">handleItemUpdates</a></li><li><a href="global.html#handleLogin">handleLogin</a></li><li><a href="global.html#handleSignup">handleSignup</a></li><li><a href="global.html#handleTokenLogin">handleTokenLogin</a></li><li><a href="global.html#isAlive">isAlive</a></li><li><a href="global.html#isGameOver">isGameOver</a></li><li><a href="global.html#keybinds">keybinds</a></li><li><a href="global.html#loadDefault">loadDefault</a></li><li><a href="global.html#login">login</a></li><li><a href="global.html#logout">logout</a></li><li><a href="global.html#main">main</a></li><li><a href="global.html#message_parse">message_parse</a></li><li><a href="global.html#onCloseDialog">onCloseDialog</a></li><li><a href="global.html#onKeyDown">onKeyDown</a></li><li><a href="global.html#onKeyUp">onKeyUp</a></li><li><a href="global.html#ownedPets">ownedPets</a></li><li><a href="global.html#ownedWeapons">ownedWeapons</a></li><li><a href="global.html#playerDeath">playerDeath</a></li><li><a href="global.html#print_globals">print_globals</a></li><li><a href="global.html#processMessage">processMessage</a></li><li><a href="global.html#properties">properties</a></li><li><a href="global.html#purchaseItem">purchaseItem</a></li><li><a href="global.html#removeBall">removeBall</a></li><li><a href="global.html#removePlayer">removePlayer</a></li><li><a href="global.html#remove_listener">remove_listener</a></li><li><a href="global.html#sT">sT</a></li><li><a href="global.html#sc">sc</a></li><li><a href="global.html#sendMovement">sendMovement</a></li><li><a href="global.html#setFinishCallback">setFinishCallback</a></li><li><a href="global.html#setHandler">setHandler</a></li><li><a href="global.html#setSpectate">setSpectate</a></li><li><a href="global.html#setState">setState</a></li><li><a href="global.html#set_global">set_global</a></li><li><a href="global.html#setupConnection">setupConnection</a></li><li><a href="global.html#setupWSS">setupWSS</a></li><li><a href="global.html#signup">signup</a></li><li><a href="global.html#startServer">startServer</a></li><li><a href="global.html#startState">startState</a></li><li><a href="global.html#stopServer">stopServer</a></li><li><a href="global.html#styles">styles</a></li><li><a href="global.html#textStyle">textStyle</a></li><li><a href="global.html#throwBall">throwBall</a></li><li><a href="global.html#tn">tn</a></li><li><a href="global.html#tokenLogin">tokenLogin</a></li><li><a href="global.html#update">update</a></li><li><a href="global.html#updateAspect">updateAspect</a></li><li><a href="global.html#updateBalls">updateBalls</a></li><li><a href="global.html#updateHits">updateHits</a></li><li><a href="global.html#updateItems">updateItems</a></li><li><a href="global.html#updateLoss">updateLoss</a></li><li><a href="global.html#updateModelList">updateModelList</a></li><li><a href="global.html#updatePlayer">updatePlayer</a></li><li><a href="global.html#updatePlayers">updatePlayers</a></li><li><a href="global.html#updatePoints">updatePoints</a></li><li><a href="global.html#updateSpectateCamera">updateSpectateCamera</a></li><li><a href="global.html#updateWin">updateWin</a></li><li><a href="global.html#useEffect">useEffect</a></li><li><a href="global.html#websocketSetup">websocketSetup</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Fri Mar 15 2024 18:12:19 GMT-0700 (Pacific Daylight Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

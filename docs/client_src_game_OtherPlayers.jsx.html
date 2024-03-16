@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: client/src/game/OtherPlayers.jsx</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: client/src/game/OtherPlayers.jsx</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import * as three from 'three'
+import { Text } from 'troika-three-text'
+import { getCamera } from './Player'
+import { getModelInstance } from './Models'
+import { get_global } from '../constants'
+
+// Makes entire player model, including nametag above body
+
+/**
+ * Class representing a player model in the game. Makes entire player, including nametag above body.
+ */
+class PlayerModel {
+  /**
+   * Create a player model.
+   * @param {Object} metadata - Metadata for the player.
+   */
+  constructor(metadata) {
+    this.body = new three.Group()
+    this.body.add(getModelInstance(0))
+    this.group = new three.Group()
+    this.tag = new Text()
+    this.tag.text = metadata.username
+    this.tag.fontSize = 0.5
+    this.tag.color = metadata.team == 0 ? '#0000dd' : '#dd0000'
+    this.tag.anchorX = 'center'
+    this.tag.anchory = 'center'
+    this.tag.position.y = 3
+    this.tag.outlineWidth = '10%'
+    this.tag.outlineColor = '#ffffff'
+
+    this.group.add(this.tag)
+    this.group.add(this.body)
+    if (metadata.pet) {
+      this.pet = getModelInstance(metadata.pet)
+      this.pet.position.y = 0
+      this.group.add(this.pet)
+    }
+  }
+  /**
+   * Dispose of the player model.
+   */
+  dispose() {
+    this.tag.dispose()
+    this.body.remove(this.body.children[0])
+    this.group.remove(this.tag)
+    this.group.remove(this.body)
+
+    if (this.pet) {
+      this.pet.remove(this.pet.children[0])
+      this.group.remove(this.pet)
+    }
+  }
+  /**
+   * Update the player model based on camera and player status.
+   * @param {PerspectiveCamera} camera - The camera object.
+   * @param {boolean} playerAlive - Flag indicating if the player is alive.
+   */
+  update(camera, playerAlive) {
+    this.tag.position.x = this.body.position.x
+    this.tag.position.z = this.body.position.z
+
+    if (this.pet &amp;&amp; playerAlive) {
+      if (this.pet.position.distanceTo(this.body.position) > 3) {
+        this.pet.position.lerp(this.body.position, 0.08)
+      }
+      this.pet.lookAt(this.body.position)
+    }
+    this.tag.quaternion.copy(camera.quaternion)
+  }
+  /**
+   * Switch the player viking model to a ghost model.
+   */
+  switchGhost() {
+    // swaps the vikingboat model with the ghost model
+    this.body.remove(this.body.children[0])
+    this.body.add(getModelInstance('9')) // 9 is the ID for the ghost model
+  }
+}
+
+var players = {}
+var playersMetadata = {}
+var playersModels = {}
+
+var otherPlayerGroup = new three.Group()
+
+var reusableVector = new three.Vector3(0, 0, 0)
+
+//Add player to scene and player list
+
+/**
+ * Function to add a player to the game. Adds 3d model and pet.
+ * @function
+ * @name addPlayer
+ * @param {string} playerID - The ID of the player.
+ * @param {Object} data - Player data to add.
+ * @param {Object} metadata - Metadata for the player.
+ */
+export function addPlayer(playerID, data, metadata) {
+  //Add player to gamedata
+  players[playerID] = data
+  //Add player metadata
+  playersMetadata[playerID] = metadata
+
+  console.log('[METADATA]', playersMetadata)
+
+  //add 3d model to model group
+  playersModels[playerID] = new PlayerModel(metadata)
+  playersModels[playerID].body.position.x = data.x
+  playersModels[playerID].body.position.z = data.z
+  playersModels[playerID].body.rotateY(metadata.team == 0 ? 0 : Math.PI)
+  otherPlayerGroup.add(playersModels[playerID].group)
+
+  if (playersModels[playerID].pet) {
+    let pet = playersModels[playerID].pet
+    pet.position.x = data.x
+    pet.position.z = data.z + (metadata.team == 0 ? -1 : 1)
+  }
+}
+
+/**
+ * Function to remove player from game based on ID
+ * @function
+ * @name removePlayer
+ * @param {string} playerID - The ID of the player being removed.
+ */
+export function removePlayer(playerID) {
+  playersModels[playerID].dispose()
+  otherPlayerGroup.remove(playersModels[playerID].group)
+  delete playersModels[playerID]
+  delete players[playerID]
+  delete playersMetadata[playerID]
+}
+
+/**
+ * Function to clear all players from the game except the local player.
+ * @function
+ * @name clearPlayers
+ */
+export function clearPlayers() {
+  for (const playerID in players) {
+    if (playerID == get_global('CLIENT_ID')) continue
+    console.log('Removing', playerID, 'from', players)
+    removePlayer(playerID)
+  }
+}
+
+/**
+ * Function to handle player death in the game.
+ * @function
+ * @name playerDeath
+ * @param {string} playerID - The ID of the player who died.
+ * @param {string} killerID - The ID of the player who caused the death.
+ */
+export function playerDeath(playerID, killerID) {
+  // function to trigger upon player knockout
+  playersModels[playerID].switchGhost()
+  if (killerID in playersMetadata) {
+    playersMetadata[killerID].hits += 1
+  }
+}
+
+// Called on server update message
+/**
+ * Function to update player data, called on server update message.
+ * @function
+ * @name updatePlayers
+ * @param {Object} update - Updated player data from the server.
+ */
+export function updatePlayers(update) {
+  players = {
+    ...players,
+    ...update,
+  }
+}
+
+// update the 3d models of the players using the "players" object
+// called every frame
+
+/**
+ * Function to update player positions and models in the game. Called every frame, uses the players object.
+ * @function
+ * @name update
+ */
+export function update() {
+  for (let playerID in players) {
+    if (playerID == get_global('CLIENT_ID')) continue
+    if (!(playerID in playersModels)) continue
+    reusableVector.set(players[playerID].x, 0, players[playerID].z) // reusableVector holds actual position in server
+    if (
+      players[playerID].direction[0] != 0 ||
+      players[playerID].direction[1] != 0
+    ) {
+      playersModels[playerID].body.lookAt(reusableVector)
+    }
+    playersModels[playerID].body.position.lerp(reusableVector, 0.1) // gives smoother transition from current position to target position
+    playersModels[playerID].update(getCamera(), players[playerID].alive)
+  }
+}
+
+//ThreeJS function for displaying all the players
+
+/**
+ * Function to get the group containing all other player models.
+ * @function
+ * @name getPlayerModelGroup
+ * @returns {Group} The group containing other player models.
+ */
+export function getPlayerModelGroup() {
+  return otherPlayerGroup
+}
+
+/**
+ * Function to retrieve player metadata by player ID.
+ * @function
+ * @name getMetadataByPlayerID
+ * @param {string} playerID - The ID of the player.
+ * @returns {Object|null} The metadata of the player, or null if not found.
+ */
+export function getMetadataByPlayerID(playerID) {
+  if (playerID in playersMetadata) return playersMetadata[playerID]
+  return null
+}
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="PlayerModel.html">PlayerModel</a></li></ul><h3>Global</h3><ul><li><a href="global.html#$g">$g</a></li><li><a href="global.html#AVATARS">AVATARS</a></li><li><a href="global.html#AVATAR_NAMES">AVATAR_NAMES</a></li><li><a href="global.html#AlertWrapper">AlertWrapper</a></li><li><a href="global.html#Announcer">Announcer</a></li><li><a href="global.html#AvatarSelector">AvatarSelector</a></li><li><a href="global.html#BALL_ANIMATIONS">BALL_ANIMATIONS</a></li><li><a href="global.html#BUYABLE_MODELS">BUYABLE_MODELS</a></li><li><a href="global.html#BuyConfirmationDialog">BuyConfirmationDialog</a></li><li><a href="global.html#CustomAlert">CustomAlert</a></li><li><a href="global.html#DeadOverlay">DeadOverlay</a></li><li><a href="global.html#Disconnected">Disconnected</a></li><li><a href="global.html#EndScreen">EndScreen</a></li><li><a href="global.html#Hx">Hx</a></li><li><a href="global.html#InGameMenu">InGameMenu</a></li><li><a href="global.html#Leaderboard">Leaderboard</a></li><li><a href="global.html#LogWrapper">LogWrapper</a></li><li><a href="global.html#LoggingWrapper">LoggingWrapper</a></li><li><a href="global.html#MESSAGES">MESSAGES</a></li><li><a href="global.html#MODEL_IDS">MODEL_IDS</a></li><li><a href="global.html#MODEL_PROPERTIES">MODEL_PROPERTIES</a></li><li><a href="global.html#Ng">Ng</a></li><li><a href="global.html#PORT">PORT</a></li><li><a href="global.html#PlayerStats">PlayerStats</a></li><li><a href="global.html#SettingsTabContent">SettingsTabContent</a></li><li><a href="global.html#Store">Store</a></li><li><a href="global.html#TEXTURES">TEXTURES</a></li><li><a href="global.html#TabInstructionsContent">TabInstructionsContent</a></li><li><a href="global.html#ToggleLoginScreen">ToggleLoginScreen</a></li><li><a href="global.html#ToggleSignUpScreen">ToggleSignUpScreen</a></li><li><a href="global.html#addBall">addBall</a></li><li><a href="global.html#addPlayer">addPlayer</a></li><li><a href="global.html#add_listener">add_listener</a></li><li><a href="global.html#animate">animate</a></li><li><a href="global.html#applyTransformations">applyTransformations</a></li><li><a href="global.html#assign_random">assign_random</a></li><li><a href="global.html#attachKeybinds">attachKeybinds</a></li><li><a href="global.html#broadcast">broadcast</a></li><li><a href="global.html#calculateDirection">calculateDirection</a></li><li><a href="global.html#clearBalls">clearBalls</a></li><li><a href="global.html#clearPlayers">clearPlayers</a></li><li><a href="global.html#colors">colors</a></li><li><a href="global.html#createBall">createBall</a></li><li><a href="global.html#createCamera">createCamera</a></li><li><a href="global.html#createPet">createPet</a></li><li><a href="global.html#createSpectateCamera">createSpectateCamera</a></li><li><a href="global.html#createWorld">createWorld</a></li><li><a href="global.html#deletePet">deletePet</a></li><li><a href="global.html#deletePlayer">deletePlayer</a></li><li><a href="global.html#doTick">doTick</a></li><li><a href="global.html#endState">endState</a></li><li><a href="global.html#forbiddenKeys">forbiddenKeys</a></li><li><a href="global.html#getAllPurchasedItems">getAllPurchasedItems</a></li><li><a href="global.html#getBallGroup">getBallGroup</a></li><li><a href="global.html#getCamera">getCamera</a></li><li><a href="global.html#getConnections">getConnections</a></li><li><a href="global.html#getLeaderboardList">getLeaderboardList</a></li><li><a href="global.html#getMetadataByPlayerID">getMetadataByPlayerID</a></li><li><a href="global.html#getModelInstance">getModelInstance</a></li><li><a href="global.html#getPlayerModelGroup">getPlayerModelGroup</a></li><li><a href="global.html#getPointsByUsernames">getPointsByUsernames</a></li><li><a href="global.html#getProgress">getProgress</a></li><li><a href="global.html#getSkybox">getSkybox</a></li><li><a href="global.html#getSocket">getSocket</a></li><li><a href="global.html#getSpectateCamera">getSpectateCamera</a></li><li><a href="global.html#getToken">getToken</a></li><li><a href="global.html#getUsername">getUsername</a></li><li><a href="global.html#get_global">get_global</a></li><li><a href="global.html#handleBuy">handleBuy</a></li><li><a href="global.html#handleConfirmBuy">handleConfirmBuy</a></li><li><a href="global.html#handleEquipChange">handleEquipChange</a></li><li><a href="global.html#handleItemUpdates">handleItemUpdates</a></li><li><a href="global.html#handleLogin">handleLogin</a></li><li><a href="global.html#handleSignup">handleSignup</a></li><li><a href="global.html#handleTokenLogin">handleTokenLogin</a></li><li><a href="global.html#isAlive">isAlive</a></li><li><a href="global.html#isGameOver">isGameOver</a></li><li><a href="global.html#keybinds">keybinds</a></li><li><a href="global.html#loadDefault">loadDefault</a></li><li><a href="global.html#login">login</a></li><li><a href="global.html#logout">logout</a></li><li><a href="global.html#main">main</a></li><li><a href="global.html#message_parse">message_parse</a></li><li><a href="global.html#onCloseDialog">onCloseDialog</a></li><li><a href="global.html#onKeyDown">onKeyDown</a></li><li><a href="global.html#onKeyUp">onKeyUp</a></li><li><a href="global.html#ownedPets">ownedPets</a></li><li><a href="global.html#ownedWeapons">ownedWeapons</a></li><li><a href="global.html#playerDeath">playerDeath</a></li><li><a href="global.html#print_globals">print_globals</a></li><li><a href="global.html#processMessage">processMessage</a></li><li><a href="global.html#properties">properties</a></li><li><a href="global.html#purchaseItem">purchaseItem</a></li><li><a href="global.html#removeBall">removeBall</a></li><li><a href="global.html#removePlayer">removePlayer</a></li><li><a href="global.html#remove_listener">remove_listener</a></li><li><a href="global.html#sT">sT</a></li><li><a href="global.html#sc">sc</a></li><li><a href="global.html#sendMovement">sendMovement</a></li><li><a href="global.html#setFinishCallback">setFinishCallback</a></li><li><a href="global.html#setHandler">setHandler</a></li><li><a href="global.html#setSpectate">setSpectate</a></li><li><a href="global.html#setState">setState</a></li><li><a href="global.html#set_global">set_global</a></li><li><a href="global.html#setupConnection">setupConnection</a></li><li><a href="global.html#setupWSS">setupWSS</a></li><li><a href="global.html#signup">signup</a></li><li><a href="global.html#startServer">startServer</a></li><li><a href="global.html#startState">startState</a></li><li><a href="global.html#stopServer">stopServer</a></li><li><a href="global.html#styles">styles</a></li><li><a href="global.html#textStyle">textStyle</a></li><li><a href="global.html#throwBall">throwBall</a></li><li><a href="global.html#tn">tn</a></li><li><a href="global.html#tokenLogin">tokenLogin</a></li><li><a href="global.html#update">update</a></li><li><a href="global.html#updateAspect">updateAspect</a></li><li><a href="global.html#updateBalls">updateBalls</a></li><li><a href="global.html#updateHits">updateHits</a></li><li><a href="global.html#updateItems">updateItems</a></li><li><a href="global.html#updateLoss">updateLoss</a></li><li><a href="global.html#updateModelList">updateModelList</a></li><li><a href="global.html#updatePlayer">updatePlayer</a></li><li><a href="global.html#updatePlayers">updatePlayers</a></li><li><a href="global.html#updatePoints">updatePoints</a></li><li><a href="global.html#updateSpectateCamera">updateSpectateCamera</a></li><li><a href="global.html#updateWin">updateWin</a></li><li><a href="global.html#useEffect">useEffect</a></li><li><a href="global.html#websocketSetup">websocketSetup</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Fri Mar 15 2024 18:12:19 GMT-0700 (Pacific Daylight Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

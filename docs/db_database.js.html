@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: db/database.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: db/database.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>const bcrypt = require("bcrypt")
+const jwt = require("jsonwebtoken")
+const SECRET = "any_secret_you_want_to_use"
+
+var URL = process.env.DATABASE_URL;
+var doTest = false
+if (URL == null) {
+  try {
+    let DB_URL = require("./keys.cjs");
+    URL = DB_URL
+  } catch {
+    //if we cant connect, dont even try lol
+    module.exports = {
+      signup: () => { },
+      login: () => { },
+      getLeaderboardList: () => { },
+      updatePoints: () => { },
+      updateWin: () => { },
+      updateLoss: () => { },
+      updateHits: () => { },
+      purchaseItem: () => { },
+      getAllPurchasedItems: () => { }
+    }
+    return;
+  }
+}
+
+var tokens = {}
+
+
+const knex = require("knex")({
+  // We are using PostgreSQL
+  client: "postgres",
+  // Use the `DATABASE_URL` environment variable we provide to connect to the Database
+  // It is included in your Replit environment automatically (no need to set it up)
+  connection: URL,
+
+  // Optionally, you can use connection pools to increase query performance
+  pool: { min: 0, max: 80 },
+
+});
+
+/**
+ * Creates a new user in the database if they do not already exist.
+ *
+ * @async
+ * @param {Request} request - POST request object containing {string} username and {string} password
+ * @param {Response} response - Fetch response object to be returned
+ * @returns
+ * {
+ *   {string} username,
+ *   {integer} wins,
+ *   {integer} losses,
+ *   {integer} hits,
+ *   {integer} points,
+ *   {integer} ball,
+ *   {integer} pet,
+ *   {integer} icon,
+ *   {string} token,
+ *   {[integer]} item_array,
+ * }
+ */
+async function signup(request, response) {
+  // check if username is taken
+  if (request.body.username.slice(0, 5) == "Guest") {
+    return response.status(401).json({
+      error: "Username already taken"
+    })
+  }
+  knex("accounts")
+    .where({ username: request.body.username })
+    .first()
+    .then(user => {
+      if (user) {
+        return response.status(401).json({
+          error: "Username already taken"
+        })
+      }
+    })
+
+  await bcrypt.hash(request.body.password, 10)
+    .then(hashedPassword => {
+      knex("accounts").insert({
+        username: request.body.username,
+        password: hashedPassword
+      })
+        .returning(["username", "password"])
+        .then(new_user => {
+          knex('items').insert({
+            username: request.body.username,
+            item_id: 2,
+          }).catch(err => {
+            console.log(err)
+          });
+          console.log('signup user', new_user)
+          return jwt.sign(new_user[0].username, SECRET, (error, token) => {
+            knex.select('username', 'wins', 'losses', 'hits', 'points', 'ball', 'pet', 'icon')
+              .from('accounts')
+              .where('username', request.body.username)
+              .then(rows => {
+                rows[0]['token'] = token
+                tokens[token] = request.body.username;
+                rows[0]['item_array'] = [2]
+                console.log('login rows:', JSON.stringify(rows[0]));
+                response.status(200).json(rows[0])
+              })
+              .catch(err => {
+                console.error(err);
+              })
+
+            console.log("signup db token:", token)
+          })
+        })
+        .catch(error => next(error))
+    })
+}
+
+/**
+ * Logs an existing user in the database with the correct password into their account.
+ *
+ * @async
+ * @param {Request} request - POST request object containing {string} username and {string} password
+ * @param {Response} response - Fetch response object to be returned
+ * @returns
+ * {
+ *   {string} username,
+ *   {integer} wins,
+ *   {integer} losses,
+ *   {integer} hits,
+ *   {integer} points,
+ *   {integer} ball,
+ *   {integer} pet,
+ *   {integer} icon,
+ *   {string} token,
+ *   {[integer]} item_array,
+ * }
+ */
+async function login(request, response) {
+  console.log(request.body)
+  knex("accounts")
+    .where({ username: request.body.username })
+    .first()
+    .then(user => {
+      if (!user) {
+        response.status(401).json({
+          error: "No user by that name"
+        })
+      }
+      else {
+        return bcrypt
+          .compare(request.body.password, user.password)
+          .then(isAuthenticated => {
+            if (!isAuthenticated) {
+              response.status(401).json({
+                error: "Unauthorized Access!"
+              })
+            }
+            else {
+              console.log('login user', user)
+              let item_array
+              return jwt.sign(user.username, SECRET, (error, token) => {
+                knex.select('item_id')
+                  .from('items')
+                  .where('username', user.username)
+                  .then(item_row => {
+                    item_array = item_row.map(row => row.item_id);
+                    console.log('itemarray:', item_array);
+                  }).then(() => {
+
+                    knex.select('username', 'wins', 'losses', 'hits', 'points', 'ball', 'pet', 'icon')
+                      .from('accounts')
+                      .where('username', request.body.username)
+                      .then(rows => {
+                        tokens[token] = request.body.username;
+                        rows[0]['token'] = token
+                        rows[0]['item_array'] = item_array
+                        console.log('login rows:', JSON.stringify(rows[0]));
+                        response.status(200).json(rows[0])
+                      })
+                  })
+                  .catch(err => {
+                    console.error(err);
+                  })
+
+                knex.update({ token: token })
+                  .where('username', request.body.username);
+
+                console.log("db token:", token)
+              })
+            }
+          })
+      }
+    })
+}
+
+/**
+ * At page load, checks locally stored token against database to log user in.
+ *
+ * @async
+ * @param {Request} request - POST request object containing {string} token
+ * @param {Response} response - Fetch response object to be returned
+ * @returns
+ * {
+ *   {string} username,
+ *   {integer} wins,
+ *   {integer} losses,
+ *   {integer} hits,
+ *   {integer} points,
+ *   {integer} ball,
+ *   {integer} pet,
+ *   {integer} icon,
+ *   {[integer]} item_array,
+ * }
+ */
+async function tokenLogin(request, response) {
+  console.log(request.body)
+  if (!(request.body.token in tokens)) {
+    response.status(401).json({
+      error: "Token invalid"
+    })
+    return;
+  }
+
+  let item_array
+  knex.select('item_id')
+    .from('items')
+    .where('username', tokens[request.body.token])
+    .then(item_row => {
+      item_array = item_row.map(row => row.item_id);
+      console.log('itemarray:', item_array);
+    }).then(() => {
+      knex.select('username', 'wins', 'losses', 'hits', 'points', 'ball', 'pet', 'icon')
+        .from('accounts')
+        .where('username', tokens[request.body.token])
+        .then(rows => {
+          rows[0]['item_array'] = item_array
+          console.log('login rows:', JSON.stringify(rows[0]));
+          response.status(200).json(rows[0])
+        })
+        .catch(err => {
+          console.error(err);
+        })
+    }).catch(err => {
+      console.error(err);
+    })
+}
+
+/**
+ * Returns the current leaderboard list sorted by descending wins then descending hits.
+ * @param {Request} request - GET request object
+ * @param {Response} response - Fetch response object to be returned
+ * @returns
+ * {
+ *   [
+ *     {string} username,
+ *     {integer} wins,
+ *     {integer} losses,
+ *     {integer} hits,
+ *   ]
+ * }
+ */
+function getLeaderboardList(request, response) {
+  console.log('leaderboard:')
+  knex.select('username', 'wins', 'losses', 'hits')
+    .from('accounts')
+    .orderBy('wins', 'desc')
+    .orderBy('hits', 'desc')
+    .then(rows => {
+      console.log(JSON.stringify(rows));
+      response.status(200).json(JSON.stringify(rows))
+    })
+    .catch(err => {
+      console.error(err);
+    })
+
+}
+
+/**
+ * Returns the current leaderboard list sorted by descending wins then descending hits.
+ *
+ * @async
+ * @param {string[]} usernames
+ * @returns Object.&lt;string, integer> output - an object containing the username as the key and the number of points they have as the value
+ */
+async function getPointsByUsernames(usernames) {
+  let points = await knex.select("username", "points").from('accounts').whereIn("username", usernames);
+  let output = {}
+  for (const entry of points) {
+    output[entry.username] = entry.points
+  }
+  return output;
+}
+
+/**
+ * Updates the points for a given user in the 'accounts' table.
+ *
+ * @async
+ * @param {string} user - The username of the user whose points should be updated.
+ * @param {number} pointChange - The amount of points to be added or subtracted from the user's current points.
+ */
+async function updatePoints(user, pointChange) {
+  await knex('accounts')
+    .where('username', user)
+    .increment('points', pointChange)
+    .catch(err => {
+      console.error(err);
+    })
+}
+
+/**
+ * Updates the win count for a given user in the 'accounts' table.
+ *
+ * @async
+ * @param {string} user - The username of the user whose win count should be updated.
+ * @param {number} winChange - The amount to be added or subtracted from the user's current win count.
+ */
+async function updateWin(user, winChange) {
+  await knex('accounts')
+    .where('username', user)
+    .increment('wins', winChange)
+    .catch(err => {
+      console.error(err);
+    })
+}
+
+/**
+ * Updates the loss count for a given user in the 'accounts' table.
+ *
+ * @async
+ * @param {string} user - The username of the user whose loss count should be updated.
+ * @param {number} lossChange - The amount to be added or subtracted from the user's current loss count.
+ */
+async function updateLoss(user, lossChange) {
+  await knex('accounts')
+    .where('username', user)
+    .increment('losses', lossChange)
+    .catch(err => {
+      console.error(err);
+    })
+}
+
+/**
+ * Updates the hit count for a given user in the 'accounts' table.
+ *
+ * @async
+ * @param {string} user - The username of the user whose hit count should be updated.
+ * @param {number} hitChange - The amount to be added or subtracted from the user's current hit count.
+ */
+async function updateHits(user, hitChange) {
+  await knex('accounts')
+    .where('username', user)
+    .increment('hits', hitChange)
+    .catch(err => {
+      console.error(err);
+    })
+}
+
+/**
+ * Updates the ball, pet, and icon items for a user in the 'accounts' table.
+ *
+ * @async
+ * @param {string} token - The token associated with the user whose items should be updated.
+ * @param {string} ball - The new ball item for the user.
+ * @param {string} pet - The new pet item for the user.
+ * @param {string} icon - The new icon item for the user.
+ */
+async function updateItems(token, ball, pet, icon) {
+  await knex('accounts')
+    .where('username', tokens[token])
+    .update({
+      ball: ball,
+      pet: pet,
+      icon: icon,
+    })
+}
+
+/**
+ * Allows a user to purchase an item by deducting the item cost from their points and adding the item to their account. Checks if the user has enough points to purchase the item and does not already own the item. Additionally, item purchases are logged in the 'items' table.
+ *
+ * @async
+ * @param {string} token - The token associated with the user making the purchase.
+ * @param {number} itemID - The ID of the item to be purchased.
+ * @param {number} itemCost - The cost of the item in points.
+ * @param {Object} response - The Fetch response object to returned.
+ * @returns
+ * {
+ *   {boolean} success,
+ *   {[integer]} itemArray,
+ * }
+ */
+async function purchaseItem(token, itemID, itemCost, response) {
+  let curPoints
+  let user = tokens[token];
+  if (!user) { //
+    response.json({ success: false, itemArray: null });
+    return false
+  }
+  await knex('accounts')
+    .select('points')
+    .where('username', user)
+    .then(data => {
+      curPoints = data[0].points;
+      console.log('curppoints:', curPoints)
+    })
+  if (curPoints &lt; itemCost) {
+    response.json({ success: false, itemArray: null })
+    return false;
+  }
+  let items;
+  let canPurchase = await knex('items')
+    .select()
+    .where({ "username": user })
+    .then(rows => {
+      console.log('item alr purchased?', rows)
+      items = rows;
+      for (const row of rows) {
+        if (row.item_id == itemID) {
+          console.log('cannot purchase')
+          response.status(200).json({ success: false, itemArray: null })
+          return false;
+        }
+      }
+      return true;
+    })
+    .catch(err => console.error(err))
+  if (!canPurchase) return;
+
+
+  await knex('accounts')
+    .where('username', user)
+    .decrement('points', itemCost)
+    .catch(err => console.error(err))
+
+  await knex('items').insert({
+    username: user,
+    item_id: itemID,
+  })
+    .then(() => {
+      items = items.map(x => x.item_id);
+      items.push(Number(itemID));
+      console.log(items)
+      response.status(200).json({ success: true, itemArray: items });
+      return;
+    })
+    .catch(err => console.error(err))
+}
+
+
+
+/**
+ * Retrieves all the purchased items for a given username from the 'items' table and sends them as a JSON response.
+ *
+ * @async
+ * @param {string} username - The username of the user whose purchased items should be retrieved.
+ * @param {Respone} response - The Fetch response object to be send {integer[]} item_array.
+ */
+async function getAllPurchasedItems(username, response) {
+  knex.select('item_id')
+    .from('items')
+    .where('username', username)
+    .then(item_row => {
+      item_array = item_row.map(row => row.item_id);
+      console.log('itemarray:', JSON.stringify(item_array));
+      response.status(200).json(JSON.stringify(rows))
+    })
+    .catch(err => {
+      console.error(err);
+    })
+}
+
+module.exports = {
+  signup,
+  login,
+  tokenLogin,
+  getLeaderboardList,
+  updatePoints,
+  updateWin,
+  updateLoss,
+  updateHits,
+  purchaseItem,
+  getAllPurchasedItems,
+  updateItems,
+  getPointsByUsernames
+};
+getPointsByUsernames(["bigcheung", "admin"]);
+
+if (!doTest) return;
+(async () => {
+
+  // Only while developing, we will drop database and re-create it
+  // await knex.schema.dropTableIfExists('accounts')
+  // await knex.schema.dropTableIfExists('items')
+
+  /**
+   * Creates the account table and sets default values where appropriate.
+   * Ensures that points value is always non-negative.
+   */
+  await knex.schema.hasTable('accounts').then(function(exists) {
+    if (!exists) {
+      return knex.schema.createTable('accounts', function(table) {
+        table.string('username').unique().primary();
+        table.integer('points').defaultTo(0);
+        table.check('?? >= ??', ['points', 0]);
+        table.integer('wins').defaultTo(0);
+        table.integer('losses').defaultTo(0);
+        table.integer('hits').defaultTo(0);
+        table.integer('ball').defaultTo(2);
+        //pet - charm that gets added to player as a customization
+        table.integer('pet');
+        table.integer('icon').defaultTo(0);
+        table.string('password');
+        table.string('token')
+      });
+    }
+  });
+  /**
+   * Creates the items table.
+   */
+  await knex.schema.hasTable('items').then(function(exists) {
+    if (!exists) {
+      return knex.schema.createTable('items', function(table) {
+        table.string('username');
+        table.integer('item_id');
+      });
+    }
+  });
+
+  // TEST CASES - Ishaan
+
+  await knex('accounts').insert({
+    username: 'admin2',
+    password: testpw,
+    points: 5,
+    hits: 1,
+    losses: 2
+  });
+
+  await knex('items').insert({
+    username: 'admin',
+    item_id: 2,
+  });
+  await knex('items').insert({
+    username: 'admin',
+    item_id: 3,
+  });
+
+  const user = await knex('accounts').where('username', 'admin')
+  console.log(user);
+
+  const test2 = await knex.select('*')
+    .from('accounts')
+    .leftOuterJoin('items', 'accounts.username', 'items.username')
+
+  console.log("test2");
+  console.log(test2);
+
+})();</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="PlayerModel.html">PlayerModel</a></li></ul><h3>Global</h3><ul><li><a href="global.html#$g">$g</a></li><li><a href="global.html#AVATARS">AVATARS</a></li><li><a href="global.html#AVATAR_NAMES">AVATAR_NAMES</a></li><li><a href="global.html#AlertWrapper">AlertWrapper</a></li><li><a href="global.html#Announcer">Announcer</a></li><li><a href="global.html#AvatarSelector">AvatarSelector</a></li><li><a href="global.html#BALL_ANIMATIONS">BALL_ANIMATIONS</a></li><li><a href="global.html#BUYABLE_MODELS">BUYABLE_MODELS</a></li><li><a href="global.html#BuyConfirmationDialog">BuyConfirmationDialog</a></li><li><a href="global.html#CustomAlert">CustomAlert</a></li><li><a href="global.html#DeadOverlay">DeadOverlay</a></li><li><a href="global.html#Disconnected">Disconnected</a></li><li><a href="global.html#EndScreen">EndScreen</a></li><li><a href="global.html#Hx">Hx</a></li><li><a href="global.html#InGameMenu">InGameMenu</a></li><li><a href="global.html#Leaderboard">Leaderboard</a></li><li><a href="global.html#LogWrapper">LogWrapper</a></li><li><a href="global.html#LoggingWrapper">LoggingWrapper</a></li><li><a href="global.html#MESSAGES">MESSAGES</a></li><li><a href="global.html#MODEL_IDS">MODEL_IDS</a></li><li><a href="global.html#MODEL_PROPERTIES">MODEL_PROPERTIES</a></li><li><a href="global.html#Ng">Ng</a></li><li><a href="global.html#PORT">PORT</a></li><li><a href="global.html#PlayerStats">PlayerStats</a></li><li><a href="global.html#SettingsTabContent">SettingsTabContent</a></li><li><a href="global.html#Store">Store</a></li><li><a href="global.html#TEXTURES">TEXTURES</a></li><li><a href="global.html#TabInstructionsContent">TabInstructionsContent</a></li><li><a href="global.html#ToggleLoginScreen">ToggleLoginScreen</a></li><li><a href="global.html#ToggleSignUpScreen">ToggleSignUpScreen</a></li><li><a href="global.html#addBall">addBall</a></li><li><a href="global.html#addPlayer">addPlayer</a></li><li><a href="global.html#add_listener">add_listener</a></li><li><a href="global.html#animate">animate</a></li><li><a href="global.html#applyTransformations">applyTransformations</a></li><li><a href="global.html#assign_random">assign_random</a></li><li><a href="global.html#attachKeybinds">attachKeybinds</a></li><li><a href="global.html#broadcast">broadcast</a></li><li><a href="global.html#calculateDirection">calculateDirection</a></li><li><a href="global.html#clearBalls">clearBalls</a></li><li><a href="global.html#clearPlayers">clearPlayers</a></li><li><a href="global.html#colors">colors</a></li><li><a href="global.html#createBall">createBall</a></li><li><a href="global.html#createCamera">createCamera</a></li><li><a href="global.html#createPet">createPet</a></li><li><a href="global.html#createSpectateCamera">createSpectateCamera</a></li><li><a href="global.html#createWorld">createWorld</a></li><li><a href="global.html#deletePet">deletePet</a></li><li><a href="global.html#deletePlayer">deletePlayer</a></li><li><a href="global.html#doTick">doTick</a></li><li><a href="global.html#endState">endState</a></li><li><a href="global.html#forbiddenKeys">forbiddenKeys</a></li><li><a href="global.html#getAllPurchasedItems">getAllPurchasedItems</a></li><li><a href="global.html#getBallGroup">getBallGroup</a></li><li><a href="global.html#getCamera">getCamera</a></li><li><a href="global.html#getConnections">getConnections</a></li><li><a href="global.html#getLeaderboardList">getLeaderboardList</a></li><li><a href="global.html#getMetadataByPlayerID">getMetadataByPlayerID</a></li><li><a href="global.html#getModelInstance">getModelInstance</a></li><li><a href="global.html#getPlayerModelGroup">getPlayerModelGroup</a></li><li><a href="global.html#getPointsByUsernames">getPointsByUsernames</a></li><li><a href="global.html#getProgress">getProgress</a></li><li><a href="global.html#getSkybox">getSkybox</a></li><li><a href="global.html#getSocket">getSocket</a></li><li><a href="global.html#getSpectateCamera">getSpectateCamera</a></li><li><a href="global.html#getToken">getToken</a></li><li><a href="global.html#getUsername">getUsername</a></li><li><a href="global.html#get_global">get_global</a></li><li><a href="global.html#handleBuy">handleBuy</a></li><li><a href="global.html#handleConfirmBuy">handleConfirmBuy</a></li><li><a href="global.html#handleEquipChange">handleEquipChange</a></li><li><a href="global.html#handleItemUpdates">handleItemUpdates</a></li><li><a href="global.html#handleLogin">handleLogin</a></li><li><a href="global.html#handleSignup">handleSignup</a></li><li><a href="global.html#handleTokenLogin">handleTokenLogin</a></li><li><a href="global.html#isAlive">isAlive</a></li><li><a href="global.html#isGameOver">isGameOver</a></li><li><a href="global.html#keybinds">keybinds</a></li><li><a href="global.html#loadDefault">loadDefault</a></li><li><a href="global.html#login">login</a></li><li><a href="global.html#logout">logout</a></li><li><a href="global.html#main">main</a></li><li><a href="global.html#message_parse">message_parse</a></li><li><a href="global.html#onCloseDialog">onCloseDialog</a></li><li><a href="global.html#onKeyDown">onKeyDown</a></li><li><a href="global.html#onKeyUp">onKeyUp</a></li><li><a href="global.html#ownedPets">ownedPets</a></li><li><a href="global.html#ownedWeapons">ownedWeapons</a></li><li><a href="global.html#playerDeath">playerDeath</a></li><li><a href="global.html#print_globals">print_globals</a></li><li><a href="global.html#processMessage">processMessage</a></li><li><a href="global.html#properties">properties</a></li><li><a href="global.html#purchaseItem">purchaseItem</a></li><li><a href="global.html#removeBall">removeBall</a></li><li><a href="global.html#removePlayer">removePlayer</a></li><li><a href="global.html#remove_listener">remove_listener</a></li><li><a href="global.html#sT">sT</a></li><li><a href="global.html#sc">sc</a></li><li><a href="global.html#sendMovement">sendMovement</a></li><li><a href="global.html#setFinishCallback">setFinishCallback</a></li><li><a href="global.html#setHandler">setHandler</a></li><li><a href="global.html#setSpectate">setSpectate</a></li><li><a href="global.html#setState">setState</a></li><li><a href="global.html#set_global">set_global</a></li><li><a href="global.html#setupConnection">setupConnection</a></li><li><a href="global.html#setupWSS">setupWSS</a></li><li><a href="global.html#signup">signup</a></li><li><a href="global.html#startServer">startServer</a></li><li><a href="global.html#startState">startState</a></li><li><a href="global.html#stopServer">stopServer</a></li><li><a href="global.html#styles">styles</a></li><li><a href="global.html#textStyle">textStyle</a></li><li><a href="global.html#throwBall">throwBall</a></li><li><a href="global.html#tn">tn</a></li><li><a href="global.html#tokenLogin">tokenLogin</a></li><li><a href="global.html#update">update</a></li><li><a href="global.html#updateAspect">updateAspect</a></li><li><a href="global.html#updateBalls">updateBalls</a></li><li><a href="global.html#updateHits">updateHits</a></li><li><a href="global.html#updateItems">updateItems</a></li><li><a href="global.html#updateLoss">updateLoss</a></li><li><a href="global.html#updateModelList">updateModelList</a></li><li><a href="global.html#updatePlayer">updatePlayer</a></li><li><a href="global.html#updatePlayers">updatePlayers</a></li><li><a href="global.html#updatePoints">updatePoints</a></li><li><a href="global.html#updateSpectateCamera">updateSpectateCamera</a></li><li><a href="global.html#updateWin">updateWin</a></li><li><a href="global.html#useEffect">useEffect</a></li><li><a href="global.html#websocketSetup">websocketSetup</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Fri Mar 15 2024 18:12:19 GMT-0700 (Pacific Daylight Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

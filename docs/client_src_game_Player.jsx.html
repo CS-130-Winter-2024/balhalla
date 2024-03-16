@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: client/src/game/Player.jsx</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: client/src/game/Player.jsx</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import * as three from 'three'
+import { getSocket } from './Connection'
+import * as constants from '../constants'
+
+var camera
+var spectateCamera
+
+var spectateAnim = 0
+
+constants.set_global('SPECTATING', true)
+var spectating = true
+
+// Properties of the client's player in-game
+
+/**
+ * Object containing properties for Player object.
+ * @constant
+ * @name properties
+ * @type {Object}
+ */
+var properties = {
+  x: 0,
+  y: constants.ALIVE_Y,
+  z: 0,
+  directionHeld: [0, 0, 0, 0],
+  hasBall: false,
+  alive: true,
+}
+
+var movementVector = new three.Vector3()
+var perpVector = new three.Vector3()
+var intermediateVector = new three.Vector3()
+var prevCamVector = new three.Vector3()
+
+var dashScalar = 1 // always applied to movements, greater than 1 when dash is used
+var dashAvailable = true // based on dash cooldown, defines when dash can be used
+
+/**
+ * Object mapping keybinds to numerical values.
+ * @constant
+ * @name keybinds
+ * @type {Object}
+ */
+let keybinds = {
+  w: 0,
+  a: 1,
+  s: 2,
+  d: 3,
+}
+/**
+ * Adds listener for each keybind
+ */
+constants.add_listener('KEYBINDS', newBinds => {
+  keybinds = {}
+  keybinds[newBinds.Forward] = 0
+  keybinds[newBinds.Left] = 1
+  keybinds[newBinds.Backward] = 2
+  keybinds[newBinds.Right] = 3
+})
+
+// Uses camera direction and movement key presses to determine player's movement direction
+
+/**
+ * Function to calculate the player's movement direction based on key inputs and camera orientation.
+ * @function
+ * @name calculateDirection
+ */
+function calculateDirection() {
+  camera.getWorldDirection(prevCamVector)
+  camera.getWorldDirection(movementVector)
+  camera.getWorldDirection(perpVector)
+  // Forward and Back movement calculation
+  movementVector.multiplyScalar(
+    properties.directionHeld[0] - properties.directionHeld[2],
+  )
+  // Side to Side movement calculation
+  perpVector.set(
+    -perpVector.z * (properties.directionHeld[3] - properties.directionHeld[1]),
+    0,
+    perpVector.x * (properties.directionHeld[3] - properties.directionHeld[1]),
+  )
+  movementVector.add(perpVector) // combining horizontal and vertical movements along arena
+  movementVector.y = 0 // regardless of camera, player an only move along x and z axes
+  movementVector.normalize() // Must normalize movements because all players move at same speed
+}
+
+var canSend = true // active when a message can be sent to server to avoid msg flooding, decided by UPDATE_RATE
+
+/**
+ * Function to send movement data to the server.
+ * @function
+ * @name sendMovement
+ * @param {boolean} [override=false] - Flag to override movement restrictions for dashing.
+ */
+function sendMovement(override = false) {
+  if (spectating) return // spectating if in lobby or dead, so can't move in that case
+  if (canSend || override) {
+    // override allows for dashing and unlocking to get past the UPDATE_RATE limit
+    getSocket().send(
+      JSON.stringify([
+        constants.MESSAGES.sendMovement,
+        {
+          direction: [
+            movementVector.x * dashScalar,
+            movementVector.z * dashScalar,
+          ],
+        }, // always applies dashScalar, it is usually just 1
+      ]),
+    )
+    canSend = false
+    // UPDATE_RATE decides how often we can send updates to server
+    setTimeout(() => {
+      canSend = true
+    }, constants.UPDATE_RATE)
+  }
+}
+
+/**
+ * Function to throw the ball if conditions allow.
+ * @function
+ * @name throwBall
+ */
+function throwBall() {
+  if (constants.get_global('LOCKED') &amp;&amp; properties.hasBall) {
+    // can only throw ball if not in menu and if you are holding ball
+    // sends camera direction to server to handle ball velocity
+    camera.getWorldDirection(intermediateVector)
+    getSocket().send(
+      JSON.stringify([
+        constants.MESSAGES.throwBall,
+        [intermediateVector.x, intermediateVector.y, intermediateVector.z],
+      ]),
+    )
+  }
+}
+/**
+ * Function to handle key down events for player movement and actions.
+ * @function
+ * @name onKeyDown
+ * @param {Event} e - The key down event object (based on keybind).
+ */
+function onKeyDown(e) {
+  if (spectating) return
+  // callback is sendMovement(vector) from Connection.jsx
+  if (constants.get_global('LOCKED')) {
+    let wasMovement = false
+
+    if (e.key in keybinds) {
+      // Movement keys: WASD
+      let index = keybinds[e.key]
+      wasMovement = properties.directionHeld[index] == 0
+      properties.directionHeld[index] = 1
+    }
+
+    if (e.key == constants.get_global('KEYBINDS').Dash) {
+      // dash should only trigger on key press, not release
+      if (dashAvailable) {
+        wasMovement = true
+        dashScalar = constants.DASH_SPEED
+        // will fast forward the player in their moving direction
+
+        // starting dash cooldown
+        dashAvailable = false
+        setTimeout(() => {
+          dashAvailable = true
+        }, constants.DASH_COOLDOWN)
+      }
+    }
+
+    // Only calculating and sending movements to server when wasMovement is true.
+    // wasMovement is true when the the movement keys are being pressed differently than before.
+    // Avoids wasting time recalculating and resending the same movement vector over and over again.
+    if (wasMovement) {
+      calculateDirection()
+      sendMovement(dashScalar == constants.DASH_SPEED)
+    }
+  }
+}
+
+/**
+ * Function to handle key up events for player movement and actions.
+ * @function
+ * @name onKeyUp
+ * @param {Event} e - The key up event object.
+ */
+function onKeyUp(e) {
+  if (spectating) return
+  // callback is sendMovement(vector) from Connection.jsx
+  if (constants.get_global('LOCKED')) {
+    let wasMovement = false
+
+    if (e.key in keybinds) {
+      // Movement keys: WASD
+      let index = keybinds[e.key]
+      wasMovement = true
+      properties.directionHeld[index] = 0
+    } else if (e.key == constants.get_global('KEYBINDS').Throw) {
+      throwBall()
+    }
+
+    // resets dashScalar after dash is used
+    if (dashScalar > 1) {
+      wasMovement = true
+      dashScalar = 1
+    }
+
+    // Only calculating and sending movements to server when wasMovement is true.
+    // wasMovement is true when the the movement keys are being pressed differently than before.
+    // Avoids wasting time recalculating and resending the same movement vector over and over again.
+    if (wasMovement) {
+      calculateDirection()
+      sendMovement()
+    }
+  }
+}
+/**
+ * Function to attach key event listeners for player movement and actions.
+ * @function
+ * @name attachKeybinds
+ */
+export function attachKeybinds() {
+  document.addEventListener('keydown', onKeyDown)
+  document.addEventListener('keyup', onKeyUp)
+
+  constants.add_listener('LOCKED', isLocked => {
+    if (!isLocked) {
+      properties.directionHeld = [0, 0, 0, 0]
+      calculateDirection()
+      sendMovement(true)
+    }
+  })
+}
+
+// default spectating camera for when player is dead or in lobby
+
+/**
+ * Function to create a spectator camera. Default camera when player is dead or in lobby state.
+ * @function
+ * @name createSpectateCamera
+ */
+function createSpectateCamera() {
+  spectateCamera = new three.PerspectiveCamera(75, 2, 0.1, 1000)
+  spectateCamera.position.z = 0
+  spectateCamera.position.y = 10
+  spectateCamera.position.x = 22
+  spectateCamera.zoom = 1
+  spectateCamera.lookAt(0, 0, 0)
+  spectateCamera.updateProjectionMatrix()
+}
+
+// player in-game camera for when game is active and player is alive
+
+/**
+ * Function to create a camera for the game. Non-spectating camera for when game is active + player is alive.
+ * @function
+ * @name createCamera
+ * @param {boolean} [spectate=false] - Flag indicating if creating a spectator camera.
+ * @returns {PerspectiveCamera} The created camera or spectator camera if specified.
+ */
+export function createCamera(spectate = false) {
+  camera = new three.PerspectiveCamera(75, 2, 0.1, 1000)
+  camera.position.z = properties.z
+  camera.position.y = properties.y
+  camera.position.x = properties.x
+  camera.zoom = 1
+  camera.lookAt(0, 0, 5)
+  camera.updateProjectionMatrix()
+  createSpectateCamera()
+  if (spectate) {
+    return spectateCamera
+  }
+  return camera
+}
+
+/**
+ * Function to set the spectating mode.
+ * @function
+ * @name setSpectate
+ * @param {boolean} value - Flag indicating if in spectating mode.
+ */
+export function setSpectate(value) {
+  spectating = (value &amp;&amp; true) || false
+  constants.set_global('SPECTATING', spectating)
+  camera.updateProjectionMatrix()
+  spectateCamera.updateProjectionMatrix()
+}
+
+/**
+ * Function to get the current active camera.
+ * @function
+ * @name getCamera
+ * @param {boolean} [force=false] - Flag to force returning the camera even in spectating mode.
+ * @returns {PerspectiveCamera} The active camera.
+ */
+export function getCamera(force = false) {
+  if (spectating &amp;&amp; !force) return spectateCamera
+  return camera
+}
+
+/**
+ * Function to get the spectator camera.
+ * @function
+ * @name getSpectateCamera
+ * @returns {PerspectiveCamera} The spectator camera.
+ */
+export function getSpectateCamera() {
+  return spectateCamera
+}
+
+/**
+ * Function to update player data and handle specific actions based on the update.
+ * @function
+ * @name updatePlayer
+ * @param {Object} data - The updated player data.
+ * @param {boolean} [force=false] - Flag to force specified updates.
+ */
+export function updatePlayer(data, force = false) {
+  if (
+    data &amp;&amp;
+    data.alive &amp;&amp;
+    properties.hasBall == false &amp;&amp;
+    data.hasBall &amp;&amp;
+    !force
+  ) {
+    constants.set_global('ANNOUNCE', 'You picked up a weapon!')
+  }
+  properties = {
+    ...properties,
+    ...data,
+  }
+  if (force) {
+    camera.position.set(properties.x, properties.y, properties.z)
+  }
+}
+
+/**
+ * Function to check if the player is alive.
+ * @function
+ * @name isAlive
+ * @returns {boolean} Indicates if the player is alive.
+ */
+export function isAlive() {
+  return properties.alive
+}
+
+const twoPI = Math.PI * 2
+
+/**
+ * Function to update the spectator camera position for animation.
+ * @function
+ * @name updateSpectateCamera
+ */
+function updateSpectateCamera() {
+  spectateAnim += 0.0025118 //pi/180, comes out to full rotation every 6s
+  if (spectateAnim > twoPI) {
+    spectateAnim = 0
+  }
+  spectateCamera.position.x = Math.cos(spectateAnim) * 22
+  spectateCamera.position.z = Math.sin(spectateAnim) * 22
+  spectateCamera.lookAt(0, 0, 0)
+}
+
+/**
+ * Function to update the game state and handle player movement.
+ * @function
+ * @name update
+ */
+export function update() {
+  if (spectating) {
+    updateSpectateCamera()
+    return
+  }
+  //if dotproduct between camera and previous camera vector &lt; 0.9
+  if (movementVector.length() > 0.5) {
+    camera.getWorldDirection(intermediateVector)
+    let dot = prevCamVector.dot(intermediateVector)
+    if (dot &lt; 0.95 &amp;&amp; dot > 0.05) {
+      //send update to server
+      calculateDirection()
+      sendMovement()
+    }
+  }
+
+  intermediateVector.set(properties.x, properties.y, properties.z)
+  camera.position.lerp(intermediateVector, 0.2)
+}
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="PlayerModel.html">PlayerModel</a></li></ul><h3>Global</h3><ul><li><a href="global.html#$g">$g</a></li><li><a href="global.html#AVATARS">AVATARS</a></li><li><a href="global.html#AVATAR_NAMES">AVATAR_NAMES</a></li><li><a href="global.html#AlertWrapper">AlertWrapper</a></li><li><a href="global.html#Announcer">Announcer</a></li><li><a href="global.html#AvatarSelector">AvatarSelector</a></li><li><a href="global.html#BALL_ANIMATIONS">BALL_ANIMATIONS</a></li><li><a href="global.html#BUYABLE_MODELS">BUYABLE_MODELS</a></li><li><a href="global.html#BuyConfirmationDialog">BuyConfirmationDialog</a></li><li><a href="global.html#CustomAlert">CustomAlert</a></li><li><a href="global.html#DeadOverlay">DeadOverlay</a></li><li><a href="global.html#Disconnected">Disconnected</a></li><li><a href="global.html#EndScreen">EndScreen</a></li><li><a href="global.html#Hx">Hx</a></li><li><a href="global.html#InGameMenu">InGameMenu</a></li><li><a href="global.html#Leaderboard">Leaderboard</a></li><li><a href="global.html#LogWrapper">LogWrapper</a></li><li><a href="global.html#LoggingWrapper">LoggingWrapper</a></li><li><a href="global.html#MESSAGES">MESSAGES</a></li><li><a href="global.html#MODEL_IDS">MODEL_IDS</a></li><li><a href="global.html#MODEL_PROPERTIES">MODEL_PROPERTIES</a></li><li><a href="global.html#Ng">Ng</a></li><li><a href="global.html#PORT">PORT</a></li><li><a href="global.html#PlayerStats">PlayerStats</a></li><li><a href="global.html#SettingsTabContent">SettingsTabContent</a></li><li><a href="global.html#Store">Store</a></li><li><a href="global.html#TEXTURES">TEXTURES</a></li><li><a href="global.html#TabInstructionsContent">TabInstructionsContent</a></li><li><a href="global.html#ToggleLoginScreen">ToggleLoginScreen</a></li><li><a href="global.html#ToggleSignUpScreen">ToggleSignUpScreen</a></li><li><a href="global.html#addBall">addBall</a></li><li><a href="global.html#addPlayer">addPlayer</a></li><li><a href="global.html#add_listener">add_listener</a></li><li><a href="global.html#animate">animate</a></li><li><a href="global.html#applyTransformations">applyTransformations</a></li><li><a href="global.html#assign_random">assign_random</a></li><li><a href="global.html#attachKeybinds">attachKeybinds</a></li><li><a href="global.html#broadcast">broadcast</a></li><li><a href="global.html#calculateDirection">calculateDirection</a></li><li><a href="global.html#clearBalls">clearBalls</a></li><li><a href="global.html#clearPlayers">clearPlayers</a></li><li><a href="global.html#colors">colors</a></li><li><a href="global.html#createBall">createBall</a></li><li><a href="global.html#createCamera">createCamera</a></li><li><a href="global.html#createPet">createPet</a></li><li><a href="global.html#createSpectateCamera">createSpectateCamera</a></li><li><a href="global.html#createWorld">createWorld</a></li><li><a href="global.html#deletePet">deletePet</a></li><li><a href="global.html#deletePlayer">deletePlayer</a></li><li><a href="global.html#doTick">doTick</a></li><li><a href="global.html#endState">endState</a></li><li><a href="global.html#forbiddenKeys">forbiddenKeys</a></li><li><a href="global.html#getAllPurchasedItems">getAllPurchasedItems</a></li><li><a href="global.html#getBallGroup">getBallGroup</a></li><li><a href="global.html#getCamera">getCamera</a></li><li><a href="global.html#getConnections">getConnections</a></li><li><a href="global.html#getLeaderboardList">getLeaderboardList</a></li><li><a href="global.html#getMetadataByPlayerID">getMetadataByPlayerID</a></li><li><a href="global.html#getModelInstance">getModelInstance</a></li><li><a href="global.html#getPlayerModelGroup">getPlayerModelGroup</a></li><li><a href="global.html#getPointsByUsernames">getPointsByUsernames</a></li><li><a href="global.html#getProgress">getProgress</a></li><li><a href="global.html#getSkybox">getSkybox</a></li><li><a href="global.html#getSocket">getSocket</a></li><li><a href="global.html#getSpectateCamera">getSpectateCamera</a></li><li><a href="global.html#getToken">getToken</a></li><li><a href="global.html#getUsername">getUsername</a></li><li><a href="global.html#get_global">get_global</a></li><li><a href="global.html#handleBuy">handleBuy</a></li><li><a href="global.html#handleConfirmBuy">handleConfirmBuy</a></li><li><a href="global.html#handleEquipChange">handleEquipChange</a></li><li><a href="global.html#handleItemUpdates">handleItemUpdates</a></li><li><a href="global.html#handleLogin">handleLogin</a></li><li><a href="global.html#handleSignup">handleSignup</a></li><li><a href="global.html#handleTokenLogin">handleTokenLogin</a></li><li><a href="global.html#isAlive">isAlive</a></li><li><a href="global.html#isGameOver">isGameOver</a></li><li><a href="global.html#keybinds">keybinds</a></li><li><a href="global.html#loadDefault">loadDefault</a></li><li><a href="global.html#login">login</a></li><li><a href="global.html#logout">logout</a></li><li><a href="global.html#main">main</a></li><li><a href="global.html#message_parse">message_parse</a></li><li><a href="global.html#onCloseDialog">onCloseDialog</a></li><li><a href="global.html#onKeyDown">onKeyDown</a></li><li><a href="global.html#onKeyUp">onKeyUp</a></li><li><a href="global.html#ownedPets">ownedPets</a></li><li><a href="global.html#ownedWeapons">ownedWeapons</a></li><li><a href="global.html#playerDeath">playerDeath</a></li><li><a href="global.html#print_globals">print_globals</a></li><li><a href="global.html#processMessage">processMessage</a></li><li><a href="global.html#properties">properties</a></li><li><a href="global.html#purchaseItem">purchaseItem</a></li><li><a href="global.html#removeBall">removeBall</a></li><li><a href="global.html#removePlayer">removePlayer</a></li><li><a href="global.html#remove_listener">remove_listener</a></li><li><a href="global.html#sT">sT</a></li><li><a href="global.html#sc">sc</a></li><li><a href="global.html#sendMovement">sendMovement</a></li><li><a href="global.html#setFinishCallback">setFinishCallback</a></li><li><a href="global.html#setHandler">setHandler</a></li><li><a href="global.html#setSpectate">setSpectate</a></li><li><a href="global.html#setState">setState</a></li><li><a href="global.html#set_global">set_global</a></li><li><a href="global.html#setupConnection">setupConnection</a></li><li><a href="global.html#setupWSS">setupWSS</a></li><li><a href="global.html#signup">signup</a></li><li><a href="global.html#startServer">startServer</a></li><li><a href="global.html#startState">startState</a></li><li><a href="global.html#stopServer">stopServer</a></li><li><a href="global.html#styles">styles</a></li><li><a href="global.html#textStyle">textStyle</a></li><li><a href="global.html#throwBall">throwBall</a></li><li><a href="global.html#tn">tn</a></li><li><a href="global.html#tokenLogin">tokenLogin</a></li><li><a href="global.html#update">update</a></li><li><a href="global.html#updateAspect">updateAspect</a></li><li><a href="global.html#updateBalls">updateBalls</a></li><li><a href="global.html#updateHits">updateHits</a></li><li><a href="global.html#updateItems">updateItems</a></li><li><a href="global.html#updateLoss">updateLoss</a></li><li><a href="global.html#updateModelList">updateModelList</a></li><li><a href="global.html#updatePlayer">updatePlayer</a></li><li><a href="global.html#updatePlayers">updatePlayers</a></li><li><a href="global.html#updatePoints">updatePoints</a></li><li><a href="global.html#updateSpectateCamera">updateSpectateCamera</a></li><li><a href="global.html#updateWin">updateWin</a></li><li><a href="global.html#useEffect">useEffect</a></li><li><a href="global.html#websocketSetup">websocketSetup</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Fri Mar 15 2024 18:12:19 GMT-0700 (Pacific Daylight Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

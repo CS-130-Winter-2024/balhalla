@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: client/src/ui/UI.jsx</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: client/src/ui/UI.jsx</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import { useEffect, useState, createContext, useContext } from 'react'
+import './ui.css'
+import crosshair from './crosshair.svg'
+import Button from '@mui/material/Button'
+import Box from '@mui/material/Box'
+import Modal from '@mui/material/Modal'
+import TextField from '@mui/material/TextField'
+import { TablePagination } from '@mui/material'
+import backgroundImage from '../../assets/textures/Background.png'
+import Store from './components/Store'
+import {
+  add_listener,
+  get_global,
+  print_globals,
+  remove_listener,
+  set_global,
+  TEXTURES,
+} from '../constants'
+import Clock from './components/Clock'
+import EndScreen from './components/EndScreen.jsx'
+import InGameMenu from './components/InGameMenu.jsx'
+
+import { Announcer } from './components/Announcer.jsx'
+import { handleLogin, handleSignup } from '../game/Authentication.jsx'
+
+set_global('AUTHENTICATED', false)
+
+/**
+ *function that returns Leaderboard UI element
+ *@return {JSX.Element} Leaderboard UI element
+ */
+function Leaderboard() {
+  const [users, setUsers] = useState([])
+  const [openModal, setOpenModal] = useState(false)
+
+  const [page, setPage] = useState(0)
+  const rowsPerPage = 10
+
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage)
+  }
+
+  /**
+   * A React hook that fetches the leaderboard data and sets up event listeners for 'LOCKED' and 'GAME_OVER' events.
+   * The event listeners are cleaned up when the component unmounts. The Response for 'get_leaderboard' contains:
+   * {
+   *   [
+   *     {string} username,
+   *     {integer} wins,
+   *     {integer} losses,
+   *     {integer} hits,
+   *   ]
+   * }
+   *
+   * @function useEffect
+   * @returns {void}
+   */
+  useEffect(() => {
+    let closeListener = add_listener('LOCKED', x => {
+      if (!x) return
+      setOpenModal(false)
+    })
+    let listener = add_listener('GAME_OVER', isOver => {
+      if (!isOver) return
+      fetch('/get_leaderboard', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+        .then(response => response.json())
+        .then(data => {
+          setUsers(JSON.parse(data))
+        })
+    })
+
+    fetch('/get_leaderboard', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+      .then(response => response.json())
+      .then(data => {
+        setUsers(JSON.parse(data))
+      })
+    
+    return () => {
+      remove_listener('GAME_OVER', listener)
+      remove_listener('LOCKED', closeListener)
+    }
+  }, [])
+
+  const handleOpenModal = () => {
+    console.log(users)
+    console.log('inside handleOpenModal')
+    setOpenModal(true)
+  }
+
+  const handleCloseModal = () => {
+    setOpenModal(false)
+    console.log('inside handleClose')
+  }
+
+  const indexOfFirstUser = page * rowsPerPage
+  const indexOfLastUser = Math.min((page + 1) * rowsPerPage, users.length)
+
+  // const currentUsers = users.slice(indexOfFirstUser, indexOfLastUser);
+
+  return (
+    &lt;div>
+      &lt;Button
+        variant="contained"
+        onClick={handleOpenModal}
+        style={{
+          margin: '25px',
+          color: 'black',
+          backgroundColor: 'white',
+          fontFamily: 'Jorvik',
+        }}
+        id="logIn"
+      >
+        Leaderboard
+      &lt;/Button>
+      &lt;Modal open={openModal} onClose={handleCloseModal}>
+        &lt;div
+          style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            backgroundColor: '#fff',
+            padding: '20px',
+            height: '550px',
+            width: '600px',
+            color: 'black',
+            display: 'flex',
+            flexDirection: 'column',
+            fontFamily: 'Jorvik',
+            backgroundImage: TEXTURES.stone,
+            alignContent: 'center',
+            alignSelf: 'center',
+            backgroundImage: `url(${backgroundImage})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+          }}
+        >
+          &lt;h1
+            style={{
+              color: 'white',
+              fontFamily: 'Jorvik',
+              alignContent: 'center',
+              marginTop: '10px',
+              flex: 1,
+            }}
+          >
+            Leaderboard
+          &lt;/h1>
+          &lt;div style={{ overflowX: 'auto', flex: 4 }}>
+            &lt;table
+              style={{
+                width: '100%',
+                borderCollapse: 'collapse',
+                color: 'black',
+              }}
+            >
+              &lt;thead>
+                &lt;tr style={{ color: 'white' }}>
+                  &lt;th style={{ fontFamily: 'Jorvik' }}>Rank&lt;/th>
+                  &lt;th style={{ fontFamily: 'Jorvik' }}>Username&lt;/th>
+                  &lt;th style={{ fontFamily: 'Jorvik' }}>Wins&lt;/th>
+                  &lt;th style={{ fontFamily: 'Jorvik' }}>Losses&lt;/th>
+                  &lt;th style={{ fontFamily: 'Jorvik' }}>Hits&lt;/th>
+                &lt;/tr>
+              &lt;/thead>
+              &lt;tbody style={{ alignItems: 'center', overflowY: 'scroll' }}>
+                {users
+                  // .slice(indexOfFirstUser, indexOfLastUser)
+                  .map((user, index) => (
+                    &lt;tr key={user.username}>
+                      &lt;td
+                        style={{
+                          fontFamily: 'Jorvik',
+                          color: 'white',
+                          textAlign: 'center',
+                        }}
+                      >
+                        {indexOfFirstUser + index + 1}
+                      &lt;/td>
+                      &lt;td
+                        style={{
+                          fontFamily: 'Jorvik',
+                          color: 'white',
+                          textAlign: 'center',
+                        }}
+                      >
+                        {user.username}
+                      &lt;/td>
+                      &lt;td
+                        style={{
+                          fontFamily: 'Jorvik',
+                          color: 'white',
+                          textAlign: 'center',
+                        }}
+                      >
+                        {user.wins}
+                      &lt;/td>
+                      &lt;td
+                        style={{
+                          fontFamily: 'Jorvik',
+                          color: 'white',
+                          textAlign: 'center',
+                        }}
+                      >
+                        {user.losses}
+                      &lt;/td>
+                      &lt;td
+                        style={{
+                          fontFamily: 'Jorvik',
+                          color: 'white',
+                          textAlign: 'center',
+                        }}
+                      >
+                        {user.hits}
+                      &lt;/td>
+                    &lt;/tr>
+                  ))}
+              &lt;/tbody>
+            &lt;/table>
+            {/* &lt;TablePagination
+              component="div"
+              count={users.length}
+              page={page}
+              onPageChange={handleChangePage}
+              rowsPerPage={rowsPerPage}
+              style={{
+                color: 'white',
+                position: 'absolute',
+                bottom: '20px',
+                fontFamily: 'Jorvik',
+                left: '100px',
+                bottom: '10px',
+              }}
+              sx={{
+                fontFamily: 'Jorvik',
+              }}
+            /> */}
+          &lt;/div>
+          &lt;div style={{ flex: 1 }}>
+            &lt;Button
+              variant="contained"
+              onClick={handleCloseModal}
+              style={{
+                color: 'black',
+                backgroundColor: 'white',
+                fontFamily: 'Jorvik',
+                position: 'absolute',
+                bottom: '20px',
+              }}
+            >
+              Close
+            &lt;/Button>
+          &lt;/div>
+        &lt;/div>
+      &lt;/Modal>
+    &lt;/div>
+  )
+}
+
+/**
+ *returns UI element displayed when user disconnects
+ *@retur {JSX.Element} Disconnected
+ */
+function Disconnected({}) {
+  const [show, setShow] = useState(false)
+
+  useEffect(() => {
+    add_listener('DISCONNECTED', setShow)
+  })
+  return (
+    show &amp;&amp; (
+      &lt;div
+        style={{
+          zIndex: 99,
+          backgroundImage: `url(${backgroundImage})`,
+          backgroundSize: '100% 100%',
+          width: '100%',
+          height: '100%',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+        }}
+      >
+        &lt;p
+          style={{
+            fontSize: 32,
+            textAlign: 'center',
+            position: 'absolute',
+            top: '40%',
+            width: '100%',
+            fontFamily: 'Jorvik',
+            color: 'white',
+          }}
+        >
+          You have been disconnected from the server. Please refresh.
+        &lt;/p>
+      &lt;/div>
+    )
+  )
+}
+
+/**
+ *returns greyed out screen when user gets hit + becomes ghost
+ *@returns {JSX.Element} Ghost
+ */
+function DeadOverlay({}) {
+  const [show, setShow] = useState(false)
+
+  useEffect(() => {
+    add_listener('DEAD', setShow)
+  })
+  return (
+    show &amp;&amp; (
+      &lt;div
+        style={{
+          zIndex: 99,
+          backgroundColor: '#44c1f2',
+          opacity: 0.2,
+          pointerEvents: 'none',
+          width: '100%',
+          height: '100%',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+        }}
+      >
+        &lt;p
+          style={{
+            fontSize: 32,
+            textAlign: 'center',
+            position: 'absolute',
+            bottom: '30%',
+            width: '100%',
+            fontFamily: 'Jorvik',
+            color: 'black',
+            textShadow: '0 0 2px white',
+          }}
+        >
+          You are dead!
+        &lt;/p>
+      &lt;/div>
+    )
+  )
+}
+
+/**
+ *controls Login button + login fields functionality
+ *@return {JSX.Element} Login
+ */
+function ToggleLoginScreen() {
+  const [showLogin, setShowLogin] = useState(false)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+
+  // const { sharedBoolean } = getSharedBoolean();
+  function handleToggleLogin() {
+    setShowLogin(!showLogin)
+  }
+
+  // useEffect(() => {
+  //   let listener = add_listener('AUTHENTICATED', setAuth)
+  //   // return remove_listener('AUTHENTICATED', listener)
+  // }, [])
+
+  return (
+    &lt;Box position="relative">
+      {/* {auth &amp;&amp; &lt;Button>aaaa&lt;/Button>} */}
+      &lt;Button
+        id="logIn"
+        variant="outlined"
+        style={{
+          fontFamily: 'Jorvik',
+          backgroundColor: 'white',
+          color: 'black',
+        }}
+        onClick={handleToggleLogin}
+      >
+        {showLogin ? 'Hide Login' : 'Login'}
+      &lt;/Button>
+      {showLogin &amp;&amp; (
+        &lt;Box
+          position="absolute"
+          top={-150}
+          height={250}
+          width={250}
+          left="calc(100% + 50px)"
+          padding="10px"
+          border="10px solid #0"
+          borderRadius="10px"
+          bgcolor="#0"
+          alignItems="center"
+          gap={4}
+          p={2}
+          style={{
+            backgroundImage: `url(${backgroundImage})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+          }}
+        >
+          &lt;h2
+            id="box"
+            style={{
+              color: 'white',
+              paddingLeft: 10,
+              paddingTop: -5,
+              margin: '5px',
+              fontFamily: 'Jorvik',
+            }}
+          >
+            Login
+          &lt;/h2>
+          &lt;TextField
+            id="field"
+            style={{ padding: 10, color: 'white' }}
+            label="Username"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            sx={{
+              input: {
+                color: 'white',
+                backgroundColor: '#65727d',
+                borderRadius: '5px',
+                fontFamily: 'Jorvik',
+              },
+              label: { color: 'white', fontFamily: 'Jorvik' },
+            }}
+          />
+          &lt;br />
+          &lt;TextField
+            id="field"
+            label="Password"
+            type="password"
+            sx={{
+              input: {
+                color: 'white',
+                backgroundColor: '#65727d',
+                borderRadius: '5px',
+              },
+              label: { color: 'white', fontFamily: 'Jorvik' },
+            }}
+            style={{ padding: 10 }}
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+          />
+          &lt;br />
+          &lt;Button
+            onClick={() => handleLogin(email, password)}
+            style={{
+              color: 'black',
+              backgroundColor: 'white',
+              paddingLeft: 10,
+              fontFamily: 'Jorvik',
+            }}
+          >
+            Submit
+          &lt;/Button>
+        &lt;/Box>
+      )}
+    &lt;/Box>
+  )
+}
+/**
+ *controls Sign Up button + sign up fields functionality
+ *@returns {JSX.Element} SignUp
+ */
+function ToggleSignUpScreen() {
+  const [showSignUp, setShowSignUp] = useState(false)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+
+  function handleToggleSignUp() {
+    setShowSignUp(!showSignUp)
+  }
+
+  return (
+    &lt;Box position="relative">
+      &lt;Button
+        id="signUp"
+        variant="outlined"
+        style={{
+          fontFamily: 'Jorvik',
+          backgroundColor: 'white',
+          color: 'black',
+        }}
+        onClick={handleToggleSignUp}
+      >
+        {showSignUp ? 'Hide Sign Up' : 'Sign Up'}
+      &lt;/Button>
+      {showSignUp &amp;&amp; (
+        &lt;Box
+          position="absolute"
+          marginTop="20px"
+          height={350}
+          width={250}
+          left="calc(100% + 50px)"
+          padding="10px"
+          border="10px solid #0"
+          borderRadius="10px"
+          bgcolor="#0"
+          alignItems="center"
+          gap={2}
+          p={2}
+          style={{
+            backgroundImage: `url(${backgroundImage})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+          }}
+        >
+          &lt;h2
+            id="box"
+            style={{
+              color: 'white',
+              paddingLeft: 10,
+              paddingTop: -5,
+              margin: '5px',
+              fontFamily: 'Jorvik',
+            }}
+          >
+            Sign Up
+          &lt;/h2>
+          &lt;TextField
+            id="emailField"
+            style={{ padding: 10 }}
+            label="Username"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            sx={{
+              input: {
+                color: 'white',
+                backgroundColor: '#65727d',
+                borderRadius: '5px',
+                fontFamily: 'Jorvik',
+              },
+              label: { color: 'white', fontFamily: 'Jorvik' },
+            }}
+          />
+          &lt;br />
+          &lt;TextField
+            id="passwordField"
+            label="Password"
+            type="password"
+            style={{ padding: 10 }}
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            sx={{
+              input: {
+                color: 'white',
+                backgroundColor: '#65727d',
+                borderRadius: '5px',
+              },
+              label: { color: 'white', fontFamily: 'Jorvik' },
+            }}
+          />
+          &lt;br />
+          &lt;TextField
+            id="confirmPasswordField"
+            label="Confirm Password"
+            type="password"
+            style={{ padding: 10 }}
+            value={confirmPassword}
+            onChange={e => setConfirmPassword(e.target.value)}
+            sx={{
+              input: {
+                color: 'white',
+                backgroundColor: '#65727d',
+                borderRadius: '5px',
+              },
+              label: { color: 'white', fontFamily: 'Jorvik' },
+            }}
+          />
+          &lt;br />
+          &lt;Button
+            onClick={() => handleSignup(email, password, confirmPassword)}
+            style={{
+              color: 'black',
+              backgroundColor: 'white',
+              fontFamily: 'Jorvik',
+              paddingLeft: 10,
+            }}
+          >
+            Submit
+          &lt;/Button>
+        &lt;/Box>
+      )}
+    &lt;/Box>
+  )
+}
+
+/**
+ *export function for all UI in the left side menu,
+ * Includes Leaderboard, Login, Sign Up, and Disconnected
+ * @retu {JSX.Element} UI (left menu)
+ */
+export default function UI({ showAlert }) {
+  const [locked, setLocked] = useState(false)
+  const [inQueue, setInQueue] = useState(true)
+  const [spectating, setSpectating] = useState(true)
+  const [username, setUsername] = useState(get_global('USERNAME') || '')
+
+  const [auth, setAuth] = useState(false)
+
+  useEffect(() => {
+    // attempt to login with current token
+  }, [])
+  const [showStore, setShowStore] = useState(false)
+
+  useEffect(() => {
+    set_global('IN_QUEUE', true)
+
+    let listener = add_listener('LOCKED', setLocked)
+    let spectatingListener = add_listener('SPECTATING', setSpectating)
+    let authListener = add_listener('AUTHENTICATED', setAuth)
+    let usernameListener = add_listener('USERNAME', setUsername)
+    return () => {
+      remove_listener('LOCKED', listener)
+      remove_listener('AUTHENTICATED', authListener)
+      remove_listener('USERNAME', usernameListener)
+      remove_listener('SPECTATING', spectatingListener)
+    }
+  }, [])
+
+  return (
+    &lt;>
+      &lt;DeadOverlay />
+      &lt;Disconnected />
+      &lt;EndScreen />
+      &lt;Clock />
+      &lt;div
+        id="UI"
+        style={{
+          display: (locked &amp;&amp; 'none') || (spectating &amp;&amp; 'block') || 'none',
+          backgroundImage: `url(${TEXTURES.stoneVert})`,
+          backgroundSize: '100% 100%',
+          border: '2px solid #0',
+        }}
+      >
+        &lt;Store
+          isOpen={showStore}
+          onClose={() => {
+            setShowStore(false)
+          }}
+          showAlert={showAlert}
+        />
+        &lt;h1
+          id="logo"
+          style={{ color: 'white', textAlign: 'center', fontFamily: 'Jorvik' }}
+        >
+          Balhalla
+        &lt;/h1>
+        &lt;h2
+          style={{ textAlign: 'center', fontFamily: 'Jorvik', color: 'white' }}
+        >
+          {username}
+        &lt;/h2>
+
+        &lt;Button
+          variant="contained"
+          id="logIn"
+          style={{
+            backgroundColor: 'white',
+            color: 'black',
+            fontFamily: 'Jorvik',
+          }}
+          onClick={() => {
+            print_globals()
+            set_global('IN_QUEUE', !inQueue)
+            setInQueue(!inQueue)
+          }}
+        >
+          {(inQueue &amp;&amp; 'Leave Queue') || 'Enter Queue'}
+        &lt;/Button>
+        {!auth &amp;&amp; &lt;ToggleLoginScreen>&lt;/ToggleLoginScreen>}
+
+        {!auth &amp;&amp; &lt;ToggleSignUpScreen id="logIn">&lt;/ToggleSignUpScreen>}
+
+        &lt;Leaderboard>&lt;/Leaderboard>
+        {auth &amp;&amp; (
+          &lt;Button
+            id="logIn"
+            style={{
+              backgroundColor: 'white',
+              color: 'black',
+              fontFamily: 'Jorvik',
+            }}
+            onClick={() => {
+              setShowStore(true)
+            }}
+            variant="outlined"
+          >
+            Shop
+          &lt;/Button>
+        )}
+      &lt;/div>
+      &lt;div id="overlay" style={{ display: (locked &amp;&amp; 'block') || 'none' }}>
+        &lt;InGameMenu showAlert={showAlert} />
+        &lt;Announcer />
+        &lt;img
+          src={crosshair}
+          style={{
+            position: 'absolute',
+            left: '50%',
+            top: '50%',
+            transform: 'translate(-50%,-50%)',
+          }}
+          width={50}
+          height={50}
+        />
+      &lt;/div>
+    &lt;/>
+  )
+}
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="PlayerModel.html">PlayerModel</a></li></ul><h3>Global</h3><ul><li><a href="global.html#$g">$g</a></li><li><a href="global.html#AVATARS">AVATARS</a></li><li><a href="global.html#AVATAR_NAMES">AVATAR_NAMES</a></li><li><a href="global.html#AlertWrapper">AlertWrapper</a></li><li><a href="global.html#Announcer">Announcer</a></li><li><a href="global.html#AvatarSelector">AvatarSelector</a></li><li><a href="global.html#BALL_ANIMATIONS">BALL_ANIMATIONS</a></li><li><a href="global.html#BUYABLE_MODELS">BUYABLE_MODELS</a></li><li><a href="global.html#BuyConfirmationDialog">BuyConfirmationDialog</a></li><li><a href="global.html#CustomAlert">CustomAlert</a></li><li><a href="global.html#DeadOverlay">DeadOverlay</a></li><li><a href="global.html#Disconnected">Disconnected</a></li><li><a href="global.html#EndScreen">EndScreen</a></li><li><a href="global.html#Hx">Hx</a></li><li><a href="global.html#InGameMenu">InGameMenu</a></li><li><a href="global.html#Leaderboard">Leaderboard</a></li><li><a href="global.html#LogWrapper">LogWrapper</a></li><li><a href="global.html#LoggingWrapper">LoggingWrapper</a></li><li><a href="global.html#MESSAGES">MESSAGES</a></li><li><a href="global.html#MODEL_IDS">MODEL_IDS</a></li><li><a href="global.html#MODEL_PROPERTIES">MODEL_PROPERTIES</a></li><li><a href="global.html#Ng">Ng</a></li><li><a href="global.html#PORT">PORT</a></li><li><a href="global.html#PlayerStats">PlayerStats</a></li><li><a href="global.html#SettingsTabContent">SettingsTabContent</a></li><li><a href="global.html#Store">Store</a></li><li><a href="global.html#TEXTURES">TEXTURES</a></li><li><a href="global.html#TabInstructionsContent">TabInstructionsContent</a></li><li><a href="global.html#ToggleLoginScreen">ToggleLoginScreen</a></li><li><a href="global.html#ToggleSignUpScreen">ToggleSignUpScreen</a></li><li><a href="global.html#addBall">addBall</a></li><li><a href="global.html#addPlayer">addPlayer</a></li><li><a href="global.html#add_listener">add_listener</a></li><li><a href="global.html#animate">animate</a></li><li><a href="global.html#applyTransformations">applyTransformations</a></li><li><a href="global.html#assign_random">assign_random</a></li><li><a href="global.html#attachKeybinds">attachKeybinds</a></li><li><a href="global.html#broadcast">broadcast</a></li><li><a href="global.html#calculateDirection">calculateDirection</a></li><li><a href="global.html#clearBalls">clearBalls</a></li><li><a href="global.html#clearPlayers">clearPlayers</a></li><li><a href="global.html#colors">colors</a></li><li><a href="global.html#createBall">createBall</a></li><li><a href="global.html#createCamera">createCamera</a></li><li><a href="global.html#createPet">createPet</a></li><li><a href="global.html#createSpectateCamera">createSpectateCamera</a></li><li><a href="global.html#createWorld">createWorld</a></li><li><a href="global.html#deletePet">deletePet</a></li><li><a href="global.html#deletePlayer">deletePlayer</a></li><li><a href="global.html#doTick">doTick</a></li><li><a href="global.html#endState">endState</a></li><li><a href="global.html#forbiddenKeys">forbiddenKeys</a></li><li><a href="global.html#getAllPurchasedItems">getAllPurchasedItems</a></li><li><a href="global.html#getBallGroup">getBallGroup</a></li><li><a href="global.html#getCamera">getCamera</a></li><li><a href="global.html#getConnections">getConnections</a></li><li><a href="global.html#getLeaderboardList">getLeaderboardList</a></li><li><a href="global.html#getMetadataByPlayerID">getMetadataByPlayerID</a></li><li><a href="global.html#getModelInstance">getModelInstance</a></li><li><a href="global.html#getPlayerModelGroup">getPlayerModelGroup</a></li><li><a href="global.html#getPointsByUsernames">getPointsByUsernames</a></li><li><a href="global.html#getProgress">getProgress</a></li><li><a href="global.html#getSkybox">getSkybox</a></li><li><a href="global.html#getSocket">getSocket</a></li><li><a href="global.html#getSpectateCamera">getSpectateCamera</a></li><li><a href="global.html#getToken">getToken</a></li><li><a href="global.html#getUsername">getUsername</a></li><li><a href="global.html#get_global">get_global</a></li><li><a href="global.html#handleBuy">handleBuy</a></li><li><a href="global.html#handleConfirmBuy">handleConfirmBuy</a></li><li><a href="global.html#handleEquipChange">handleEquipChange</a></li><li><a href="global.html#handleItemUpdates">handleItemUpdates</a></li><li><a href="global.html#handleLogin">handleLogin</a></li><li><a href="global.html#handleSignup">handleSignup</a></li><li><a href="global.html#handleTokenLogin">handleTokenLogin</a></li><li><a href="global.html#isAlive">isAlive</a></li><li><a href="global.html#isGameOver">isGameOver</a></li><li><a href="global.html#keybinds">keybinds</a></li><li><a href="global.html#loadDefault">loadDefault</a></li><li><a href="global.html#login">login</a></li><li><a href="global.html#logout">logout</a></li><li><a href="global.html#main">main</a></li><li><a href="global.html#message_parse">message_parse</a></li><li><a href="global.html#onCloseDialog">onCloseDialog</a></li><li><a href="global.html#onKeyDown">onKeyDown</a></li><li><a href="global.html#onKeyUp">onKeyUp</a></li><li><a href="global.html#ownedPets">ownedPets</a></li><li><a href="global.html#ownedWeapons">ownedWeapons</a></li><li><a href="global.html#playerDeath">playerDeath</a></li><li><a href="global.html#print_globals">print_globals</a></li><li><a href="global.html#processMessage">processMessage</a></li><li><a href="global.html#properties">properties</a></li><li><a href="global.html#purchaseItem">purchaseItem</a></li><li><a href="global.html#removeBall">removeBall</a></li><li><a href="global.html#removePlayer">removePlayer</a></li><li><a href="global.html#remove_listener">remove_listener</a></li><li><a href="global.html#sT">sT</a></li><li><a href="global.html#sc">sc</a></li><li><a href="global.html#sendMovement">sendMovement</a></li><li><a href="global.html#setFinishCallback">setFinishCallback</a></li><li><a href="global.html#setHandler">setHandler</a></li><li><a href="global.html#setSpectate">setSpectate</a></li><li><a href="global.html#setState">setState</a></li><li><a href="global.html#set_global">set_global</a></li><li><a href="global.html#setupConnection">setupConnection</a></li><li><a href="global.html#setupWSS">setupWSS</a></li><li><a href="global.html#signup">signup</a></li><li><a href="global.html#startServer">startServer</a></li><li><a href="global.html#startState">startState</a></li><li><a href="global.html#stopServer">stopServer</a></li><li><a href="global.html#styles">styles</a></li><li><a href="global.html#textStyle">textStyle</a></li><li><a href="global.html#throwBall">throwBall</a></li><li><a href="global.html#tn">tn</a></li><li><a href="global.html#tokenLogin">tokenLogin</a></li><li><a href="global.html#update">update</a></li><li><a href="global.html#updateAspect">updateAspect</a></li><li><a href="global.html#updateBalls">updateBalls</a></li><li><a href="global.html#updateHits">updateHits</a></li><li><a href="global.html#updateItems">updateItems</a></li><li><a href="global.html#updateLoss">updateLoss</a></li><li><a href="global.html#updateModelList">updateModelList</a></li><li><a href="global.html#updatePlayer">updatePlayer</a></li><li><a href="global.html#updatePlayers">updatePlayers</a></li><li><a href="global.html#updatePoints">updatePoints</a></li><li><a href="global.html#updateSpectateCamera">updateSpectateCamera</a></li><li><a href="global.html#updateWin">updateWin</a></li><li><a href="global.html#useEffect">useEffect</a></li><li><a href="global.html#websocketSetup">websocketSetup</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Fri Mar 15 2024 18:12:19 GMT-0700 (Pacific Daylight Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

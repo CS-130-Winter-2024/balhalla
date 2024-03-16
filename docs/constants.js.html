@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: constants.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: constants.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>export const MINIMUM_PLAYERS = 2;
+
+//times
+export const LOBBY_LENGTH = 10000;
+export const START_COUNTDOWN = 5000;
+export const GAME_LENGTH = 45000; //game length in milliseconds
+export const TICK_RATE = 50; //how often to update server in milliseconds
+export const TICK_DT = 0.05; //tick rate in seconds
+
+//speed
+export const PLAYER_SPEED = 5; //meters/second for players
+export const DEAD_PLAYER_SPEED = 3; //meters/second for players
+export const BALL_SPEED = 20; //INITIAL BALL SPEED
+export const BALL_SHOVE_SPEED = 4; // speed of a ball on the ground a ghost is pushing
+export const BALL_GRAVITY = 9.8;
+export const SPEED_DT = PLAYER_SPEED * TICK_DT;
+export const DEAD_SPEED_DT = DEAD_PLAYER_SPEED * TICK_DT;
+
+//sizing
+export const WORLD_HALF_WIDTH = 14.5; //POSITIVE Z is RED TEAM (TEAM 1), NEGATIVE Z is BLUE TEAM (TEAM 0)
+export const WORLD_HALF_LENGTH = 10.5;
+export const SPAWN_DISTANCE = 3; //maximum spawn distance from the edge
+export const BALL_RADIUS = 0.25;
+export const PLAYER_RADIUS = 0.5;
+export const COLLISION_R2 = 0.5625;
+export const PLAYER_HEIGHT = 2;
+
+//TEMPORARY, UNTIL DATABASE/ITEM SELECTION DONE
+export const TEMP_DEFAULT_BALL_MODEL_UNTIL_SELECT_BALL_IS_DONE = 2;
+export const DEFAULT_BODY = 1;
+
+// default data/format for the in-game player
+//   all player data persistent between games is kept in metadata
+export const BASE_PLAYER = {
+  direction: [0, 0], //x,z
+  x: 0,
+  z: 0,
+  alive: true,
+  hasBall: true, //should be false, true in dev
+};
+
+export const MESSAGES = {
+  sendMovement: "a", //server&lt;-client DONE ON SERVER
+  serverUpdate: "b", //server->client DONE ON SERVER
+  playerJoin: "c", //server&lt;->client DONE ON SERVER
+  playerLeave: "d", // server->client DONE ON SERVER
+  playerList: "e", // server->client DONE ON SERVER
+  gameStart: "f", // server->client
+  playerKnockout: "g", //server->client
+  gameEnd: "h", //server->client
+  throwBall: "i", //server->client,
+  pauseClock: "j",
+};
+
+/**
+ * Function to parse a message received from a player and extract relevant data.
+ * @function
+ * @name message_parse
+ * @param {string} msg - The message to parse, expected to be in JSON format.
+ * @returns {object} - An object containing parsed data extracted from the message.
+ */
+export function message_parse(msg) {
+  let output = {};
+  let data = JSON.parse(msg);
+  output.type = data[0];
+  switch (
+    data[0] //data[0] = type
+  ) {
+    case MESSAGES.sendMovement:
+      output.direction = data[1].direction;
+      break;
+    case MESSAGES.playerJoin:
+      output.username = data[1].username;
+      output.ready = data[1].ready ? data[1].ready : false;
+      output.ball = data[1].ball || 2;
+      output.pet = data[1].pet || undefined;
+      output.icon = data[1].icon || 0;
+      break;
+    case MESSAGES.throwBall:
+      output.direction = data[1];
+      output.x = data[1][0];
+      output.y = data[1][1];
+      output.z = data[1][2];
+      break;
+  }
+  return output;
+}
+
+//shuffle a team into 2 sides;
+
+/**
+ * Function to randomly assign players to two teams based on the given count.
+ * @function
+ * @name assign_random
+ * @param {number} count - The total number of players to assign to teams.
+ * @returns {Array} - An array containing the team assignments and a tiebreaker value.
+ */
+export function assign_random(count) {
+  let tiebreaker = (count % 2 == 1 &amp;&amp; Math.floor(Math.random() * 2)) || 0;
+  let teamOneCount = Math.floor(count / 2) + tiebreaker;
+  let teamTwoCount = count - teamOneCount;
+  var assignments = [];
+  for (let i = 0; i &lt; count; i++) {
+    let choice = Math.floor(Math.random() * 2);
+    if (choice == 1) {
+      if (teamTwoCount > 0) {
+        teamTwoCount--;
+      } else {
+        choice = 0;
+      }
+    } else {
+      if (teamOneCount > 0) {
+        teamOneCount--;
+      } else {
+        choice = 1;
+      }
+    }
+    assignments.push(choice);
+  }
+  return [assignments, tiebreaker];
+}
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="PlayerModel.html">PlayerModel</a></li></ul><h3>Global</h3><ul><li><a href="global.html#$g">$g</a></li><li><a href="global.html#AVATARS">AVATARS</a></li><li><a href="global.html#AVATAR_NAMES">AVATAR_NAMES</a></li><li><a href="global.html#AlertWrapper">AlertWrapper</a></li><li><a href="global.html#Announcer">Announcer</a></li><li><a href="global.html#AvatarSelector">AvatarSelector</a></li><li><a href="global.html#BALL_ANIMATIONS">BALL_ANIMATIONS</a></li><li><a href="global.html#BUYABLE_MODELS">BUYABLE_MODELS</a></li><li><a href="global.html#BuyConfirmationDialog">BuyConfirmationDialog</a></li><li><a href="global.html#CustomAlert">CustomAlert</a></li><li><a href="global.html#DeadOverlay">DeadOverlay</a></li><li><a href="global.html#Disconnected">Disconnected</a></li><li><a href="global.html#EndScreen">EndScreen</a></li><li><a href="global.html#Hx">Hx</a></li><li><a href="global.html#InGameMenu">InGameMenu</a></li><li><a href="global.html#Leaderboard">Leaderboard</a></li><li><a href="global.html#LogWrapper">LogWrapper</a></li><li><a href="global.html#LoggingWrapper">LoggingWrapper</a></li><li><a href="global.html#MESSAGES">MESSAGES</a></li><li><a href="global.html#MODEL_IDS">MODEL_IDS</a></li><li><a href="global.html#MODEL_PROPERTIES">MODEL_PROPERTIES</a></li><li><a href="global.html#Ng">Ng</a></li><li><a href="global.html#PORT">PORT</a></li><li><a href="global.html#PlayerStats">PlayerStats</a></li><li><a href="global.html#SettingsTabContent">SettingsTabContent</a></li><li><a href="global.html#Store">Store</a></li><li><a href="global.html#TEXTURES">TEXTURES</a></li><li><a href="global.html#TabInstructionsContent">TabInstructionsContent</a></li><li><a href="global.html#ToggleLoginScreen">ToggleLoginScreen</a></li><li><a href="global.html#ToggleSignUpScreen">ToggleSignUpScreen</a></li><li><a href="global.html#addBall">addBall</a></li><li><a href="global.html#addPlayer">addPlayer</a></li><li><a href="global.html#add_listener">add_listener</a></li><li><a href="global.html#animate">animate</a></li><li><a href="global.html#applyTransformations">applyTransformations</a></li><li><a href="global.html#assign_random">assign_random</a></li><li><a href="global.html#attachKeybinds">attachKeybinds</a></li><li><a href="global.html#broadcast">broadcast</a></li><li><a href="global.html#calculateDirection">calculateDirection</a></li><li><a href="global.html#clearBalls">clearBalls</a></li><li><a href="global.html#clearPlayers">clearPlayers</a></li><li><a href="global.html#colors">colors</a></li><li><a href="global.html#createBall">createBall</a></li><li><a href="global.html#createCamera">createCamera</a></li><li><a href="global.html#createPet">createPet</a></li><li><a href="global.html#createSpectateCamera">createSpectateCamera</a></li><li><a href="global.html#createWorld">createWorld</a></li><li><a href="global.html#deletePet">deletePet</a></li><li><a href="global.html#deletePlayer">deletePlayer</a></li><li><a href="global.html#doTick">doTick</a></li><li><a href="global.html#endState">endState</a></li><li><a href="global.html#forbiddenKeys">forbiddenKeys</a></li><li><a href="global.html#getAllPurchasedItems">getAllPurchasedItems</a></li><li><a href="global.html#getBallGroup">getBallGroup</a></li><li><a href="global.html#getCamera">getCamera</a></li><li><a href="global.html#getConnections">getConnections</a></li><li><a href="global.html#getLeaderboardList">getLeaderboardList</a></li><li><a href="global.html#getMetadataByPlayerID">getMetadataByPlayerID</a></li><li><a href="global.html#getModelInstance">getModelInstance</a></li><li><a href="global.html#getPlayerModelGroup">getPlayerModelGroup</a></li><li><a href="global.html#getPointsByUsernames">getPointsByUsernames</a></li><li><a href="global.html#getProgress">getProgress</a></li><li><a href="global.html#getSkybox">getSkybox</a></li><li><a href="global.html#getSocket">getSocket</a></li><li><a href="global.html#getSpectateCamera">getSpectateCamera</a></li><li><a href="global.html#getToken">getToken</a></li><li><a href="global.html#getUsername">getUsername</a></li><li><a href="global.html#get_global">get_global</a></li><li><a href="global.html#handleBuy">handleBuy</a></li><li><a href="global.html#handleConfirmBuy">handleConfirmBuy</a></li><li><a href="global.html#handleEquipChange">handleEquipChange</a></li><li><a href="global.html#handleItemUpdates">handleItemUpdates</a></li><li><a href="global.html#handleLogin">handleLogin</a></li><li><a href="global.html#handleSignup">handleSignup</a></li><li><a href="global.html#handleTokenLogin">handleTokenLogin</a></li><li><a href="global.html#isAlive">isAlive</a></li><li><a href="global.html#isGameOver">isGameOver</a></li><li><a href="global.html#keybinds">keybinds</a></li><li><a href="global.html#loadDefault">loadDefault</a></li><li><a href="global.html#login">login</a></li><li><a href="global.html#logout">logout</a></li><li><a href="global.html#main">main</a></li><li><a href="global.html#message_parse">message_parse</a></li><li><a href="global.html#onCloseDialog">onCloseDialog</a></li><li><a href="global.html#onKeyDown">onKeyDown</a></li><li><a href="global.html#onKeyUp">onKeyUp</a></li><li><a href="global.html#ownedPets">ownedPets</a></li><li><a href="global.html#ownedWeapons">ownedWeapons</a></li><li><a href="global.html#playerDeath">playerDeath</a></li><li><a href="global.html#print_globals">print_globals</a></li><li><a href="global.html#processMessage">processMessage</a></li><li><a href="global.html#properties">properties</a></li><li><a href="global.html#purchaseItem">purchaseItem</a></li><li><a href="global.html#removeBall">removeBall</a></li><li><a href="global.html#removePlayer">removePlayer</a></li><li><a href="global.html#remove_listener">remove_listener</a></li><li><a href="global.html#sT">sT</a></li><li><a href="global.html#sc">sc</a></li><li><a href="global.html#sendMovement">sendMovement</a></li><li><a href="global.html#setFinishCallback">setFinishCallback</a></li><li><a href="global.html#setHandler">setHandler</a></li><li><a href="global.html#setSpectate">setSpectate</a></li><li><a href="global.html#setState">setState</a></li><li><a href="global.html#set_global">set_global</a></li><li><a href="global.html#setupConnection">setupConnection</a></li><li><a href="global.html#setupWSS">setupWSS</a></li><li><a href="global.html#signup">signup</a></li><li><a href="global.html#startServer">startServer</a></li><li><a href="global.html#startState">startState</a></li><li><a href="global.html#stopServer">stopServer</a></li><li><a href="global.html#styles">styles</a></li><li><a href="global.html#textStyle">textStyle</a></li><li><a href="global.html#throwBall">throwBall</a></li><li><a href="global.html#tn">tn</a></li><li><a href="global.html#tokenLogin">tokenLogin</a></li><li><a href="global.html#update">update</a></li><li><a href="global.html#updateAspect">updateAspect</a></li><li><a href="global.html#updateBalls">updateBalls</a></li><li><a href="global.html#updateHits">updateHits</a></li><li><a href="global.html#updateItems">updateItems</a></li><li><a href="global.html#updateLoss">updateLoss</a></li><li><a href="global.html#updateModelList">updateModelList</a></li><li><a href="global.html#updatePlayer">updatePlayer</a></li><li><a href="global.html#updatePlayers">updatePlayers</a></li><li><a href="global.html#updatePoints">updatePoints</a></li><li><a href="global.html#updateSpectateCamera">updateSpectateCamera</a></li><li><a href="global.html#updateWin">updateWin</a></li><li><a href="global.html#useEffect">useEffect</a></li><li><a href="global.html#websocketSetup">websocketSetup</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Fri Mar 15 2024 18:12:19 GMT-0700 (Pacific Daylight Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

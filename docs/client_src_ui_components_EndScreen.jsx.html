@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: client/src/ui/components/EndScreen.jsx</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: client/src/ui/components/EndScreen.jsx</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import {
+  Dialog,
+  DialogContent,
+  Typography,
+  IconButton,
+  Box,
+  Avatar,
+  Button,
+} from '@mui/material'
+import CloseIcon from '@mui/icons-material/Close'
+import { useEffect, useState } from 'react'
+import {
+  add_listener,
+  remove_listener,
+  get_global,
+  TEXTURES,
+  AVATARS,
+} from '../../constants'
+import { getMetadataByPlayerID } from '../../game/OtherPlayers'
+import axe from '../../../assets/images/sword_cross.png'
+import fire from '../../../assets/images/fire.gif'
+const bgUrl = 'url(' + TEXTURES.stone + ')'
+
+/**
+ * Returns styling options based on 'Viking' font
+ * @param {number} size - Size of the font
+ * @param {boolean} bold - Whether the font is bold
+ */
+function textStyle(size = 3, bolded = false) {
+  if (size &lt; 0 || size > 6) {
+    console.error('Invalid size for textStyle')
+    return
+  }
+  const fontSizeMapping = [
+    '14px',
+    '16px',
+    '18px',
+    '20px',
+    '24px',
+    '36px',
+    '48px',
+    '60px',
+  ]
+
+  return {
+    fontFamily: 'Jorvik',
+    textAlign: 'center',
+    fontSize: fontSizeMapping[size],
+    fontWeight: bolded ? 'bold' : 'normal',
+  }
+}
+
+/**
+ * Component for displaying the end screen with game results and player information. Controls UI + gets winners/MVP
+ */
+const EndScreen = ({}) => {
+  const [visible, setVisible] = useState(false)
+
+  const [winner, setWinner] = useState('Blue Team Wins')
+  const [points_earned, setPoints] = useState(
+    get_global('INDIVIDUAL_SCORE') || 0,
+  )
+  const [mvp, setMvp] = useState(get_global('MVP_DATA') || {})
+
+  // delete these two and replace with the two on top once you verify the other two on top works (i have no idea, couldnt test)
+  // not sure how metadata suppose to look, but from other code i assume .username .team .hits
+  //const [mvp, setMvp] = useState(get_global("MVP"))
+  //const [points_earned, setPoints] = useState(get_global("EARNED_POINTS") || 0)
+
+  useEffect(() => {
+    let listener = add_listener('GAME_OVER', x => {
+      if (!x) return
+      setVisible(true)
+      if (get_global('WINNER') == 0) {
+        setWinner('Blue Team Wins')
+      }
+      if (get_global('WINNER') == 1) {
+        setWinner('Red Team Wins')
+      } else if (get_global('WINNER') == 2) {
+        setWinner('Tied Match')
+      }
+      setPoints(get_global('INDIVIDUAL_SCORE') || 0)
+      setMvp(get_global('MVP_DATA'))
+    })
+
+    let closeListener = add_listener('SPECTATING', x => {
+      setVisible(false)
+    })
+    return () => {
+      remove_listener('GAME_OVER', listener)
+      remove_listener('SPECTATING', closeListener)
+    }
+  })
+
+  return (
+    &lt;Dialog
+      open={visible}
+      onClose={() => {
+        setVisible(false)
+      }}
+      maxWidth="md"
+      fullWidth
+      PaperProps={{
+        style: {
+          height: '50%',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          width: '40%',
+          borderRadius: 15,
+          boxShadow: '0px 15px 30px 15px #000000',
+          elevation: 5,
+        },
+      }}
+    >
+      &lt;DialogContent
+        style={{
+          display: 'flex',
+          alignItems: 'stretch',
+          justifyContent: 'center',
+          flexDirection: 'column',
+          backgroundImage: bgUrl,
+          backgroundSize: '100% 100%',
+        }}
+      >
+        &lt;Box flex={1} flexDirection={'row'}>
+          &lt;Box flex={1}>&lt;/Box>
+          &lt;Box flex={1} justifyContent={'center'}>
+            &lt;Typography
+              variant="h4"
+              gutterBottom
+              style={{
+                display: 'flex',
+                width: '100%',
+                backgroundColor: 'transparent',
+                color: 'white',
+                justifyContent: 'center',
+                ...textStyle(5, true),
+                textDecoration: 'underline',
+              }}
+            >
+              {winner}
+            &lt;/Typography>
+          &lt;/Box>
+          &lt;Box flex={1} justifyContent={'center'}>
+            &lt;IconButton
+              edge="end"
+              onClick={() => {
+                setVisible(false)
+              }}
+              aria-label="close"
+              style={{ position: 'absolute', right: 20, top: 5 }}
+            >
+              &lt;CloseIcon style={{ color: 'white' }} />
+            &lt;/IconButton>
+          &lt;/Box>
+        &lt;/Box>
+        &lt;Box
+          flex={4}
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'stretch',
+          }}
+        >
+          &lt;Box
+            flex={1}
+            display={'flex'}
+            justifyContent={'center'}
+            flexDirection={'row'}
+            alignItems={'center'}
+          >
+            &lt;Box
+              flexShrink={1}
+              flexBasis={150}
+              display={'flex'}
+              alignItems={'center'}
+              justifyContent={'center'}
+              flexDirection={'column'}
+            >
+              &lt;Typography
+                style={{
+                  ...textStyle(5, true),
+                  color: '#b29146',
+                  zIndex: 1,
+                  width: '100%',
+                  textAlign: 'center',
+                }}
+              >
+                MVP
+              &lt;/Typography>
+              &lt;Box style={{ position: 'relative', marginTop: 5 }}>
+                &lt;img
+                  src={axe}
+                  alt="Cross Axes"
+                  style={{
+                    position: 'absolute',
+                    height: '200%',
+                    objectFit: 'contain',
+                    transform: 'translate(-25%, -25%)',
+                    elevation: 5,
+                  }}
+                />
+                &lt;Avatar
+                  src={mvp &amp;&amp; mvp.icon ? AVATARS[mvp.icon] : AVATARS[0]}
+                  alt="Profile Avatar"
+                  sx={{
+                    ...styles.avatarImage,
+                    position: 'relative',
+                    zIndex: 1,
+                    boxShadow: '0px 0px 20px 0px #000000',
+                  }}
+                />
+              &lt;/Box>
+              &lt;Typography
+                style={{ ...textStyle(5, true), zIndex: 1, color: '#ffffff' }}
+              >
+                {(mvp &amp;&amp; mvp.username) || 'Nobody'}
+              &lt;/Typography>
+            &lt;/Box>
+            &lt;Box
+              flexShrink={1}
+              flexBasis={100}
+              display={'flex'}
+              alignItems={'stretch'}
+              justifyContent={'center'}
+              flexDirection={'column'}
+            >
+              &lt;Typography
+                style={{
+                  ...textStyle(4, false),
+                  color: '#9c9c9c',
+                  wordSpacing: '0.2em',
+                  textAlign: 'center',
+                }}
+              >
+                {(mvp &amp;&amp; mvp.hits) || 0} KILL
+                {(mvp &amp;&amp; mvp.hits > 1 &amp;&amp; '') || 'S'}
+              &lt;/Typography>
+            &lt;/Box>
+            {points_earned != 0 &amp;&amp; (
+              &lt;Box
+                flexBasis={250}
+                display={'flex'}
+                flexDirection={'column'}
+                justifyContent={'space-around'}
+                alignItems={'stretch'}
+              >
+                &lt;Typography
+                  style={{
+                    ...textStyle(4, false),
+                    color: '#9c9c9c',
+                    wordSpacing: '0.2em',
+                    textAlign: 'center',
+                  }}
+                >
+                  You earned {points_earned} points!
+                &lt;/Typography>
+                &lt;Typography
+                  style={{
+                    ...textStyle(4, false),
+                    color: '#9c9c9c',
+                    wordSpacing: '0.2em',
+                    textAlign: 'center',
+                  }}
+                >
+                  {get_global('POINTS')
+                    ? `You have a grand total of ${get_global('POINTS')} points!`
+                    : 'Sign up or login to save your points!'}
+                &lt;/Typography>
+              &lt;/Box>
+            )}
+          &lt;/Box>
+
+          &lt;Box
+            flex={2}
+            alignItems={'center'}
+            justifyContent={'center'}
+            display={'flex'}
+          >
+            &lt;Button
+              variant="outlined"
+              style={{
+                fontFamily: 'Jorvik',
+                backgroundColor: 'white',
+                color: 'black',
+                fontSize: '22px',
+                zIndex: 1,
+              }}
+              onClick={() => {
+                setVisible(false)
+              }}
+            >
+              OK
+            &lt;/Button>
+          &lt;/Box>
+        &lt;/Box>
+        &lt;img
+          src={fire}
+          alt="Fire Image"
+          style={{
+            position: 'absolute',
+            bottom: 0,
+            width: '100%',
+            height: '25%',
+            opacity: 0.45,
+            left: 0,
+            zIndex: 0,
+          }}
+        />
+      &lt;/DialogContent>
+    &lt;/Dialog>
+  )
+}
+
+const styles = {
+  avatarImage: {
+    width: 100,
+    height: 100,
+    border: '4px solid black',
+  },
+}
+
+export default EndScreen
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="PlayerModel.html">PlayerModel</a></li></ul><h3>Global</h3><ul><li><a href="global.html#$g">$g</a></li><li><a href="global.html#AVATARS">AVATARS</a></li><li><a href="global.html#AVATAR_NAMES">AVATAR_NAMES</a></li><li><a href="global.html#AlertWrapper">AlertWrapper</a></li><li><a href="global.html#Announcer">Announcer</a></li><li><a href="global.html#AvatarSelector">AvatarSelector</a></li><li><a href="global.html#BALL_ANIMATIONS">BALL_ANIMATIONS</a></li><li><a href="global.html#BUYABLE_MODELS">BUYABLE_MODELS</a></li><li><a href="global.html#BuyConfirmationDialog">BuyConfirmationDialog</a></li><li><a href="global.html#CustomAlert">CustomAlert</a></li><li><a href="global.html#DeadOverlay">DeadOverlay</a></li><li><a href="global.html#Disconnected">Disconnected</a></li><li><a href="global.html#EndScreen">EndScreen</a></li><li><a href="global.html#Hx">Hx</a></li><li><a href="global.html#InGameMenu">InGameMenu</a></li><li><a href="global.html#Leaderboard">Leaderboard</a></li><li><a href="global.html#LogWrapper">LogWrapper</a></li><li><a href="global.html#LoggingWrapper">LoggingWrapper</a></li><li><a href="global.html#MESSAGES">MESSAGES</a></li><li><a href="global.html#MODEL_IDS">MODEL_IDS</a></li><li><a href="global.html#MODEL_PROPERTIES">MODEL_PROPERTIES</a></li><li><a href="global.html#Ng">Ng</a></li><li><a href="global.html#PORT">PORT</a></li><li><a href="global.html#PlayerStats">PlayerStats</a></li><li><a href="global.html#SettingsTabContent">SettingsTabContent</a></li><li><a href="global.html#Store">Store</a></li><li><a href="global.html#TEXTURES">TEXTURES</a></li><li><a href="global.html#TabInstructionsContent">TabInstructionsContent</a></li><li><a href="global.html#ToggleLoginScreen">ToggleLoginScreen</a></li><li><a href="global.html#ToggleSignUpScreen">ToggleSignUpScreen</a></li><li><a href="global.html#addBall">addBall</a></li><li><a href="global.html#addPlayer">addPlayer</a></li><li><a href="global.html#add_listener">add_listener</a></li><li><a href="global.html#animate">animate</a></li><li><a href="global.html#applyTransformations">applyTransformations</a></li><li><a href="global.html#assign_random">assign_random</a></li><li><a href="global.html#attachKeybinds">attachKeybinds</a></li><li><a href="global.html#broadcast">broadcast</a></li><li><a href="global.html#calculateDirection">calculateDirection</a></li><li><a href="global.html#clearBalls">clearBalls</a></li><li><a href="global.html#clearPlayers">clearPlayers</a></li><li><a href="global.html#colors">colors</a></li><li><a href="global.html#createBall">createBall</a></li><li><a href="global.html#createCamera">createCamera</a></li><li><a href="global.html#createPet">createPet</a></li><li><a href="global.html#createSpectateCamera">createSpectateCamera</a></li><li><a href="global.html#createWorld">createWorld</a></li><li><a href="global.html#deletePet">deletePet</a></li><li><a href="global.html#deletePlayer">deletePlayer</a></li><li><a href="global.html#doTick">doTick</a></li><li><a href="global.html#endState">endState</a></li><li><a href="global.html#forbiddenKeys">forbiddenKeys</a></li><li><a href="global.html#getAllPurchasedItems">getAllPurchasedItems</a></li><li><a href="global.html#getBallGroup">getBallGroup</a></li><li><a href="global.html#getCamera">getCamera</a></li><li><a href="global.html#getConnections">getConnections</a></li><li><a href="global.html#getLeaderboardList">getLeaderboardList</a></li><li><a href="global.html#getMetadataByPlayerID">getMetadataByPlayerID</a></li><li><a href="global.html#getModelInstance">getModelInstance</a></li><li><a href="global.html#getPlayerModelGroup">getPlayerModelGroup</a></li><li><a href="global.html#getPointsByUsernames">getPointsByUsernames</a></li><li><a href="global.html#getProgress">getProgress</a></li><li><a href="global.html#getSkybox">getSkybox</a></li><li><a href="global.html#getSocket">getSocket</a></li><li><a href="global.html#getSpectateCamera">getSpectateCamera</a></li><li><a href="global.html#getToken">getToken</a></li><li><a href="global.html#getUsername">getUsername</a></li><li><a href="global.html#get_global">get_global</a></li><li><a href="global.html#handleBuy">handleBuy</a></li><li><a href="global.html#handleConfirmBuy">handleConfirmBuy</a></li><li><a href="global.html#handleEquipChange">handleEquipChange</a></li><li><a href="global.html#handleItemUpdates">handleItemUpdates</a></li><li><a href="global.html#handleLogin">handleLogin</a></li><li><a href="global.html#handleSignup">handleSignup</a></li><li><a href="global.html#handleTokenLogin">handleTokenLogin</a></li><li><a href="global.html#isAlive">isAlive</a></li><li><a href="global.html#isGameOver">isGameOver</a></li><li><a href="global.html#keybinds">keybinds</a></li><li><a href="global.html#loadDefault">loadDefault</a></li><li><a href="global.html#login">login</a></li><li><a href="global.html#logout">logout</a></li><li><a href="global.html#main">main</a></li><li><a href="global.html#message_parse">message_parse</a></li><li><a href="global.html#onCloseDialog">onCloseDialog</a></li><li><a href="global.html#onKeyDown">onKeyDown</a></li><li><a href="global.html#onKeyUp">onKeyUp</a></li><li><a href="global.html#ownedPets">ownedPets</a></li><li><a href="global.html#ownedWeapons">ownedWeapons</a></li><li><a href="global.html#playerDeath">playerDeath</a></li><li><a href="global.html#print_globals">print_globals</a></li><li><a href="global.html#processMessage">processMessage</a></li><li><a href="global.html#properties">properties</a></li><li><a href="global.html#purchaseItem">purchaseItem</a></li><li><a href="global.html#removeBall">removeBall</a></li><li><a href="global.html#removePlayer">removePlayer</a></li><li><a href="global.html#remove_listener">remove_listener</a></li><li><a href="global.html#sT">sT</a></li><li><a href="global.html#sc">sc</a></li><li><a href="global.html#sendMovement">sendMovement</a></li><li><a href="global.html#setFinishCallback">setFinishCallback</a></li><li><a href="global.html#setHandler">setHandler</a></li><li><a href="global.html#setSpectate">setSpectate</a></li><li><a href="global.html#setState">setState</a></li><li><a href="global.html#set_global">set_global</a></li><li><a href="global.html#setupConnection">setupConnection</a></li><li><a href="global.html#setupWSS">setupWSS</a></li><li><a href="global.html#signup">signup</a></li><li><a href="global.html#startServer">startServer</a></li><li><a href="global.html#startState">startState</a></li><li><a href="global.html#stopServer">stopServer</a></li><li><a href="global.html#styles">styles</a></li><li><a href="global.html#textStyle">textStyle</a></li><li><a href="global.html#throwBall">throwBall</a></li><li><a href="global.html#tn">tn</a></li><li><a href="global.html#tokenLogin">tokenLogin</a></li><li><a href="global.html#update">update</a></li><li><a href="global.html#updateAspect">updateAspect</a></li><li><a href="global.html#updateBalls">updateBalls</a></li><li><a href="global.html#updateHits">updateHits</a></li><li><a href="global.html#updateItems">updateItems</a></li><li><a href="global.html#updateLoss">updateLoss</a></li><li><a href="global.html#updateModelList">updateModelList</a></li><li><a href="global.html#updatePlayer">updatePlayer</a></li><li><a href="global.html#updatePlayers">updatePlayers</a></li><li><a href="global.html#updatePoints">updatePoints</a></li><li><a href="global.html#updateSpectateCamera">updateSpectateCamera</a></li><li><a href="global.html#updateWin">updateWin</a></li><li><a href="global.html#useEffect">useEffect</a></li><li><a href="global.html#websocketSetup">websocketSetup</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Fri Mar 15 2024 18:12:19 GMT-0700 (Pacific Daylight Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

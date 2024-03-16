@@ -8,7 +8,7 @@
     "watch-client": "npm run watch --prefix client/",
     "serve": "nodemon index.js",
     "start": "concurrently -k \"npm run watch-client\" \"npm run serve\"",
-    "test": "mocha db/database.cjs"
+    "test": "mocha db/dbTest.cjs"
   },
   "keywords": [],
   "author": "",

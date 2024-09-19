@@ -2,11 +2,11 @@
 
 [![Release](https://img.shields.io/github/v/release/melaasar/cs130-template?label=release)](https://github.com/melaasar/cs130-template/releases/latest)
 
-Balhalla is a viking-themed .IO game of dodgeball that has a unique ghost mechanic after being elimated. We developed this project with an emphasis on 3D FPS accessibility for lower-performance devices and a focus on fun gameplay over graphics.
+Balhalla is a viking-themed .IO game of dodgeball that has a unique ghost mechanic after being eliminated. We developed this project with an emphasis on 3D FPS accessibility for lower-performance devices and a focus on fun gameplay over graphics.
 
 ## Building
 
-The source code for Balhalla in this repository can be triggered to build using the following methods. We highly recommand that you use Replit due to its quality-of-life features.
+The source code for Balhalla in this repository can be triggered to build using the following methods. We highly recommend that you use Replit due to its quality-of-life features.
 
 ### Replit (Preferred)
 
